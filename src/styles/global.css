@@ -18,11 +18,16 @@
   --fg-muted: #a2a5b4;
   --fg-dim: #6f7283;
 
-  /* Accent (brand-swappable) */
-  --accent: #6366f1;
-  --accent-2: #a855f7;
+  /* Accent — sampled from the Marketing Solutions logo (teal → blue → violet) */
+  --brand-teal: #23c6aa;
+  --brand-blue: #4a92e0;
+  --brand-violet: #7b6ce0;
+  --accent: #4a92e0; /* solo accent: eyebrow, links, active, borders */
+  --accent-2: #7b6ce0; /* gradient partner */
   --accent-fg: #ffffff;
-  --accent-glow: rgba(99, 102, 241, 0.35);
+  --accent-glow: rgba(74, 146, 224, 0.32);
+  /* full brand sweep, used for hero text + primary buttons */
+  --brand-gradient: linear-gradient(115deg, var(--brand-teal) 0%, var(--brand-blue) 50%, var(--brand-violet) 100%);
 
   /* Lines */
   --border: rgba(255, 255, 255, 0.08);
@@ -59,8 +64,8 @@ html {
 body {
   margin: 0;
   background:
-    radial-gradient(1200px 600px at 50% -10%, rgba(99, 102, 241, 0.12), transparent 60%),
-    radial-gradient(900px 500px at 100% 0%, rgba(168, 85, 247, 0.08), transparent 55%),
+    radial-gradient(1200px 600px at 15% -10%, rgba(35, 198, 170, 0.12), transparent 60%),
+    radial-gradient(1000px 600px at 90% 0%, rgba(123, 108, 224, 0.12), transparent 58%),
     var(--bg);
   color: var(--fg);
   font-family: var(--font-body);
@@ -119,7 +124,7 @@ button {
 }
 
 .gradient-text {
-  background: linear-gradient(120deg, var(--fg) 20%, var(--accent) 70%, var(--accent-2));
+  background: linear-gradient(115deg, var(--brand-teal), var(--brand-blue) 55%, var(--brand-violet));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -144,7 +149,7 @@ button {
   border-color: var(--accent);
 }
 .btn-primary {
-  background: linear-gradient(120deg, var(--accent), var(--accent-2));
+  background: var(--brand-gradient);
   border-color: transparent;
   color: var(--accent-fg);
   box-shadow: 0 8px 30px var(--accent-glow);
