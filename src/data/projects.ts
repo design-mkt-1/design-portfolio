@@ -122,9 +122,11 @@ export const projects: Project[] = [
       mkMedia('winboss', 'videos', 'brand-intro', 'Brand Intro', ['1x1', '9x16', '16x9']),
     ],
     landings: [
-      mkLanding('winboss', 'homepage', 'Homepage', ['mobile', 'desktop']),
-      mkLanding('winboss', 'promo', 'Promo', ['mobile', 'desktop']),
-      mkLanding('winboss', 'vip', 'VIP', ['mobile']),
+      {
+        title: '27735 - AlbaNeagra',
+        mobile: 'assets/winboss/landings/27735 - AlbaNeagra/mobile_albaneagra.webp',
+        desktop: 'assets/winboss/landings/27735 - AlbaNeagra/desktop_albaneagra.webp',
+      },
     ],
   },
   {
