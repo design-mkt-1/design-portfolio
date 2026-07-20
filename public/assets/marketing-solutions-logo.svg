@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="200" viewBox="0 0 720 200">
+  <defs><linearGradient id="mg" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#f5f6fa"/><stop offset="55%" stop-color="#6366f1"/><stop offset="100%" stop-color="#a855f7"/>
+  </linearGradient></defs>
+  <g transform="translate(44, 100)">
+    <path d="M -30 34 L -30 -34 L 0 6 L 30 -34 L 30 34" fill="none" stroke="url(#mg)" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+  </g>
+  <text x="112" y="88" font-family="-apple-system, 'Segoe UI', Roboto, Arial, sans-serif" font-size="52" font-weight="800" fill="url(#mg)" letter-spacing="-1">Marketing</text>
+  <text x="112" y="148" font-family="-apple-system, 'Segoe UI', Roboto, Arial, sans-serif" font-size="52" font-weight="800" fill="#f5f6fa" letter-spacing="-1">Solutions</text>
+</svg>

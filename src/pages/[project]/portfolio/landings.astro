@@ -1,0 +1,47 @@
+---
+import Base from '../../../layouts/Base.astro';
+import LandingsGallery from '../../../components/LandingsGallery.astro';
+import { url } from '../../../lib/site';
+import { projects, getProject } from '../../../data/projects';
+
+export function getStaticPaths() {
+  return projects.filter((p) => p.landings.length > 0).map((p) => ({ params: { project: p.slug } }));
+}
+
+const { project } = Astro.params;
+const p = getProject(project!)!;
+---
+
+<Base
+  title={`${p.name} Landings — Marketing Solutions`}
+  crumbs={[
+    { label: 'Projects', href: '/' },
+    { label: p.name, href: `/${p.slug}` },
+    { label: 'Portfolio', href: `/${p.slug}/portfolio` },
+    { label: 'Landings' },
+  ]}
+>
+  <section class="container head">
+    <a class="backlink reveal" href={url(`/${p.slug}/portfolio`)}>← Portfolio</a>
+    <h1 class="reveal">{p.name} <span class="muted">Landings</span></h1>
+    <p class="lede muted reveal">Landing page designs. Click any to view full-size.</p>
+  </section>
+
+  <section class="container">
+    <LandingsGallery images={p.landings} alt={p.name} />
+  </section>
+</Base>
+
+<style>
+  .head {
+    padding-top: 40px;
+    margin-bottom: 28px;
+  }
+  h1 {
+    font-size: clamp(1.8rem, 4.5vw, 2.6rem);
+    margin: 18px 0 6px;
+  }
+  .lede {
+    font-size: 1.02rem;
+  }
+</style>

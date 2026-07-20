@@ -1,0 +1,75 @@
+---
+import Base from '../../layouts/Base.astro';
+import { url } from '../../lib/site';
+import { projects, getProject } from '../../data/projects';
+
+export function getStaticPaths() {
+  return projects.filter((p) => p.brandbook).map((p) => ({ params: { project: p.slug } }));
+}
+
+const { project } = Astro.params;
+const p = getProject(project!)!;
+const bb = p.brandbook!;
+const src = bb.type === 'pdf' ? url(bb.url) : bb.url;
+---
+
+<Base
+  title={`${p.name} Brand Book — Marketing Solutions`}
+  crumbs={[{ label: 'Projects', href: '/' }, { label: p.name, href: `/${p.slug}` }, { label: 'Brand Book' }]}
+>
+  <section class="container head">
+    <a class="backlink reveal" href={url(`/${p.slug}`)}>← {p.name}</a>
+    <div class="row reveal">
+      <h1>{p.name} <span class="muted">Brand Book</span></h1>
+      {
+        bb.type === 'pdf' ? (
+          <a class="btn" href={src} download>
+            Download PDF
+          </a>
+        ) : (
+          <a class="btn" href={bb.url} target="_blank" rel="noopener">
+            Open in Figma
+          </a>
+        )
+      }
+    </div>
+  </section>
+
+  <section class="container viewer-wrap reveal">
+    {
+      bb.type === 'figma' ? (
+        <iframe class="viewer" src={src} allowfullscreen title={`${p.name} brand book`} />
+      ) : (
+        <iframe class="viewer" src={`${src}#view=FitH`} title={`${p.name} brand book`} />
+      )
+    }
+  </section>
+</Base>
+
+<style>
+  .head {
+    padding-top: 40px;
+  }
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 20px 0 24px;
+    flex-wrap: wrap;
+  }
+  h1 {
+    font-size: clamp(1.7rem, 4vw, 2.4rem);
+  }
+  .viewer-wrap {
+    padding-bottom: 40px;
+  }
+  .viewer {
+    width: 100%;
+    height: min(78vh, 900px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-elev);
+    box-shadow: var(--shadow);
+  }
+</style>

@@ -1,0 +1,117 @@
+---
+import { url } from '../lib/site';
+import { projects, hasPortfolio } from '../data/projects';
+
+const accents: Record<string, string> = {
+  winboss: '#f5b301',
+  win2: '#22d3ee',
+  fansport: '#34d399',
+  topbet: '#fb7185',
+};
+
+function tags(slug: string): string[] {
+  const p = projects.find((x) => x.slug === slug)!;
+  const t: string[] = [];
+  if (p.brandbook) t.push('Brandbook');
+  if (hasPortfolio(p)) t.push('Portfolio');
+  return t;
+}
+---
+
+<div class="grid">
+  {
+    projects.map((p) => (
+      <a class="card reveal" href={url(`/${p.slug}`)} style={`--card-accent:${accents[p.slug] ?? 'var(--accent)'}`}>
+        <span class="glow" aria-hidden="true" />
+        <span class="logo-wrap">
+          <img src={url(p.logo)} alt={`${p.name} logo`} loading="lazy" />
+        </span>
+        <span class="meta">
+          <span class="name">{p.name}</span>
+          <span class="tags">
+            {tags(p.slug).map((t) => (
+              <span class="tag">{t}</span>
+            ))}
+          </span>
+        </span>
+      </a>
+    ))
+  }
+</div>
+
+<style>
+  .grid {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
+  .card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 28px;
+    min-height: 240px;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015));
+    border: 1px solid var(--border);
+    overflow: hidden;
+    transition: transform 0.35s var(--ease-expo), border-color 0.35s;
+  }
+  .glow {
+    position: absolute;
+    inset: -1px;
+    background: radial-gradient(500px 240px at 50% -10%, color-mix(in srgb, var(--card-accent) 30%, transparent), transparent 65%);
+    opacity: 0.5;
+    transition: opacity 0.4s;
+    pointer-events: none;
+  }
+  .card:hover {
+    transform: translateY(-6px);
+    border-color: color-mix(in srgb, var(--card-accent) 55%, transparent);
+  }
+  .card:hover .glow {
+    opacity: 1;
+  }
+  .logo-wrap {
+    flex: 1;
+    display: grid;
+    place-items: center;
+    padding: 12px;
+  }
+  .logo-wrap img {
+    max-height: 92px;
+    max-width: 80%;
+    width: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 6px 24px rgba(0, 0, 0, 0.4));
+  }
+  .meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    position: relative;
+  }
+  .name {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.15rem;
+  }
+  .tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .tag {
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: var(--fg-muted);
+    padding: 3px 9px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.25);
+  }
+</style>

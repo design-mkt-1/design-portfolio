@@ -1,0 +1,197 @@
+/* =========================================================================
+   Marketing Solutions — Design Portfolio
+   Dark showcase theme. Design tokens sourced from ui-ux-pro-max
+   ("Modern Dark / Cinema" style + gallery palette, Archivo / Space Grotesk).
+   Swap --accent / --accent-2 for the exact Marketing Solutions brand color
+   once the logo is in.
+   ========================================================================= */
+
+:root {
+  /* Surfaces (avoid pure #000 to prevent OLED smear) */
+  --bg: #0b0b12;
+  --bg-elev: #14141f;
+  --bg-elev-2: #1b1b28;
+  --bg-glass: rgba(20, 20, 31, 0.6);
+
+  /* Text */
+  --fg: #f5f6fa;
+  --fg-muted: #a2a5b4;
+  --fg-dim: #6f7283;
+
+  /* Accent (brand-swappable) */
+  --accent: #6366f1;
+  --accent-2: #a855f7;
+  --accent-fg: #ffffff;
+  --accent-glow: rgba(99, 102, 241, 0.35);
+
+  /* Lines */
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+
+  /* Typography */
+  --font-display: 'Archivo', system-ui, -apple-system, sans-serif;
+  --font-body: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+
+  /* Radius / spacing / shadow */
+  --radius: 16px;
+  --radius-sm: 10px;
+  --radius-lg: 24px;
+  --shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+  --shadow-glow: 0 0 0 1px var(--border), 0 20px 60px rgba(0, 0, 0, 0.5);
+
+  /* Motion */
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --maxw: 1200px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(1200px 600px at 50% -10%, rgba(99, 102, 241, 0.12), transparent 60%),
+    radial-gradient(900px 500px at 100% 0%, rgba(168, 85, 247, 0.08), transparent 55%),
+    var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img,
+video {
+  max-width: 100%;
+  display: block;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* ---- Layout helpers ---- */
+.container {
+  width: 100%;
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.eyebrow {
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.muted {
+  color: var(--fg-muted);
+}
+
+.gradient-text {
+  background: linear-gradient(120deg, var(--fg) 20%, var(--accent) 70%, var(--accent-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ---- Buttons ---- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 22px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-elev);
+  color: var(--fg);
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: transform 0.2s var(--ease-expo), background 0.2s, border-color 0.2s;
+}
+.btn:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+}
+.btn-primary {
+  background: linear-gradient(120deg, var(--accent), var(--accent-2));
+  border-color: transparent;
+  color: var(--accent-fg);
+  box-shadow: 0 8px 30px var(--accent-glow);
+}
+
+/* ---- Back link ---- */
+.backlink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--fg-muted);
+  font-size: 0.9rem;
+  transition: color 0.2s;
+}
+.backlink:hover {
+  color: var(--fg);
+}
+
+/* ---- Scroll-reveal (staggered, expo) ---- */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px) scale(0.98);
+  transition:
+    opacity 0.5s var(--ease-expo),
+    transform 0.5s var(--ease-expo);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---- Focus visibility ---- */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}

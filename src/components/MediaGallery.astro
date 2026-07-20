@@ -1,0 +1,403 @@
+---
+import { url, isVideoFile } from '../lib/site';
+import { SIZE_ORDER, SIZE_LABEL, SIZE_RATIO, availableSizes, firstSize, type MediaItem } from '../data/projects';
+
+interface Props {
+  items: MediaItem[];
+  kind: 'banner' | 'video';
+}
+const { items, kind } = Astro.props;
+
+// Resolve every referenced path to a final URL so the client script is base-safe.
+const payload = items.map((item) => ({
+  title: item.title,
+  sizes: SIZE_ORDER.filter((k) => item.sizes[k]).map((k) => ({
+    key: k,
+    label: SIZE_LABEL[k],
+    ratio: SIZE_RATIO[k],
+    src: url(item.sizes[k]!),
+    video: isVideoFile(item.sizes[k]!),
+  })),
+}));
+---
+
+<div class="gallery" data-kind={kind}>
+  {
+    items.map((item, i) => {
+      const thumb = firstSize(item)!;
+      const count = availableSizes(item).length;
+      return (
+        <button class="tile reveal" data-index={i} aria-haspopup="dialog">
+          <span class="thumb">
+            {isVideoFile(thumb) ? (
+              <video src={url(thumb)} muted playsinline preload="metadata" />
+            ) : (
+              <img src={url(thumb)} alt={item.title} loading="lazy" />
+            )}
+            {kind === 'video' && (
+              <span class="play" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+              </span>
+            )}
+            <span class="hover-cta">View all sizes</span>
+          </span>
+          <span class="tile-meta">
+            <span class="tile-title">{item.title}</span>
+            <span class="tile-count">{count} {count === 1 ? 'size' : 'sizes'}</span>
+          </span>
+        </button>
+      );
+    })
+  }
+</div>
+
+<script type="application/json" id="gallery-data" set:html={JSON.stringify(payload)} />
+
+<!-- Lightbox -->
+<div class="lb" id="lightbox" role="dialog" aria-modal="true" aria-label="Media viewer" hidden>
+  <button class="lb-close" aria-label="Close (Esc)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+  </button>
+  <button class="lb-nav lb-prev" aria-label="Previous">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6" /></svg>
+  </button>
+  <button class="lb-nav lb-next" aria-label="Next">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6" /></svg>
+  </button>
+
+  <div class="lb-inner" role="document">
+    <div class="lb-stage" id="lb-stage"></div>
+    <div class="lb-bar">
+      <div class="lb-title" id="lb-title"></div>
+      <div class="lb-sizes" id="lb-sizes" role="tablist" aria-label="Sizes"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const dataEl = document.getElementById('gallery-data');
+  const items = dataEl ? JSON.parse(dataEl.textContent || '[]') : [];
+  const lb = document.getElementById('lightbox')!;
+  const stage = document.getElementById('lb-stage')!;
+  const titleEl = document.getElementById('lb-title')!;
+  const sizesEl = document.getElementById('lb-sizes')!;
+
+  let current = 0;
+  let sizeIdx = 0;
+  let lastFocus: HTMLElement | null = null;
+
+  function renderMedia() {
+    const item = items[current];
+    const size = item.sizes[sizeIdx];
+    stage.innerHTML = '';
+    let el: HTMLElement;
+    if (size.video) {
+      const v = document.createElement('video');
+      v.src = size.src;
+      v.controls = true;
+      v.autoplay = true;
+      v.loop = true;
+      v.muted = true;
+      (v as HTMLVideoElement).playsInline = true;
+      el = v;
+    } else {
+      const img = document.createElement('img');
+      img.src = size.src;
+      img.alt = item.title;
+      el = img;
+    }
+    stage.appendChild(el);
+  }
+
+  function renderSizes() {
+    const item = items[current];
+    titleEl.textContent = item.title;
+    sizesEl.innerHTML = '';
+    item.sizes.forEach((s: any, i: number) => {
+      const b = document.createElement('button');
+      b.className = 'lb-size' + (i === sizeIdx ? ' active' : '');
+      b.setAttribute('role', 'tab');
+      b.setAttribute('aria-selected', i === sizeIdx ? 'true' : 'false');
+      b.innerHTML = `<strong>${s.key.replace('x', ':')}</strong><span>${s.label}</span>`;
+      b.addEventListener('click', () => {
+        sizeIdx = i;
+        renderSizes();
+        renderMedia();
+      });
+      sizesEl.appendChild(b);
+    });
+  }
+
+  function open(i: number) {
+    current = i;
+    sizeIdx = 0;
+    lastFocus = document.activeElement as HTMLElement;
+    lb.hidden = false;
+    document.body.style.overflow = 'hidden';
+    renderSizes();
+    renderMedia();
+    (lb.querySelector('.lb-close') as HTMLElement)?.focus();
+  }
+
+  function close() {
+    lb.hidden = true;
+    document.body.style.overflow = '';
+    stage.innerHTML = '';
+    lastFocus?.focus();
+  }
+
+  function step(dir: number) {
+    current = (current + dir + items.length) % items.length;
+    sizeIdx = 0;
+    renderSizes();
+    renderMedia();
+  }
+
+  document.querySelectorAll<HTMLElement>('.tile').forEach((tile) => {
+    tile.addEventListener('click', () => open(Number(tile.dataset.index)));
+  });
+  lb.querySelector('.lb-close')?.addEventListener('click', close);
+  lb.querySelector('.lb-prev')?.addEventListener('click', () => step(-1));
+  lb.querySelector('.lb-next')?.addEventListener('click', () => step(1));
+  lb.addEventListener('click', (e) => {
+    if (e.target === lb) close();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (lb.hidden) return;
+    if (e.key === 'Escape') close();
+    else if (e.key === 'ArrowRight') step(1);
+    else if (e.key === 'ArrowLeft') step(-1);
+  });
+</script>
+
+<style>
+  .gallery {
+    display: grid;
+    gap: 18px;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  }
+  .tile {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 0;
+    background: none;
+    border: none;
+    text-align: left;
+    color: inherit;
+  }
+  .thumb {
+    position: relative;
+    display: block;
+    aspect-ratio: 1 / 1;
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
+    transition: transform 0.3s var(--ease-expo), border-color 0.3s, box-shadow 0.3s;
+  }
+  .thumb img,
+  .thumb video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .tile:hover .thumb {
+    transform: translateY(-4px);
+    border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.5);
+  }
+  .play {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: #fff;
+  }
+  .play svg {
+    width: 54px;
+    height: 54px;
+    padding: 14px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+  .hover-cta {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 26px 14px 12px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #fff;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.3s, transform 0.3s var(--ease-expo);
+  }
+  .tile:hover .hover-cta {
+    opacity: 1;
+    transform: none;
+  }
+  .tile-meta {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 0 4px;
+  }
+  .tile-title {
+    font-weight: 600;
+    font-size: 0.98rem;
+  }
+  .tile-count {
+    font-size: 0.78rem;
+    color: var(--fg-muted);
+  }
+
+  /* Lightbox */
+  .lb[hidden] {
+    display: none;
+  }
+  .lb {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: rgba(5, 5, 9, 0.86);
+    backdrop-filter: blur(10px);
+    animation: fade 0.2s var(--ease-expo);
+  }
+  @keyframes fade {
+    from {
+      opacity: 0;
+    }
+  }
+  .lb-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    max-width: min(94vw, 1100px);
+    max-height: 90vh;
+  }
+  .lb-stage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: min(94vw, 1100px);
+    height: 72vh;
+  }
+  /* media element is created dynamically in JS → must be :global to receive styles */
+  .lb-stage :global(img),
+  .lb-stage :global(video) {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: 12px;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+    background: #000;
+  }
+  .lb-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+  }
+  .lb-title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.15rem;
+  }
+  .lb-sizes {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  /* size buttons are created dynamically in JS → :global so styles apply */
+  .lb-sizes :global(.lb-size) {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1px;
+    padding: 7px 13px;
+    border-radius: 10px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    color: var(--fg-muted);
+    line-height: 1.2;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  .lb-sizes :global(.lb-size strong) {
+    font-size: 0.9rem;
+    color: var(--fg);
+  }
+  .lb-sizes :global(.lb-size span) {
+    font-size: 0.68rem;
+  }
+  .lb-sizes :global(.lb-size:hover) {
+    border-color: var(--accent);
+  }
+  .lb-sizes :global(.lb-size.active) {
+    background: color-mix(in srgb, var(--accent) 20%, transparent);
+    border-color: var(--accent);
+    color: var(--fg);
+  }
+  .lb-close,
+  .lb-nav {
+    position: fixed;
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 999px;
+    background: rgba(20, 20, 31, 0.7);
+    border: 1px solid var(--border);
+    color: var(--fg);
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .lb-close:hover,
+  .lb-nav:hover {
+    border-color: var(--accent);
+    background: var(--bg-elev-2);
+  }
+  .lb-close {
+    top: 20px;
+    right: 20px;
+  }
+  .lb-close svg,
+  .lb-nav svg {
+    width: 22px;
+    height: 22px;
+  }
+  .lb-nav {
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .lb-prev {
+    left: 18px;
+  }
+  .lb-next {
+    right: 18px;
+  }
+  @media (max-width: 640px) {
+    .lb-nav {
+      top: auto;
+      bottom: 20px;
+      transform: none;
+    }
+    .lb-prev {
+      left: 30%;
+    }
+    .lb-next {
+      right: 30%;
+    }
+  }
+</style>
