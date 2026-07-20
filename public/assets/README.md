@@ -3,6 +3,12 @@
 Drop your files into these folders and the site picks them up. Filenames matter for
 banners/videos (the size names below); for logos, landings, and brandbooks any name works.
 
+## Naming convention (item folders)
+
+Each banner, video, and landing lives in its own folder named with its **5-digit code + name**,
+e.g. `27735 - AlbaNeagra`. Inside that folder go the size/device files (below). The code + name
+is also shown as the item's title on the site.
+
 ## Marketing Solutions logo
 
 Put the main logo here:
@@ -69,11 +75,8 @@ export (full-length screenshot from Figma). Mobile leads — it's shown first an
 in the viewer. Include only the versions you have.
 
 ```
-public/assets/winboss/landings/homepage/mobile.jpg     portrait, full page
-public/assets/winboss/landings/homepage/desktop.jpg    wide, full page
-public/assets/winboss/landings/promo/mobile.jpg
-public/assets/winboss/landings/promo/desktop.jpg
-public/assets/winboss/landings/vip/mobile.jpg          (mobile only is fine)
+public/assets/winboss/landings/27735 - AlbaNeagra/mobile.jpg     portrait, full page
+public/assets/winboss/landings/27735 - AlbaNeagra/desktop.jpg    wide, full page
 ```
 
 Exporting from Figma: select the frame → Export → PNG (or JPG). Use the mobile frame for
