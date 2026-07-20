@@ -24,11 +24,11 @@ const p = getProject(project!)!;
   <section class="container head">
     <a class="backlink reveal" href={url(`/${p.slug}/portfolio`)}>← Portfolio</a>
     <h1 class="reveal">{p.name} <span class="muted">Landings</span></h1>
-    <p class="lede muted reveal">Landing page designs. Click any to view full-size.</p>
+    <p class="lede muted reveal">Mobile-first. Tap any landing to view it full-length and switch between mobile and desktop.</p>
   </section>
 
   <section class="container">
-    <LandingsGallery images={p.landings} alt={p.name} />
+    <LandingsGallery items={p.landings} alt={p.name} />
   </section>
 </Base>
 

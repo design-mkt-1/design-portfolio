@@ -39,6 +39,23 @@ export interface Brandbook {
   url: string;
 }
 
+export type Device = 'mobile' | 'desktop';
+
+/** Device order: mobile first — gambling products are mobile-led. */
+export const DEVICE_ORDER: Device[] = ['mobile', 'desktop'];
+
+export const DEVICE_LABEL: Record<Device, string> = {
+  mobile: 'Mobile',
+  desktop: 'Desktop',
+};
+
+export interface LandingItem {
+  title: string;
+  /** device -> image path under /public. Include only the versions that exist. */
+  mobile?: string;
+  desktop?: string;
+}
+
 export interface Project {
   slug: string;
   name: string;
@@ -49,7 +66,7 @@ export interface Project {
   brandbook?: Brandbook;
   banners: MediaItem[];
   videos: MediaItem[];
-  landings: string[];
+  landings: LandingItem[];
 }
 
 // ---- helpers ----------------------------------------------------------------
@@ -66,12 +83,25 @@ export function availableSizes(item: MediaItem): SizeKey[] {
   return SIZE_ORDER.filter((k) => item.sizes[k]);
 }
 
+export function availableDevices(item: LandingItem): Device[] {
+  return DEVICE_ORDER.filter((d) => item[d]);
+}
+
+/** Preferred preview for a landing tile: mobile first, else desktop. */
+export function landingThumb(item: LandingItem): string | undefined {
+  return item.mobile ?? item.desktop;
+}
+
 // -- placeholder path helpers (kept terse so the data reads cleanly) ----------
 const ph = (slug: string, kind: string, name: string, size: SizeKey) =>
   `assets/${slug}/${kind}/${name}/${size}.svg`;
 const mkMedia = (slug: string, kind: 'banners' | 'videos', name: string, title: string, sizes: SizeKey[]): MediaItem => ({
   title,
   sizes: Object.fromEntries(sizes.map((s) => [s, ph(slug, kind, name, s)])) as MediaItem['sizes'],
+});
+const mkLanding = (slug: string, name: string, title: string, devices: Device[]): LandingItem => ({
+  title,
+  ...Object.fromEntries(devices.map((d) => [d, `assets/${slug}/landings/${name}/${d}.svg`])),
 });
 
 // ---- catalog ----------------------------------------------------------------
@@ -92,9 +122,9 @@ export const projects: Project[] = [
       mkMedia('winboss', 'videos', 'brand-intro', 'Brand Intro', ['1x1', '9x16', '16x9']),
     ],
     landings: [
-      'assets/winboss/landings/homepage.svg',
-      'assets/winboss/landings/promo.svg',
-      'assets/winboss/landings/vip.svg',
+      mkLanding('winboss', 'homepage', 'Homepage', ['mobile', 'desktop']),
+      mkLanding('winboss', 'promo', 'Promo', ['mobile', 'desktop']),
+      mkLanding('winboss', 'vip', 'VIP', ['mobile']),
     ],
   },
   {
@@ -110,8 +140,8 @@ export const projects: Project[] = [
       mkMedia('win2', 'videos', 'promo-teaser', 'Promo Teaser', ['1x1', '9x16', '16x9']),
     ],
     landings: [
-      'assets/win2/landings/homepage.svg',
-      'assets/win2/landings/offer.svg',
+      mkLanding('win2', 'homepage', 'Homepage', ['mobile', 'desktop']),
+      mkLanding('win2', 'offer', 'Offer', ['mobile', 'desktop']),
     ],
   },
   {

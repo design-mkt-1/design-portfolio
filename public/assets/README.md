@@ -62,15 +62,23 @@ public/assets/win2/videos/launch/4x5.mp4     1080×1350  (optional)
 
 `.mp4` (and `.webm`) work.
 
-## Landings (images)
+## Landings (images — mobile + desktop)
 
-Just drop landing screenshots straight into the project's `landings/` folder — any filenames.
-They show as a gallery.
+Each landing is its own subfolder inside `landings/`, with a **mobile** and/or **desktop**
+export (full-length screenshot from Figma). Mobile leads — it's shown first and is the default
+in the viewer. Include only the versions you have.
 
 ```
-public/assets/winboss/landings/homepage.jpg
-public/assets/winboss/landings/promo-page.jpg
+public/assets/winboss/landings/homepage/mobile.jpg     portrait, full page
+public/assets/winboss/landings/homepage/desktop.jpg    wide, full page
+public/assets/winboss/landings/promo/mobile.jpg
+public/assets/winboss/landings/promo/desktop.jpg
+public/assets/winboss/landings/vip/mobile.jpg          (mobile only is fine)
 ```
+
+Exporting from Figma: select the frame → Export → PNG (or JPG). Use the mobile frame for
+`mobile` and the desktop frame for `desktop`. `.jpg`, `.png`, and `.webp` all work. The tile
+shows the top of the mobile page; clicking opens the full-length page with a Mobile/Desktop toggle.
 
 ---
 

@@ -96,34 +96,55 @@ function msLogo() {
 </svg>`;
 }
 
-function landing({ brand, accent, label }) {
-  const w = 1200;
-  const h = 1600;
+function landing({ brand, accent, label, device }) {
+  const mobile = device === 'mobile';
+  const w = mobile ? 900 : 1440;
+  const h = mobile ? 1950 : 1650;
+  const pad = mobile ? 50 : 80;
+  const cw = w - pad * 2;
+  const heroSize = mobile ? 78 : 104;
+  // section helpers
+  const bar = (x, y, bw, bh, o) => `<rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="${bh / 2}" fill="rgba(255,255,255,${o})"/>`;
+  const nav = mobile
+    ? `${bar(pad, 46, 120, 30, 0.9).replace(/rgba\([^)]*\)/, accent)}
+       <rect x="${w - pad - 46}" y="42" width="46" height="38" rx="10" fill="rgba(255,255,255,0.12)"/>
+       <line x1="${w - pad - 34}" y1="55" x2="${w - pad - 12}" y2="55" stroke="#fff" stroke-width="3"/>
+       <line x1="${w - pad - 34}" y1="63" x2="${w - pad - 12}" y2="63" stroke="#fff" stroke-width="3"/>
+       <line x1="${w - pad - 34}" y1="71" x2="${w - pad - 12}" y2="71" stroke="#fff" stroke-width="3"/>`
+    : `<rect x="${pad}" y="46" width="150" height="34" rx="17" fill="${accent}"/>
+       <rect x="${w - pad - 430}" y="48" width="90" height="30" rx="15" fill="rgba(255,255,255,0.14)"/>
+       <rect x="${w - pad - 330}" y="48" width="90" height="30" rx="15" fill="rgba(255,255,255,0.14)"/>
+       <rect x="${w - pad - 230}" y="48" width="90" height="30" rx="15" fill="rgba(255,255,255,0.14)"/>
+       <rect x="${w - pad - 120}" y="46" width="120" height="34" rx="17" fill="${accent}"/>`;
+  const heroY = mobile ? 260 : 300;
+  const ctaY = mobile ? heroY + 130 : heroY + 150;
+  const mediaY = mobile ? ctaY + 130 : ctaY + 130;
+  const mediaH = mobile ? 460 : 560;
+  const cardsY = mediaY + mediaH + 90;
+  const cards = mobile
+    ? `<rect x="${pad}" y="${cardsY}" width="${cw}" height="200" rx="20" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.08)"/>
+       <rect x="${pad}" y="${cardsY + 230}" width="${cw}" height="200" rx="20" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.08)"/>`
+    : `<rect x="${pad}" y="${cardsY}" width="${(cw - 80) / 3}" height="320" rx="20" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.08)"/>
+       <rect x="${pad + (cw - 80) / 3 + 40}" y="${cardsY}" width="${(cw - 80) / 3}" height="320" rx="20" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.08)"/>
+       <rect x="${pad + ((cw - 80) / 3 + 40) * 2}" y="${cardsY}" width="${(cw - 80) / 3}" height="320" rx="20" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.08)"/>`;
+  const badge = mobile ? 'MOBILE' : 'DESKTOP';
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
   <defs><radialGradient id="lg" cx="50%" cy="0%" r="70%">
-    <stop offset="0%" stop-color="${accent}" stop-opacity="0.3"/><stop offset="100%" stop-color="#0b0b12" stop-opacity="0"/>
+    <stop offset="0%" stop-color="${accent}" stop-opacity="0.32"/><stop offset="100%" stop-color="#0b0b12" stop-opacity="0"/>
   </radialGradient></defs>
   <rect width="${w}" height="${h}" fill="#0a0a10"/>
   <rect width="${w}" height="${h}" fill="url(#lg)"/>
-  <!-- nav -->
-  <rect x="60" y="50" width="150" height="34" rx="17" fill="${accent}" opacity="0.9"/>
-  <rect x="820" y="52" width="90" height="30" rx="15" fill="rgba(255,255,255,0.14)"/>
-  <rect x="930" y="52" width="90" height="30" rx="15" fill="rgba(255,255,255,0.14)"/>
-  <rect x="1040" y="50" width="100" height="34" rx="17" fill="${accent}"/>
-  <!-- hero -->
-  <text x="60" y="320" font-family="${font}" font-size="96" font-weight="800" fill="#f5f6fa" letter-spacing="-3">${brand}</text>
-  <rect x="60" y="370" width="720" height="26" rx="13" fill="rgba(255,255,255,0.16)"/>
-  <rect x="60" y="416" width="560" height="26" rx="13" fill="rgba(255,255,255,0.10)"/>
-  <rect x="60" y="490" width="260" height="60" rx="30" fill="${accent}"/>
-  <!-- media block -->
-  <rect x="60" y="620" width="1080" height="520" rx="24" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.10)"/>
-  <circle cx="600" cy="880" r="70" fill="none" stroke="${accent}" stroke-width="5"/>
-  <path d="M 580 848 L 636 880 L 580 912 Z" fill="${accent}"/>
-  <!-- cards -->
-  <rect x="60" y="1200" width="340" height="320" rx="20" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.08)"/>
-  <rect x="430" y="1200" width="340" height="320" rx="20" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.08)"/>
-  <rect x="800" y="1200" width="340" height="320" rx="20" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.08)"/>
-  <text x="60" y="1580" font-family="${font}" font-size="34" font-weight="600" fill="rgba(255,255,255,0.45)">${label} — landing preview</text>
+  ${nav}
+  <text x="${pad}" y="${heroY}" font-family="${font}" font-size="${heroSize}" font-weight="800" fill="#f5f6fa" letter-spacing="-3">${brand}</text>
+  ${bar(pad, heroY + 40, cw * 0.8, 26, 0.16)}
+  ${bar(pad, heroY + 82, cw * 0.6, 26, 0.1)}
+  <rect x="${pad}" y="${ctaY}" width="${mobile ? cw : 280}" height="62" rx="31" fill="${accent}"/>
+  <rect x="${pad}" y="${mediaY}" width="${cw}" height="${mediaH}" rx="24" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.10)"/>
+  <circle cx="${w / 2}" cy="${mediaY + mediaH / 2}" r="64" fill="none" stroke="${accent}" stroke-width="5"/>
+  <path d="M ${w / 2 - 20} ${mediaY + mediaH / 2 - 30} L ${w / 2 + 34} ${mediaY + mediaH / 2} L ${w / 2 - 20} ${mediaY + mediaH / 2 + 30} Z" fill="${accent}"/>
+  ${cards}
+  <text x="${pad}" y="${h - 70}" font-family="${font}" font-size="34" font-weight="700" fill="${accent}">${badge}</text>
+  <text x="${pad}" y="${h - 30}" font-family="${font}" font-size="30" font-weight="500" fill="rgba(255,255,255,0.4)">${label} — landing preview</text>
 </svg>`;
 }
 
@@ -165,7 +186,7 @@ const MEDIA = {
       'jackpot-night': ['1x1', '9x16', '16x9', '4x5'],
     },
     videos: { 'brand-intro': ['1x1', '9x16', '16x9'] },
-    landings: ['homepage', 'promo', 'vip'],
+    landings: { homepage: ['mobile', 'desktop'], promo: ['mobile', 'desktop'], vip: ['mobile'] },
   },
   win2: {
     banners: {
@@ -173,14 +194,14 @@ const MEDIA = {
       'free-spins': ['1x1', '9x16', '16x9'],
     },
     videos: { 'promo-teaser': ['1x1', '9x16', '16x9'] },
-    landings: ['homepage', 'offer'],
+    landings: { homepage: ['mobile', 'desktop'], offer: ['mobile', 'desktop'] },
   },
 };
 
 const titleCase = (s) => s.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
-// Marketing Solutions logo
-write('assets/marketing-solutions-logo.svg', msLogo());
+// NOTE: the Marketing Solutions logo is a real uploaded asset
+// (assets/marketing-solutions-logo.png) — do not overwrite it here.
 
 // Per-project logos
 for (const slug of Object.keys(BRAND)) {
@@ -206,8 +227,13 @@ for (const slug of Object.keys(MEDIA)) {
       }
     }
   }
-  for (const land of m.landings) {
-    write(`assets/${slug}/landings/${land}.svg`, landing({ brand: BRAND[slug], accent: ACCENT[slug], label: titleCase(land) }));
+  for (const [land, devices] of Object.entries(m.landings)) {
+    for (const device of devices) {
+      write(
+        `assets/${slug}/landings/${land}/${device}.svg`,
+        landing({ brand: BRAND[slug], accent: ACCENT[slug], label: titleCase(land), device }),
+      );
+    }
   }
 }
 
