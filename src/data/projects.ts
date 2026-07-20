@@ -110,7 +110,7 @@ export const projects: Project[] = [
   {
     slug: 'winboss',
     name: 'Winboss',
-    logo: 'assets/winboss/logo.svg',
+    logo: 'assets/winboss/logo_winboss.svg',
     tagline: 'Full brand system and campaign production.',
     brandbook: { type: 'pdf', url: 'assets/winboss/brandbook/winboss-brandbook.pdf' },
     banners: [
