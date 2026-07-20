@@ -1,0 +1,145 @@
+---
+import '../styles/global.css';
+import { url } from '../lib/site';
+
+interface Crumb {
+  label: string;
+  href?: string;
+}
+interface Props {
+  title: string;
+  description?: string;
+  crumbs?: Crumb[];
+  accent?: string;
+}
+const { title, description = 'Design portfolio by Marketing Solutions.', crumbs = [], accent } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+    <link rel="icon" type="image/svg+xml" href={url('favicon.svg')} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    {accent && <style set:html={`:root{--accent:${accent};}`} />}
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <a class="brand" href={url('/')} aria-label="Marketing Solutions — home">
+          <img src={url('assets/marketing-solutions-logo.png')} alt="Marketing Solutions" height="34" />
+        </a>
+        {
+          crumbs.length > 0 && (
+            <nav class="crumbs" aria-label="Breadcrumb">
+              {crumbs.map((c, i) => (
+                <>
+                  {c.href ? <a href={url(c.href)}>{c.label}</a> : <span aria-current="page">{c.label}</span>}
+                  {i < crumbs.length - 1 && <span class="sep">/</span>}
+                </>
+              ))}
+            </nav>
+          )
+        }
+      </div>
+    </header>
+
+    <main>
+      <slot />
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <span class="muted">© Marketing Solutions — design portfolio</span>
+      </div>
+    </footer>
+
+    <script>
+      // Staggered scroll-reveal (expo). Elements with .reveal fade/slide in.
+      const els = Array.from(document.querySelectorAll<HTMLElement>('.reveal'));
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && 'IntersectionObserver' in window) {
+        const io = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((e) => {
+              if (e.isIntersecting) {
+                (e.target as HTMLElement).classList.add('is-visible');
+                io.unobserve(e.target);
+              }
+            });
+          },
+          { threshold: 0.08 },
+        );
+        els.forEach((el, i) => {
+          el.style.setProperty('--reveal-delay', `${Math.min(i * 60, 400)}ms`);
+          io.observe(el);
+        });
+      } else {
+        els.forEach((el) => el.classList.add('is-visible'));
+      }
+    </script>
+
+    <style>
+      .site-header {
+        position: sticky;
+        top: 0;
+        z-index: 30;
+        backdrop-filter: blur(14px);
+        background: linear-gradient(to bottom, rgba(11, 11, 18, 0.85), rgba(11, 11, 18, 0.4));
+        border-bottom: 1px solid var(--border);
+      }
+      .header-inner {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        height: 68px;
+      }
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        transition: opacity 0.2s;
+      }
+      .brand:hover {
+        opacity: 0.85;
+      }
+      .crumbs {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.9rem;
+        color: var(--fg-muted);
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+      .crumbs a {
+        color: var(--fg-muted);
+        transition: color 0.2s;
+      }
+      .crumbs a:hover {
+        color: var(--fg);
+      }
+      .crumbs [aria-current='page'] {
+        color: var(--fg);
+      }
+      .crumbs .sep {
+        color: var(--fg-dim);
+      }
+      main {
+        min-height: calc(100vh - 68px - 80px);
+      }
+      .site-footer {
+        border-top: 1px solid var(--border);
+        padding: 28px 0;
+        margin-top: 80px;
+        font-size: 0.85rem;
+      }
+    </style>
+  </body>
+</html>
