@@ -8,13 +8,16 @@ interface Props {
 const { items } = Astro.props;
 
 // Resolve everything server-side so the client script is base-safe.
+// Repo paths go through url() (base-aware); absolute URLs pass through as-is.
+const resolveSrc = (s: string) => (/^https?:\/\//.test(s) ? s : url(s));
 const payload = items.map((v) => ({
   title: v.title,
+  poster: url(v.poster),
   sizes: availableVideoSizes(v).map((k) => ({
     key: k,
     label: SIZE_LABEL[k],
     ratio: SIZE_RATIO[k],
-    youtube: v.youtube[k],
+    src: resolveSrc(v.src[k]!),
   })),
 }));
 ---
@@ -76,12 +79,18 @@ const payload = items.map((v) => ({
   if (data.length <= 1) navBtns.forEach((b) => b && ((b as HTMLElement).style.display = 'none'));
 
   function renderPlayer() {
-    const s = data[current].sizes[sizeIdx];
-    const embed = `https://www.youtube-nocookie.com/embed/${s.youtube}?autoplay=1&rel=0&modestbranding=1&playsinline=1`;
+    const item = data[current];
+    const s = item.sizes[sizeIdx];
     stage.style.aspectRatio = s.ratio;
-    stage.innerHTML =
-      `<iframe src="${embed}" title="${data[current].title.replace(/"/g, '&quot;')}" ` +
-      `allow="autoplay; fullscreen; picture-in-picture" allowfullscreen loading="eager"></iframe>`;
+    const v = document.createElement('video');
+    v.src = s.src;
+    v.poster = item.poster;
+    v.controls = true;
+    v.autoplay = true;
+    v.playsInline = true;
+    v.preload = 'metadata';
+    stage.innerHTML = '';
+    stage.appendChild(v);
   }
   function renderSizes() {
     const item = data[current];
@@ -273,11 +282,12 @@ const payload = items.map((v) => ({
   .vlb-stage:not([style*='16 / 9']) {
     width: auto;
   }
-  .vlb-stage :global(iframe) {
+  .vlb-stage :global(video) {
     width: 100%;
     height: 100%;
-    border: 0;
     display: block;
+    background: #000;
+    object-fit: contain;
   }
   .vlb-bar {
     display: flex;
