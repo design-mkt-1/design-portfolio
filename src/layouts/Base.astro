@@ -85,7 +85,12 @@ const ogImageAbs = Astro.site ? new URL(url(ogImage), Astro.site).href : url(ogI
             </nav>
           )
         }
-        <a class="header-cta" href={url('/contact')}>Contact&nbsp;us</a>
+        <div class="lang-switch" role="group" aria-label="Language">
+          <button type="button" class="lang-btn" data-lang="en">EN</button>
+          <button type="button" class="lang-btn" data-lang="ro">RO</button>
+          <button type="button" class="lang-btn" data-lang="ru">RU</button>
+        </div>
+        <a class="header-cta" href={url('/contact')}>Contact us</a>
       </div>
     </header>
 
@@ -132,6 +137,76 @@ const ogImageAbs = Astro.site ? new URL(url(ogImage), Astro.site).href : url(ogI
       }
     </script>
 
+    <script>
+      // In-page i18n: swap English UI text for RO/RU, client-side.
+      import { STRINGS, LOCALES } from '../i18n/ui';
+      const IDX = { en: 0, ro: 1, ru: 2 } as Record<string, number>;
+      const byEn: Record<string, string[]> = {};
+      const byKey: Record<string, string[]> = {};
+      for (const [key, row] of Object.entries(STRINGS)) {
+        byEn[row[0]] = row;
+        byKey[key] = row;
+      }
+      const trEn = (en: string, lang: string) => (byEn[en] ? byEn[en][IDX[lang]] : en);
+      const trKey = (key: string, lang: string) => (byKey[key] ? byKey[key][IDX[lang]] : key);
+
+      // Collect translatable text nodes (whose trimmed text is a known English string).
+      const nodes: { node: Text; en: string; pre: string; post: string }[] = [];
+      const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+        acceptNode(n) {
+          const txt = (n.nodeValue || '').trim();
+          return txt && byEn[txt] ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+        },
+      });
+      let cur: Node | null;
+      while ((cur = walker.nextNode())) {
+        const v = cur.nodeValue || '';
+        const txt = v.trim();
+        const i = v.indexOf(txt);
+        nodes.push({ node: cur as Text, en: txt, pre: v.slice(0, i), post: v.slice(i + txt.length) });
+      }
+
+      function apply(lang: string) {
+        for (const it of nodes) it.node.nodeValue = it.pre + trEn(it.en, lang) + it.post;
+        document.querySelectorAll<HTMLElement>('[data-i18n]').forEach((el) => {
+          el.textContent = trKey(el.dataset.i18n || '', lang);
+        });
+        document.querySelectorAll<HTMLElement>('[data-i18n-ph]').forEach((el) => {
+          el.setAttribute('placeholder', trKey(el.getAttribute('data-i18n-ph') || '', lang));
+        });
+        document.documentElement.lang = lang;
+        (window as any).__lang = lang;
+        (window as any).__tk = trKey;
+        document.querySelectorAll<HTMLElement>('.lang-btn').forEach((b) =>
+          b.classList.toggle('active', b.dataset.lang === lang),
+        );
+      }
+      function setLang(lang: string) {
+        if (!(LOCALES as readonly string[]).includes(lang)) lang = 'en';
+        try {
+          localStorage.setItem('ms-lang', lang);
+        } catch {}
+        const u = new URL(location.href);
+        if (lang === 'en') u.searchParams.delete('lang');
+        else u.searchParams.set('lang', lang);
+        history.replaceState(null, '', u);
+        apply(lang);
+      }
+      const stored = (() => {
+        try {
+          return localStorage.getItem('ms-lang');
+        } catch {
+          return null;
+        }
+      })();
+      let initial = new URLSearchParams(location.search).get('lang') || stored || 'en';
+      if (!(LOCALES as readonly string[]).includes(initial)) initial = 'en';
+      apply(initial);
+      document
+        .querySelectorAll<HTMLElement>('.lang-btn')
+        .forEach((b) => b.addEventListener('click', () => setLang(b.dataset.lang || 'en')));
+    </script>
+
     <style>
       .site-header {
         position: sticky;
@@ -161,8 +236,34 @@ const ogImageAbs = Astro.site ? new URL(url(ogImage), Astro.site).href : url(ogI
         gap: 20px;
         height: 68px;
       }
-      .header-cta {
+      .lang-switch {
         margin-left: auto;
+        display: inline-flex;
+        gap: 2px;
+        padding: 3px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: var(--bg-elev);
+      }
+      .lang-btn {
+        padding: 5px 10px;
+        border: 0;
+        border-radius: 999px;
+        background: none;
+        color: var(--fg-muted);
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        transition: color 0.2s, background 0.2s;
+      }
+      .lang-btn:hover {
+        color: var(--fg);
+      }
+      .lang-btn.active {
+        color: var(--accent-fg);
+        background: color-mix(in srgb, var(--accent) 55%, transparent);
+      }
+      .header-cta {
         flex: none;
         padding: 9px 18px;
         border-radius: 999px;
