@@ -5,7 +5,7 @@ import Base from '../../layouts/Base.astro';
 import ChoiceCards, { type Choice } from '../../components/ChoiceCards.astro';
 import { url } from '../../lib/site';
 import { projects, getProject, firstSize, landingThumb } from '../../data/projects';
-import { projectBanners, projectLandings, hasPortfolio, assetExists, projectSections } from '../../lib/portfolio';
+import { projectBanners, projectLandings, hasPortfolio, hasBrandbook, assetExists, projectSections } from '../../lib/portfolio';
 import { readyVideos } from '../../lib/videos';
 
 export function getStaticPaths() {
@@ -45,7 +45,7 @@ const headerLogo = !headerIcon && assetExists(p.logo) ? p.logo : undefined;
 
 const portfolio = hasPortfolio(p);
 const choices: Choice[] = [];
-if (p.brandbook) {
+if (hasBrandbook(p)) {
   const cover = brandbookCover(p.slug);
   // Fall back to the brand panel only when a logo exists; otherwise leave the
   // preview off so the card shows its book-icon placeholder (no broken image).

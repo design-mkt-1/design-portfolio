@@ -1,13 +1,13 @@
 ---
-import { readdirSync, existsSync } from 'node:fs';
-import { join } from 'node:path';
 import Base from '../../layouts/Base.astro';
 import { url } from '../../lib/site';
 import { projects, getProject } from '../../data/projects';
-import { projectCrumb, sectionBack } from '../../lib/portfolio';
+import { projectCrumb, sectionBack, hasBrandbook, brandbookFrames } from '../../lib/portfolio';
 
 export function getStaticPaths() {
-  return projects.filter((p) => p.brandbook).map((p) => ({ params: { project: p.slug } }));
+  // Only projects with real brand-book content (frames, PDF, or Figma) — a
+  // declared-but-empty book (folder scaffolded ahead of upload) is skipped.
+  return projects.filter(hasBrandbook).map((p) => ({ params: { project: p.slug } }));
 }
 
 const { project } = Astro.params;
@@ -18,14 +18,6 @@ const figma = p.figma;
 // Prefer a page-image reader when numbered frames exist on disk
 // (public/assets/<slug>/brandbook/1.webp, 2.webp, …). This avoids embedding a
 // huge PDF and renders far faster. Falls back to the PDF/Figma embed otherwise.
-function brandbookFrames(slug: string): string[] {
-  const dir = join(process.cwd(), 'public', 'assets', slug, 'brandbook');
-  if (!existsSync(dir)) return [];
-  return readdirSync(dir)
-    .filter((f) => /^\d+\.(webp|png|jpe?g)$/i.test(f))
-    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-    .map((f) => `assets/${slug}/brandbook/${f}`);
-}
 const frames = brandbookFrames(p.slug);
 const src = bb.type === 'pdf' ? url(bb.url) : bb.url;
 const back = sectionBack(p);

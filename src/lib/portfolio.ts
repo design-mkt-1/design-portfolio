@@ -74,10 +74,29 @@ export function hasPortfolio(p: Project): boolean {
 
 export type Section = 'brandbook' | 'portfolio';
 
+/** Numbered brand-book page frames on disk (1.webp, 2.jpg, …), in order. */
+export function brandbookFrames(slug: string): string[] {
+  const dir = join(process.cwd(), 'public', 'assets', slug, 'brandbook');
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir)
+    .filter((f) => /^\d+\.(webp|png|jpe?g)$/i.test(f))
+    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
+    .map((f) => `assets/${slug}/brandbook/${f}`);
+}
+
+/** A brand book counts only when it has real content — a Figma link, page frames
+ *  on disk, or an uploaded PDF — so a declared-but-not-yet-uploaded book (folder
+ *  scaffolded ahead of assets) doesn't render an empty viewer. */
+export function hasBrandbook(p: Project): boolean {
+  if (!p.brandbook) return false;
+  if (p.brandbook.type === 'figma') return true;
+  return brandbookFrames(p.slug).length > 0 || assetExists(p.brandbook.url);
+}
+
 /** The sections a project actually has, in display order. */
 export function projectSections(p: Project): Section[] {
   const s: Section[] = [];
-  if (p.brandbook) s.push('brandbook');
+  if (hasBrandbook(p)) s.push('brandbook');
   if (hasPortfolio(p)) s.push('portfolio');
   return s;
 }

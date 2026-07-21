@@ -1,12 +1,12 @@
 ---
 import { url } from '../lib/site';
 import { projects, type Project } from '../data/projects';
-import { hasPortfolio, assetExists, projectEntry } from '../lib/portfolio';
+import { hasPortfolio, hasBrandbook, assetExists, projectEntry } from '../lib/portfolio';
 import Flag from './Flag.astro';
 
 function tags(p: Project): string[] {
   const t: string[] = [];
-  if (p.brandbook) t.push('Brandbook');
+  if (hasBrandbook(p)) t.push('Brandbook');
   if (hasPortfolio(p)) t.push('Portfolio');
   return t;
 }
