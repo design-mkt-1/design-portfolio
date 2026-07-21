@@ -4,7 +4,7 @@ on:
   push:
     # main = production; the feature branch is included so you get a live
     # preview URL while iterating (needs Pages source set to "GitHub Actions").
-    branches: [main, claude/marketing-solutions-portfolio-ghilve]
+    branches: [main, claude/development-continuation-ieubfe]
   workflow_dispatch:
 
 permissions:
