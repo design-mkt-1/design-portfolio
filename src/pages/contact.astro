@@ -12,7 +12,7 @@ const EMAIL = 'design1@marketing-solutions.ro';
   <section class="container contact">
     <div class="contact-head reveal">
       <p class="eyebrow">Get in touch</p>
-      <h1>Contact <span class="gradient-text">us</span></h1>
+      <h1 class="gradient-text" data-i18n="contact.h1">Contact us</h1>
       <p class="lede muted">
         Tell us about your project — brand, campaign, or creative — and we'll get back to you.
       </p>
@@ -33,7 +33,7 @@ const EMAIL = 'design1@marketing-solutions.ro';
 
       <div class="field">
         <label for="name">Name</label>
-        <input id="name" name="name" type="text" required autocomplete="name" placeholder="Your name" />
+        <input id="name" name="name" type="text" required autocomplete="name" placeholder="Your name" data-i18n-ph="contact.ph.name" />
       </div>
       <div class="field">
         <label for="email">Email</label>
@@ -41,7 +41,7 @@ const EMAIL = 'design1@marketing-solutions.ro';
       </div>
       <div class="field">
         <label for="message">Message</label>
-        <textarea id="message" name="message" rows="6" required placeholder="What can we help with?"></textarea>
+        <textarea id="message" name="message" rows="6" required placeholder="What can we help with?" data-i18n-ph="contact.ph.message"></textarea>
       </div>
 
       <button class="btn btn-primary submit" type="submit">Send message</button>
@@ -58,12 +58,18 @@ const EMAIL = 'design1@marketing-solutions.ro';
   const statusEl = document.getElementById('form-status');
   const EMAIL = 'design1@marketing-solutions.ro';
 
+  // Translate JS-set status via the global i18n helper (set by Base).
+  const tk = (key: string, fallback: string) => {
+    const w = window as any;
+    return w.__tk ? w.__tk(key, w.__lang || 'en') : fallback;
+  };
+
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!statusEl) return;
     const btn = form.querySelector<HTMLButtonElement>('button[type="submit"]');
     if ((form.querySelector<HTMLInputElement>('input[name="_honey"]')?.value || '') !== '') return; // bot
-    statusEl.textContent = 'Sending…';
+    statusEl.textContent = tk('contact.sending', 'Sending…');
     statusEl.className = 'form-status';
     if (btn) btn.disabled = true;
     try {
@@ -75,13 +81,14 @@ const EMAIL = 'design1@marketing-solutions.ro';
       const data = await res.json().catch(() => ({}));
       if (res.ok && String(data.success) === 'true') {
         form.reset();
-        statusEl.textContent = 'Thanks! Your message has been sent.';
+        statusEl.textContent = tk('contact.ok', 'Thanks! Your message has been sent.');
         statusEl.classList.add('ok');
       } else {
         throw new Error(data.message || 'failed');
       }
     } catch {
-      statusEl.innerHTML = `Couldn't send. Please email us directly at <a href="mailto:${EMAIL}">${EMAIL}</a>.`;
+      const prefix = tk('contact.errPrefix', "Couldn't send. Please email us directly at");
+      statusEl.innerHTML = `${prefix} <a href="mailto:${EMAIL}">${EMAIL}</a>.`;
       statusEl.classList.add('err');
     } finally {
       if (btn) btn.disabled = false;
