@@ -154,7 +154,7 @@ export const projects: Project[] = [
   {
     slug: 'win2',
     name: 'Win2',
-    logo: 'assets/win2/logo.svg',
+    logo: 'assets/win2/logo_win2.webp',
     favicon: 'assets/win2/favicon_win2.webp',
     tagline: 'Performance creative across every placement.',
     banners: [
@@ -172,7 +172,8 @@ export const projects: Project[] = [
   {
     slug: 'fansport',
     name: 'Fansport',
-    logo: 'assets/fansport/logo.svg',
+    logo: 'assets/fansport/logo_fansport.svg',
+    favicon: 'assets/fansport/favicon_fansport.svg',
     tagline: 'Brand identity and guidelines.',
     brandbook: { type: 'pdf', url: 'assets/fansport/brandbook/fansport-brandbook.pdf' },
     banners: [],
@@ -182,7 +183,8 @@ export const projects: Project[] = [
   {
     slug: 'topbet',
     name: 'Topbet',
-    logo: 'assets/topbet/logo.svg',
+    logo: 'assets/topbet/logo_topbet.svg',
+    favicon: 'assets/topbet/favicon_topbet.svg',
     tagline: 'Brand identity and guidelines.',
     brandbook: { type: 'pdf', url: 'assets/topbet/brandbook/topbet-brandbook.pdf' },
     banners: [],
