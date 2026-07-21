@@ -12,6 +12,7 @@ export function getStaticPaths() {
 const { project } = Astro.params;
 const p = getProject(project!)!;
 const bb = p.brandbook!;
+const figma = p.figma;
 
 // Prefer a page-image reader when numbered frames exist on disk
 // (public/assets/<slug>/brandbook/1.webp, 2.webp, …). This avoids embedding a
@@ -26,6 +27,14 @@ function brandbookFrames(slug: string): string[] {
 }
 const frames = brandbookFrames(p.slug);
 const src = bb.type === 'pdf' ? url(bb.url) : bb.url;
+
+// Figma wordmark logo (5 brand-colored tiles)
+const figmaLogo = `
+  <path fill="#1abcfe" d="M19 28.5a9.5 9.5 0 1 1 19 0 9.5 9.5 0 0 1-19 0Z"/>
+  <path fill="#0acf83" d="M0 47.5A9.5 9.5 0 0 1 9.5 38H19v9.5a9.5 9.5 0 1 1-19 0Z"/>
+  <path fill="#ff7262" d="M19 0v19h9.5a9.5 9.5 0 1 0 0-19H19Z"/>
+  <path fill="#f24e1e" d="M0 9.5A9.5 9.5 0 0 0 9.5 19H19V0H9.5A9.5 9.5 0 0 0 0 9.5Z"/>
+  <path fill="#a259ff" d="M0 28.5A9.5 9.5 0 0 0 9.5 38H19V19H9.5A9.5 9.5 0 0 0 0 28.5Z"/>`;
 ---
 
 <Base
@@ -40,16 +49,16 @@ const src = bb.type === 'pdf' ? url(bb.url) : bb.url;
     <div class="row reveal">
       <h1>{p.name} <span class="muted">Brand Book</span></h1>
       {
-        frames.length > 0 ? (
-          <span class="pagecount muted">{frames.length} pages</span>
-        ) : bb.type === 'pdf' ? (
-          <a class="btn" href={src} download>
-            Download PDF
-          </a>
-        ) : (
-          <a class="btn" href={bb.url} target="_blank" rel="noopener">
-            Open in Figma
-          </a>
+        frames.length > 0 && (
+          <div class="actions">
+            <span class="pagecount muted">{frames.length} pages</span>
+            {figma && (
+              <a class="btn btn-figma" href={figma} target="_blank" rel="noopener">
+                <svg class="figma-ico" viewBox="0 0 38 57" set:html={figmaLogo} />
+                Open in Figma
+              </a>
+            )}
+          </div>
         )
       }
     </div>
@@ -67,6 +76,17 @@ const src = bb.type === 'pdf' ? url(bb.url) : bb.url;
             decoding="async"
           />
         ))}
+      </section>
+    ) : figma ? (
+      <section class="container cta-wrap reveal">
+        <div class="cta">
+          <svg class="figma-ico-lg" viewBox="0 0 38 57" set:html={figmaLogo} />
+          <h2>{p.name} brand book</h2>
+          <p class="muted">The full brand book lives in Figma — logo, colors, typography, and usage guidelines.</p>
+          <a class="btn btn-primary" href={figma} target="_blank" rel="noopener">
+            Open in Figma
+          </a>
+        </div>
       </section>
     ) : (
       <section class="container viewer-wrap reveal">
@@ -95,11 +115,22 @@ const src = bb.type === 'pdf' ? url(bb.url) : bb.url;
   h1 {
     font-size: clamp(1.7rem, 4vw, 2.4rem);
   }
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
   .pagecount {
     font-size: 0.9rem;
     padding: 6px 14px;
     border: 1px solid var(--border);
     border-radius: 999px;
+  }
+  .figma-ico {
+    width: 15px;
+    height: auto;
+    flex: none;
   }
 
   /* ---- Page-image reader ---- */
@@ -120,7 +151,38 @@ const src = bb.type === 'pdf' ? url(bb.url) : bb.url;
     background: var(--bg-elev);
   }
 
-  /* ---- PDF / Figma embed (fallback) ---- */
+  /* ---- Figma call-to-action (no page frames yet) ---- */
+  .cta-wrap {
+    display: grid;
+    place-items: center;
+    padding: 30px 24px 80px;
+  }
+  .cta {
+    max-width: 460px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 48px 34px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015));
+  }
+  .figma-ico-lg {
+    width: 44px;
+    height: auto;
+    margin-bottom: 4px;
+  }
+  .cta h2 {
+    font-size: 1.4rem;
+  }
+  .cta p {
+    font-size: 0.98rem;
+    margin: 0;
+  }
+
+  /* ---- PDF / Figma embed (final fallback) ---- */
   .viewer-wrap {
     padding-bottom: 40px;
   }

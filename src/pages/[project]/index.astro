@@ -1,5 +1,5 @@
 ---
-import { existsSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import Base from '../../layouts/Base.astro';
 import ChoiceCards, { type Choice } from '../../components/ChoiceCards.astro';
@@ -20,14 +20,18 @@ const portfolioThumbs = [
   ...p.videos.map(firstSize),
 ].filter((s): s is string => Boolean(s));
 
-// Brand Book cover: auto-detected from disk so it "just works" the moment a
-// cover image is uploaded to public/assets/<slug>/brandbook/cover.<ext>.
-// Prefers webp; falls back to png/jpg. Until one exists, the card shows the
-// brand wordmark on an accent panel instead.
+// Brand Book cover: auto-detected from disk. Prefers the first page frame
+// (1.webp) so we don't keep a duplicate cover image; falls back to an explicit
+// cover.<ext>, and finally to the brand wordmark panel when nothing exists.
 function brandbookCover(slug: string): string | undefined {
+  const dir = join(process.cwd(), 'public', 'assets', slug, 'brandbook');
+  if (!existsSync(dir)) return undefined;
+  const firstFrame = readdirSync(dir)
+    .filter((f) => /^\d+\.(webp|png|jpe?g)$/i.test(f))
+    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))[0];
+  if (firstFrame) return `assets/${slug}/brandbook/${firstFrame}`;
   for (const ext of ['webp', 'png', 'jpg', 'jpeg']) {
-    const rel = `assets/${slug}/brandbook/cover.${ext}`;
-    if (existsSync(join(process.cwd(), 'public', rel))) return rel;
+    if (existsSync(join(dir, `cover.${ext}`))) return `assets/${slug}/brandbook/cover.${ext}`;
   }
   return undefined;
 }

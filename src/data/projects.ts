@@ -65,6 +65,8 @@ export interface Project {
   tagline?: string;
   /** optional per-project accent override (hex) */
   accent?: string;
+  /** Figma brand book link, opened via the "Open in Figma" button */
+  figma?: string;
   brandbook?: Brandbook;
   banners: MediaItem[];
   videos: MediaItem[];
@@ -127,6 +129,7 @@ export const projects: Project[] = [
     favicon: 'assets/winboss/favicon_winboss.webp',
     accent: '#f5b301',
     tagline: 'Full brand system and campaign production.',
+    figma: 'https://www.figma.com/design/yP4cFDQU6j2J8QVWHr4CUM/WinBoss?node-id=4-464&p=f&t=mUR3syzALRg87bR2-0',
     brandbook: { type: 'pdf', url: 'assets/winboss/brandbook/winboss-brandbook.pdf' },
     banners: [
       realMedia('winboss', 'banners', '25602 - BigBass Wheel'),
@@ -190,6 +193,7 @@ export const projects: Project[] = [
     favicon: 'assets/fansport/favicon_fansport.svg',
     accent: '#34d399',
     tagline: 'Brand identity and guidelines.',
+    figma: 'https://www.figma.com/design/eRr6wNLDitV8iWyUZY6qM8/FanSport?node-id=0-1&p=f&t=J65JMwCpOZU2TEya-0',
     brandbook: { type: 'pdf', url: 'assets/fansport/brandbook/fansport-brandbook.pdf' },
     banners: [],
     videos: [],
@@ -202,6 +206,7 @@ export const projects: Project[] = [
     favicon: 'assets/topbet/favicon_topbet.svg',
     accent: '#fb7185',
     tagline: 'Brand identity and guidelines.',
+    figma: 'https://www.figma.com/design/5UpnZQKQOzud31MuwpTO1R/TopBet?node-id=0-1&p=f&t=hrOfpLlAyhsC0GC9-0',
     brandbook: { type: 'pdf', url: 'assets/topbet/brandbook/topbet-brandbook.pdf' },
     banners: [],
     videos: [],
