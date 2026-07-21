@@ -191,6 +191,19 @@ export const projects: Project[] = [
     videos: [],
   },
   {
+    // Brandbook + banners, both landing in the coming days. Assets go under
+    // public/assets/bet2fun/ (logo_bet2fun.*, favicon_bet2fun.*, brandbook/*, banners/*).
+    slug: 'bet2fun',
+    name: 'Bet2Fun',
+    logo: 'assets/bet2fun/logo_bet2fun.svg',
+    favicon: 'assets/bet2fun/favicon_bet2fun.svg',
+    geo: { code: 'UA', label: 'Ukraine' },
+    accent: '#fb923c',
+    tagline: 'Brand identity and guidelines.',
+    brandbook: { type: 'pdf', url: 'assets/bet2fun/brandbook/bet2fun-brandbook.pdf' },
+    videos: [],
+  },
+  {
     // Rebrand in progress — banners only for now, kept last until the new identity
     // lands. Drop creatives into public/assets/jackpot/banners/ to light up Portfolio.
     slug: 'jackpot',
