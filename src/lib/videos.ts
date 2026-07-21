@@ -3,11 +3,18 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import type { VideoItem } from '../data/projects';
 
+const onDisk = (p: string) => /^https?:\/\//.test(p) || existsSync(join(process.cwd(), 'public', p));
+
 /**
- * Videos whose 1×1 poster actually exists on disk. A video entry can be added to
- * the catalog with its YouTube IDs before the poster is uploaded; it stays hidden
- * (no broken tile) until the poster lands, then appears on the next build.
+ * Videos ready to show, with each entry's `src` pruned to the aspects whose file
+ * actually exists (so a tab never 404s). A video appears only once its poster and
+ * at least one source are present — entries can be committed before the MP4s land.
  */
 export function readyVideos(videos: VideoItem[]): VideoItem[] {
-  return videos.filter((v) => existsSync(join(process.cwd(), 'public', v.poster)));
+  return videos
+    .map((v) => ({
+      ...v,
+      src: Object.fromEntries(Object.entries(v.src).filter(([, p]) => onDisk(p))) as VideoItem['src'],
+    }))
+    .filter((v) => Object.keys(v.src).length > 0 && onDisk(v.poster));
 }
