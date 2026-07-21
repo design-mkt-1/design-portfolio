@@ -15,7 +15,9 @@ const src = bb.type === 'pdf' ? url(bb.url) : bb.url;
 
 <Base
   title={`${p.name} Brand Book — Marketing Solutions`}
+  description={`${p.name} brand book — logo, colors, typography, and usage guidelines.`}
   favicon={p.favicon}
+  accent={p.accent}
   crumbs={[{ label: 'Projects', href: '/' }, { label: p.name, href: `/${p.slug}` }, { label: 'Brand Book' }]}
 >
   <section class="container head">

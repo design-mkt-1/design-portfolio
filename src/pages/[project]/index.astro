@@ -33,7 +33,9 @@ if (portfolio) {
 
 <Base
   title={`${p.name} — Marketing Solutions`}
+  description={p.tagline ? `${p.name} — ${p.tagline}` : `${p.name} on the Marketing Solutions design portfolio.`}
   favicon={p.favicon}
+  accent={p.accent}
   crumbs={[{ label: 'Projects', href: '/' }, { label: p.name }]}
 >
   <section class="container intro">

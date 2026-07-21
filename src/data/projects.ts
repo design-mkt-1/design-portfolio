@@ -125,6 +125,7 @@ export const projects: Project[] = [
     name: 'Winboss',
     logo: 'assets/winboss/logo_winboss.svg',
     favicon: 'assets/winboss/favicon_winboss.webp',
+    accent: '#f5b301',
     tagline: 'Full brand system and campaign production.',
     brandbook: { type: 'pdf', url: 'assets/winboss/brandbook/winboss-brandbook.pdf' },
     banners: [
@@ -156,6 +157,7 @@ export const projects: Project[] = [
     name: 'Win2',
     logo: 'assets/win2/logo_win2.webp',
     favicon: 'assets/win2/favicon_win2.webp',
+    accent: '#22d3ee',
     tagline: 'Performance creative across every placement.',
     banners: [
       mkMedia('win2', 'banners', 'first-deposit', 'First Deposit', ['1x1', '9x16', '16x9', '4x5']),
@@ -174,6 +176,7 @@ export const projects: Project[] = [
     name: 'Fansport',
     logo: 'assets/fansport/logo_fansport.svg',
     favicon: 'assets/fansport/favicon_fansport.svg',
+    accent: '#34d399',
     tagline: 'Brand identity and guidelines.',
     brandbook: { type: 'pdf', url: 'assets/fansport/brandbook/fansport-brandbook.pdf' },
     banners: [],
@@ -185,6 +188,7 @@ export const projects: Project[] = [
     name: 'Topbet',
     logo: 'assets/topbet/logo_topbet.svg',
     favicon: 'assets/topbet/favicon_topbet.svg',
+    accent: '#fb7185',
     tagline: 'Brand identity and guidelines.',
     brandbook: { type: 'pdf', url: 'assets/topbet/brandbook/topbet-brandbook.pdf' },
     banners: [],
