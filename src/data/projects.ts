@@ -114,9 +114,15 @@ export const projects: Project[] = [
     tagline: 'Full brand system and campaign production.',
     brandbook: { type: 'pdf', url: 'assets/winboss/brandbook/winboss-brandbook.pdf' },
     banners: [
-      mkMedia('winboss', 'banners', 'welcome-bonus', 'Welcome Bonus', ['1x1', '9x16', '16x9', '4x5']),
-      mkMedia('winboss', 'banners', 'weekend-cashback', 'Weekend Cashback', ['1x1', '9x16', '16x9']),
-      mkMedia('winboss', 'banners', 'jackpot-night', 'Jackpot Night', ['1x1', '9x16', '16x9', '4x5']),
+      {
+        title: '28239 - Pull Offer',
+        sizes: {
+          '1x1': 'assets/winboss/banners/28239 - Pull Offer/1x1.webp',
+          '9x16': 'assets/winboss/banners/28239 - Pull Offer/9x16.webp',
+          '16x9': 'assets/winboss/banners/28239 - Pull Offer/16x9.webp',
+          '4x5': 'assets/winboss/banners/28239 - Pull Offer/4x5.webp',
+        },
+      },
     ],
     videos: [
       mkMedia('winboss', 'videos', 'brand-intro', 'Brand Intro', ['1x1', '9x16', '16x9']),
