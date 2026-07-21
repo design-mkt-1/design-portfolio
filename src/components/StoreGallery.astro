@@ -285,10 +285,10 @@ const flat = rendered.flatMap((g) => g.items.map((it) => ({ src: it.src, label: 
     transition: border-color 0.3s, box-shadow 0.3s;
   }
   .shot:hover img {
-    border-color: color-mix(in srgb, var(--accent) 90%, transparent);
+    border-color: color-mix(in srgb, var(--accent) 50%, transparent);
     box-shadow:
-      0 0 0 3px color-mix(in srgb, var(--accent) 80%, transparent),
-      0 0 22px color-mix(in srgb, var(--accent) 50%, transparent),
+      0 0 0 1.5px color-mix(in srgb, var(--accent) 50%, transparent),
+      0 0 18px color-mix(in srgb, var(--accent) 40%, transparent),
       0 18px 45px rgba(0, 0, 0, 0.5);
   }
 
