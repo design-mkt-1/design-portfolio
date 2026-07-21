@@ -67,3 +67,41 @@ export function hasPortfolio(p: Project): boolean {
     hasStore(p.slug)
   );
 }
+
+// ---- section routing --------------------------------------------------------
+// A project offers up to two top-level sections: a Brand Book and a Portfolio.
+// When only one exists we skip the chooser at /<slug> and open it directly.
+
+export type Section = 'brandbook' | 'portfolio';
+
+/** The sections a project actually has, in display order. */
+export function projectSections(p: Project): Section[] {
+  const s: Section[] = [];
+  if (p.brandbook) s.push('brandbook');
+  if (hasPortfolio(p)) s.push('portfolio');
+  return s;
+}
+
+/** Where a project card links: a lone section opens directly (skipping the
+ *  chooser); 0 or 2 sections go to the /<slug> chooser page. */
+export function projectEntry(p: Project): string {
+  const s = projectSections(p);
+  return s.length === 1 ? `/${p.slug}/${s[0]}` : `/${p.slug}`;
+}
+
+/** True when the chooser is bypassed (exactly one section), so /<slug> redirects. */
+export function skipsChooser(p: Project): boolean {
+  return projectSections(p).length === 1;
+}
+
+/** Breadcrumb entry for the project on its section pages. When the chooser is
+ *  skipped, /<slug> just bounces back to the same page, so render a plain label. */
+export function projectCrumb(p: Project): { label: string; href?: string } {
+  return skipsChooser(p) ? { label: p.name } : { label: p.name, href: `/${p.slug}` };
+}
+
+/** Back-link for the top-level section pages (Brand Book / Portfolio): home when
+ *  the chooser is skipped, otherwise the chooser. */
+export function sectionBack(p: Project): { label: string; href: string } {
+  return skipsChooser(p) ? { label: 'All projects', href: '/' } : { label: p.name, href: `/${p.slug}` };
+}
