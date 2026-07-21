@@ -1,6 +1,7 @@
 ---
 import { url } from '../lib/site';
-import { projects, hasPortfolio, type Project } from '../data/projects';
+import { projects, type Project } from '../data/projects';
+import { hasPortfolio } from '../lib/portfolio';
 
 function tags(p: Project): string[] {
   const t: string[] = [];

@@ -76,17 +76,12 @@ export interface Project {
   /** Figma brand book link, opened via the "Open in Figma" button */
   figma?: string;
   brandbook?: Brandbook;
-  banners: MediaItem[];
-  /** Videos are hosted on YouTube (unlisted); only the poster lives in the repo. */
+  /** Videos stream from committed MP4s; only the poster + entry live here. */
   videos: VideoItem[];
-  landings: LandingItem[];
+  // Banners & landings are auto-detected from disk (see src/lib/portfolio.ts).
 }
 
 // ---- helpers ----------------------------------------------------------------
-
-export function hasPortfolio(p: Project): boolean {
-  return p.banners.length > 0 || p.videos.length > 0 || p.landings.length > 0;
-}
 
 export function firstSize(item: MediaItem): string | undefined {
   return item.sizes['1x1'] ?? Object.values(item.sizes)[0];
@@ -109,29 +104,6 @@ export function availableVideoSizes(item: VideoItem): SizeKey[] {
   return SIZE_ORDER.filter((k) => item.src[k]);
 }
 
-// -- placeholder path helpers (kept terse so the data reads cleanly) ----------
-const ph = (slug: string, kind: string, name: string, size: SizeKey) =>
-  `assets/${slug}/${kind}/${name}/${size}.svg`;
-const mkMedia = (slug: string, kind: 'banners' | 'videos', name: string, title: string, sizes: SizeKey[]): MediaItem => ({
-  title,
-  sizes: Object.fromEntries(sizes.map((s) => [s, ph(slug, kind, name, s)])) as MediaItem['sizes'],
-});
-const mkLanding = (slug: string, name: string, title: string, devices: Device[]): LandingItem => ({
-  title,
-  ...Object.fromEntries(devices.map((d) => [d, `assets/${slug}/landings/${name}/${d}.svg`])),
-});
-
-// Real uploaded media (normalized to size-keyed .webp). Defaults to all 4 sizes.
-const realMedia = (
-  slug: string,
-  kind: 'banners' | 'videos',
-  folder: string,
-  sizes: SizeKey[] = ['1x1', '9x16', '16x9', '4x5'],
-): MediaItem => ({
-  title: folder,
-  sizes: Object.fromEntries(sizes.map((s) => [s, `assets/${slug}/${kind}/${folder}/${s}.webp`])) as MediaItem['sizes'],
-});
-
 // ---- catalog ----------------------------------------------------------------
 
 export const projects: Project[] = [
@@ -144,31 +116,6 @@ export const projects: Project[] = [
     tagline: 'Full brand system and campaign production.',
     figma: 'https://www.figma.com/design/yP4cFDQU6j2J8QVWHr4CUM/WinBoss?node-id=4-464&p=f&t=mUR3syzALRg87bR2-0',
     brandbook: { type: 'pdf', url: 'assets/winboss/brandbook/winboss-brandbook.pdf' },
-    banners: [
-      realMedia('winboss', 'banners', '25602 - BigBass Wheel'),
-      realMedia('winboss', 'banners', '26590 - Floating SC'),
-      realMedia('winboss', 'banners', '27093 - Multi Games'),
-      realMedia('winboss', 'banners', '27164 - Floating Gates'),
-      realMedia('winboss', 'banners', '27165 - Floating BH'),
-      realMedia('winboss', 'banners', '27305 - Lesgo Tesla'),
-      realMedia('winboss', 'banners', '27442 - Gettt Out'),
-      realMedia('winboss', 'banners', '27480 - CrownCard'),
-      realMedia('winboss', 'banners', '27486 - Big Fisher'),
-      realMedia('winboss', 'banners', '27610 - Quadrilateral'),
-      realMedia('winboss', 'banners', '27711 - Gift Tesla'),
-      realMedia('winboss', 'banners', '27960 - DarkRedWheel'),
-      realMedia('winboss', 'banners', '27962 - DarkGreenWheel'),
-      realMedia('winboss', 'banners', '28003 - YellowWheel'),
-      realMedia('winboss', 'banners', '28040 - Main Game'),
-      realMedia('winboss', 'banners', '28048 - Carousel Games'),
-      realMedia('winboss', 'banners', '28055 - Gimme Elem'),
-      realMedia('winboss', 'banners', '28177 - Burning Big'),
-      realMedia('winboss', 'banners', '28220 - Characters Blue'),
-      realMedia('winboss', 'banners', '28239 - Pull Offer'),
-      realMedia('winboss', 'banners', '28245 - Chamo'),
-      realMedia('winboss', 'banners', '28285 - CloverBox'),
-      realMedia('winboss', 'banners', '28286 - RedBox Neon'),
-    ],
     // Videos: .mp4 files committed under videos/<title>/ (dimension-named) plus a
     // cover-<ID>.webp poster in the same folder. Each aspect tab appears only once
     // its file exists on disk, so entries can be committed before the MP4s land.
@@ -183,13 +130,6 @@ export const projects: Project[] = [
         },
       },
     ],
-    landings: [
-      {
-        title: '27735 - AlbaNeagra',
-        mobile: 'assets/winboss/landings/27735 - AlbaNeagra/mobile_albaneagra.webp',
-        desktop: 'assets/winboss/landings/27735 - AlbaNeagra/desktop_albaneagra.webp',
-      },
-    ],
   },
   {
     slug: 'win2',
@@ -198,14 +138,7 @@ export const projects: Project[] = [
     favicon: 'assets/win2/favicon_win2.webp',
     accent: '#22d3ee',
     tagline: 'Performance creative across every placement.',
-    banners: [
-      realMedia('win2', 'banners', '26954 - Hand SC'),
-    ],
     videos: [],
-    landings: [
-      mkLanding('win2', 'homepage', 'Homepage', ['mobile', 'desktop']),
-      mkLanding('win2', 'offer', 'Offer', ['mobile', 'desktop']),
-    ],
   },
   {
     slug: 'fansport',
@@ -216,9 +149,7 @@ export const projects: Project[] = [
     tagline: 'Brand identity and guidelines.',
     figma: 'https://www.figma.com/design/eRr6wNLDitV8iWyUZY6qM8/FanSport?node-id=0-1&p=f&t=J65JMwCpOZU2TEya-0',
     brandbook: { type: 'pdf', url: 'assets/fansport/brandbook/fansport-brandbook.pdf' },
-    banners: [],
     videos: [],
-    landings: [],
   },
   {
     slug: 'topbet',
@@ -229,9 +160,7 @@ export const projects: Project[] = [
     tagline: 'Brand identity and guidelines.',
     figma: 'https://www.figma.com/design/5UpnZQKQOzud31MuwpTO1R/TopBet?node-id=0-1&p=f&t=hrOfpLlAyhsC0GC9-0',
     brandbook: { type: 'pdf', url: 'assets/topbet/brandbook/topbet-brandbook.pdf' },
-    banners: [],
     videos: [],
-    landings: [],
   },
 ];
 

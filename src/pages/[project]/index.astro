@@ -4,7 +4,8 @@ import { join } from 'node:path';
 import Base from '../../layouts/Base.astro';
 import ChoiceCards, { type Choice } from '../../components/ChoiceCards.astro';
 import { url } from '../../lib/site';
-import { projects, getProject, hasPortfolio, firstSize, landingThumb } from '../../data/projects';
+import { projects, getProject, firstSize, landingThumb } from '../../data/projects';
+import { projectBanners, projectLandings, hasPortfolio } from '../../lib/portfolio';
 import { readyVideos } from '../../lib/videos';
 
 export function getStaticPaths() {
@@ -16,8 +17,8 @@ const p = getProject(project!)!;
 
 // Collect up to 6 real thumbnails for the Portfolio preview (banners → landings → videos).
 const portfolioThumbs = [
-  ...p.banners.map(firstSize),
-  ...p.landings.map(landingThumb),
+  ...projectBanners(p.slug).map(firstSize),
+  ...projectLandings(p.slug).map(landingThumb),
   ...readyVideos(p.videos).map((v) => v.poster),
 ].filter((s): s is string => Boolean(s));
 

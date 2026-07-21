@@ -2,7 +2,8 @@
 import Base from '../../../layouts/Base.astro';
 import ChoiceCards, { type Choice } from '../../../components/ChoiceCards.astro';
 import { url } from '../../../lib/site';
-import { projects, getProject, hasPortfolio, firstSize } from '../../../data/projects';
+import { projects, getProject, firstSize } from '../../../data/projects';
+import { projectBanners, projectLandings, hasPortfolio } from '../../../lib/portfolio';
 import { readyVideos } from '../../../lib/videos';
 import { storeCount, allStoreImages, storeTitle } from '../../../lib/store';
 
@@ -12,12 +13,14 @@ export function getStaticPaths() {
 
 const { project } = Astro.params;
 const p = getProject(project!)!;
+const banners = projectBanners(p.slug);
+const landings = projectLandings(p.slug);
 const videos = readyVideos(p.videos);
 const storeImages = allStoreImages(p.slug);
 
 // Real thumbnails per format for the card previews.
-const bannerThumbs = p.banners.map(firstSize).filter((s): s is string => !!s); // 1:1 squares
-const landingThumbs = p.landings.map((l) => l.desktop ?? l.mobile).filter((s): s is string => !!s);
+const bannerThumbs = banners.map(firstSize).filter((s): s is string => !!s); // 1:1 squares
+const landingThumbs = landings.map((l) => l.desktop ?? l.mobile).filter((s): s is string => !!s);
 const videoThumbs = videos.map((v) => v.poster).filter((s): s is string => !!s);
 
 // 6+ thumbnails → 3×2 mosaic; 1–5 → single cover; none → fall back to the icon.
@@ -33,18 +36,18 @@ const choices: Choice[] = [
     description: 'Static creative in every placement size.',
     href: `/${p.slug}/portfolio/banners`,
     icon: 'image',
-    meta: p.banners.length ? `${p.banners.length}` : undefined,
+    meta: banners.length ? `${banners.length}` : undefined,
     preview: preview(bannerThumbs),
-    disabled: p.banners.length === 0,
+    disabled: banners.length === 0,
   },
   {
     title: 'Landings',
     description: 'Landing page designs.',
     href: `/${p.slug}/portfolio/landings`,
     icon: 'layout',
-    meta: p.landings.length ? `${p.landings.length}` : undefined,
+    meta: landings.length ? `${landings.length}` : undefined,
     preview: preview(landingThumbs),
-    disabled: p.landings.length === 0,
+    disabled: landings.length === 0,
   },
   {
     title: 'Videos',

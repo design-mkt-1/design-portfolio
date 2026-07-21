@@ -22,14 +22,14 @@ function bust(path: string): string {
   return url(path) + (v ? `?v=${v}` : '');
 }
 
-// Assign a running index so each tile maps into the flat lightbox list, and
-// build a repeated "loop" long enough for a seamless continuous marquee.
+// Assign a running index so each tile maps into the flat lightbox list. Each
+// "copy" is the real set of frames followed by a delimiter; we render several
+// copies so the forward loop stays filled on wide screens.
 let counter = 0;
 const rendered = groups.map((g) => {
   const items = g.images.map((src) => ({ src: bust(src), index: counter++ }));
-  const loop = [...items];
-  while (loop.length < 16) loop.push(...items);
-  return { key: g.key, label: g.label, items, loop };
+  const copies = Math.max(6, Math.ceil(36 / (items.length + 1)));
+  return { key: g.key, label: g.label, items, copies };
 });
 const flat = rendered.flatMap((g) => g.items.map((it) => ({ src: it.src, label: g.label })));
 ---
@@ -44,12 +44,17 @@ const flat = rendered.flatMap((g) => g.items.map((it) => ({ src: it.src, label: 
             <span class="group-count muted">{g.items.length}</span>
           </div>
         )}
-        <div class="marquee reveal">
+        <div class="marquee reveal" data-copies={g.copies}>
           <div class="mtrack">
-            {[...g.loop, ...g.loop, ...g.loop].map((it) => (
-              <button class="shot" data-index={it.index} aria-label={`${alt} — ${g.label}`} aria-haspopup="dialog">
-                <img src={it.src} alt="" loading="lazy" draggable="false" />
-              </button>
+            {Array.from({ length: g.copies }).map(() => (
+              <>
+                {g.items.map((it) => (
+                  <button class="shot" data-index={it.index} aria-label={`${alt} — ${g.label}`} aria-haspopup="dialog">
+                    <img src={it.src} alt="" loading="lazy" draggable="false" />
+                  </button>
+                ))}
+                <span class="delim" aria-hidden="true" />
+              </>
             ))}
           </div>
         </div>
@@ -126,28 +131,24 @@ const flat = rendered.flatMap((g) => g.items.map((it) => ({ src: it.src, label: 
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   document.querySelectorAll<HTMLElement>('.marquee').forEach((m) => {
     const track = m.querySelector<HTMLElement>('.mtrack')!;
-    let loopW = 0;
-    let started = false;
+    const copies = Number(m.dataset.copies) || 6;
+    let loopW = 0; // width of one copy (set of frames + delimiter)
     const measure = () => {
-      const w = track.scrollWidth / 3; // three identical copies
-      if (w) {
-        loopW = w;
-        if (!started) {
-          m.scrollLeft = loopW; // start in the middle copy → buffer both ways
-          started = true;
-        }
-      }
+      const w = track.scrollWidth / copies;
+      if (w) loopW = w;
     };
     measure();
     window.addEventListener('load', measure);
     window.addEventListener('resize', measure);
     track.querySelectorAll('img').forEach((im) => im.addEventListener('load', measure, { once: true }));
 
-    // Wrap by exactly one copy width → seamless (identical content on both sides).
+    // Bounded-forward loop: frame 1 is the hard left edge (swipe-left stops
+    // there); after the last frame + delimiter, wrap by one copy → back to
+    // frame 1, seamlessly (copies are identical).
     const normalize = () => {
       if (!loopW) return;
-      if (m.scrollLeft >= loopW * 1.5) m.scrollLeft -= loopW;
-      else if (m.scrollLeft < loopW * 0.5) m.scrollLeft += loopW;
+      while (m.scrollLeft >= loopW) m.scrollLeft -= loopW;
+      if (m.scrollLeft < 0) m.scrollLeft = 0;
     };
 
     let hovering = false;
@@ -155,7 +156,7 @@ const flat = rendered.flatMap((g) => g.items.map((it) => ({ src: it.src, label: 
     let touching = false;
     function frame() {
       if (!reduce && !hovering && !dragging && !touching) m.scrollLeft += 0.5;
-      normalize();
+      if (!dragging && !touching) normalize();
       requestAnimationFrame(frame);
     }
     requestAnimationFrame(frame);
@@ -166,7 +167,10 @@ const flat = rendered.flatMap((g) => g.items.map((it) => ({ src: it.src, label: 
       touching = true;
       moved = 0;
     }, { passive: true });
-    m.addEventListener('touchend', () => (touching = false));
+    m.addEventListener('touchend', () => {
+      touching = false;
+      normalize();
+    });
 
     // Mouse drag-to-scroll via window listeners (no pointer capture, so the
     // subsequent click still targets the tile). Touch uses native scrolling.
@@ -176,13 +180,14 @@ const flat = rendered.flatMap((g) => g.items.map((it) => ({ src: it.src, label: 
     const onMove = (e: PointerEvent) => {
       const dx = e.clientX - startX;
       moved = Math.max(moved, Math.abs(dx));
-      m.scrollLeft = startLeft - dx;
+      m.scrollLeft = Math.max(0, startLeft - dx); // hard stop at frame 1
     };
     const onUp = () => {
       dragging = false;
       m.classList.remove('grabbing');
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
+      normalize();
     };
     m.addEventListener('pointerdown', (e) => {
       if (e.pointerType !== 'mouse') return;
@@ -290,6 +295,28 @@ const flat = rendered.flatMap((g) => g.items.map((it) => ({ src: it.src, label: 
       0 0 0 1.5px color-mix(in srgb, var(--accent) 50%, transparent),
       0 0 18px color-mix(in srgb, var(--accent) 40%, transparent),
       0 18px 45px rgba(0, 0, 0, 0.5);
+  }
+  /* End-of-set delimiter before the loop repeats with the first frame. */
+  .delim {
+    flex: 0 0 auto;
+    align-self: center;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: clamp(360px, 56vh, 560px);
+    pointer-events: none;
+  }
+  .delim::before {
+    content: '';
+    width: 2px;
+    height: 44%;
+    border-radius: 2px;
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      color-mix(in srgb, var(--accent) 55%, var(--fg-dim)) 50%,
+      transparent
+    );
   }
 
   /* Lightbox — scrollable full-length view */
