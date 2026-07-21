@@ -120,6 +120,15 @@ const ogImageAbs = Astro.site ? new URL(url(ogImage), Astro.site).href : url(ogI
       } else {
         els.forEach((el) => el.classList.add('is-visible'));
       }
+
+      // Mobile: keep the header hidden at the very top (hero shows first), then
+      // reveal it once the user scrolls down a bit.
+      const header = document.querySelector('.site-header');
+      if (header) {
+        const onScroll = () => header.classList.toggle('revealed', window.scrollY > 60);
+        onScroll();
+        window.addEventListener('scroll', onScroll, { passive: true });
+      }
     </script>
 
     <style>
@@ -130,6 +139,20 @@ const ogImageAbs = Astro.site ? new URL(url(ogImage), Astro.site).href : url(ogI
         backdrop-filter: blur(14px);
         background: linear-gradient(to bottom, rgba(11, 11, 18, 0.85), rgba(11, 11, 18, 0.4));
         border-bottom: 1px solid var(--border);
+      }
+      /* Mobile: hide the header until scrolled — the hero is the first thing seen. */
+      @media (max-width: 768px) {
+        .site-header {
+          position: fixed;
+          left: 0;
+          right: 0;
+          transform: translateY(-100%);
+          transition: transform 0.35s var(--ease-expo);
+          will-change: transform;
+        }
+        .site-header.revealed {
+          transform: translateY(0);
+        }
       }
       .header-inner {
         display: flex;

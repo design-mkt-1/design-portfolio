@@ -3,13 +3,15 @@ import Base from '../../../layouts/Base.astro';
 import LandingsGallery from '../../../components/LandingsGallery.astro';
 import { url } from '../../../lib/site';
 import { projects, getProject } from '../../../data/projects';
+import { projectLandings } from '../../../lib/portfolio';
 
 export function getStaticPaths() {
-  return projects.filter((p) => p.landings.length > 0).map((p) => ({ params: { project: p.slug } }));
+  return projects.filter((p) => projectLandings(p.slug).length > 0).map((p) => ({ params: { project: p.slug } }));
 }
 
 const { project } = Astro.params;
 const p = getProject(project!)!;
+const landings = projectLandings(p.slug);
 ---
 
 <Base
@@ -31,7 +33,7 @@ const p = getProject(project!)!;
   </section>
 
   <section class="container">
-    <LandingsGallery items={p.landings} alt={p.name} />
+    <LandingsGallery items={landings} alt={p.name} />
   </section>
 </Base>
 

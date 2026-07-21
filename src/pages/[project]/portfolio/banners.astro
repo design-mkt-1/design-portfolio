@@ -3,13 +3,15 @@ import Base from '../../../layouts/Base.astro';
 import MediaGallery from '../../../components/MediaGallery.astro';
 import { url } from '../../../lib/site';
 import { projects, getProject } from '../../../data/projects';
+import { projectBanners } from '../../../lib/portfolio';
 
 export function getStaticPaths() {
-  return projects.filter((p) => p.banners.length > 0).map((p) => ({ params: { project: p.slug } }));
+  return projects.filter((p) => projectBanners(p.slug).length > 0).map((p) => ({ params: { project: p.slug } }));
 }
 
 const { project } = Astro.params;
 const p = getProject(project!)!;
+const banners = projectBanners(p.slug);
 ---
 
 <Base
@@ -31,7 +33,7 @@ const p = getProject(project!)!;
   </section>
 
   <section class="container">
-    <MediaGallery items={p.banners} kind="banner" />
+    <MediaGallery items={banners} kind="banner" />
   </section>
 </Base>
 
