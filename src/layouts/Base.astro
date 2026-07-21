@@ -13,8 +13,21 @@ interface Props {
   accent?: string;
   /** per-project brand icon → browser-tab favicon (falls back to the MS mark) */
   favicon?: string;
+  /** social-preview image (path under /public); defaults to the MS logo */
+  ogImage?: string;
 }
-const { title, description = 'Design portfolio by Marketing Solutions.', crumbs = [], accent, favicon } = Astro.props;
+const {
+  title,
+  description = 'Design portfolio by Marketing Solutions.',
+  crumbs = [],
+  accent,
+  favicon,
+  ogImage = 'assets/marketing-solutions-logo.webp',
+} = Astro.props;
+
+// Absolute URLs for social/canonical tags (Astro.site is configured in astro.config.mjs).
+const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined;
+const ogImageAbs = Astro.site ? new URL(url(ogImage), Astro.site).href : url(ogImage);
 ---
 
 <!doctype html>
@@ -25,13 +38,34 @@ const { title, description = 'Design portfolio by Marketing Solutions.', crumbs 
     <meta name="description" content={description} />
     <title>{title}</title>
     <link rel="icon" href={url('assets/favicon_ms.webp')} />
+    {canonical && <link rel="canonical" href={canonical} />}
+
+    {/* Open Graph / Twitter — rich previews when links are shared */}
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Marketing Solutions" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImageAbs} />
+    {canonical && <meta property="og:url" content={canonical} />}
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageAbs} />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    {accent && <style set:html={`:root{--accent:${accent};}`} />}
+    {
+      accent && (
+        /* :root:root beats global.css's single :root so the override wins regardless of load order */
+        <style
+          set:html={`:root:root{--accent:${accent};--accent-glow:color-mix(in srgb, ${accent} 32%, transparent);}`}
+        />
+      )
+    }
   </head>
   <body>
     <header class="site-header">
