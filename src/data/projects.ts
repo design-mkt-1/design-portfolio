@@ -56,6 +56,14 @@ export interface LandingItem {
   desktop?: string;
 }
 
+export interface VideoItem {
+  title: string;
+  /** In-repo 1×1 poster image (webp) shown on the gallery tile before play. */
+  poster: string;
+  /** size-key -> unlisted YouTube video ID. Include only the aspects that exist. */
+  youtube: Partial<Record<SizeKey, string>>;
+}
+
 export interface Project {
   slug: string;
   name: string;
@@ -69,7 +77,8 @@ export interface Project {
   figma?: string;
   brandbook?: Brandbook;
   banners: MediaItem[];
-  videos: MediaItem[];
+  /** Videos are hosted on YouTube (unlisted); only the poster lives in the repo. */
+  videos: VideoItem[];
   landings: LandingItem[];
 }
 
@@ -94,6 +103,10 @@ export function availableDevices(item: LandingItem): Device[] {
 /** Preferred preview for a landing tile: mobile first, else desktop. */
 export function landingThumb(item: LandingItem): string | undefined {
   return item.mobile ?? item.desktop;
+}
+
+export function availableVideoSizes(item: VideoItem): SizeKey[] {
+  return SIZE_ORDER.filter((k) => item.youtube[k]);
 }
 
 // -- placeholder path helpers (kept terse so the data reads cleanly) ----------
@@ -156,8 +169,14 @@ export const projects: Project[] = [
       realMedia('winboss', 'banners', '28285 - CloverBox'),
       realMedia('winboss', 'banners', '28286 - RedBox Neon'),
     ],
+    // Videos: per-aspect unlisted YouTube IDs + a 1×1 poster in the repo.
+    // Each entry renders only once its poster file exists on disk.
     videos: [
-      mkMedia('winboss', 'videos', 'brand-intro', 'Brand Intro', ['1x1', '9x16', '16x9']),
+      {
+        title: '27170 - AsimetricW Tesla',
+        poster: 'assets/winboss/videos/27170 - AsimetricW Tesla/1x1.webp',
+        youtube: { '1x1': 'Efc0Dtimc_c', '9x16': '8mKUDciRNbQ', '16x9': 'FA2AdEypg_4' },
+      },
     ],
     landings: [
       {
@@ -178,9 +197,7 @@ export const projects: Project[] = [
       mkMedia('win2', 'banners', 'first-deposit', 'First Deposit', ['1x1', '9x16', '16x9', '4x5']),
       mkMedia('win2', 'banners', 'free-spins', 'Free Spins', ['1x1', '9x16', '16x9']),
     ],
-    videos: [
-      mkMedia('win2', 'videos', 'promo-teaser', 'Promo Teaser', ['1x1', '9x16', '16x9']),
-    ],
+    videos: [],
     landings: [
       mkLanding('win2', 'homepage', 'Homepage', ['mobile', 'desktop']),
       mkLanding('win2', 'offer', 'Offer', ['mobile', 'desktop']),

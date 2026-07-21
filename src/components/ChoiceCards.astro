@@ -1,5 +1,5 @@
 ---
-import { url } from '../lib/site';
+import { url, isVideoFile } from '../lib/site';
 
 export interface Choice {
   title: string;
@@ -42,21 +42,29 @@ const arrow =
   {
     choices.map((c) => (
       <a
-        class:list={['choice reveal', { disabled: c.disabled, 'is-preview': !!c.preview }]}
+        class:list={['choice reveal', { disabled: c.disabled, 'is-preview': hasPreview }]}
         href={c.disabled ? undefined : url(c.href)}
         aria-disabled={c.disabled ? 'true' : undefined}
       >
-        {c.preview ? (
+        {hasPreview ? (
           <>
             <span class="choice-cover" aria-hidden="true">
-              {c.preview.type === 'grid' ? (
+              {!c.preview ? (
+                <span class="cp-empty">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" set:html={icons[c.icon ?? 'grid']} />
+                </span>
+              ) : c.preview.type === 'grid' ? (
                 <span class="cp-grid">
                   {c.preview.images.slice(0, 6).map((src) => (
                     <img src={url(src)} alt="" loading="lazy" />
                   ))}
                 </span>
               ) : c.preview.type === 'cover' ? (
-                <img class="cp-cover" src={url(c.preview.image)} alt="" loading="lazy" />
+                isVideoFile(c.preview.image) ? (
+                  <video class="cp-cover" src={url(c.preview.image)} muted playsinline preload="metadata" />
+                ) : (
+                  <img class="cp-cover" src={url(c.preview.image)} alt="" loading="lazy" />
+                )
               ) : (
                 <span class="cp-brand">
                   <img src={url(c.preview.logo)} alt="" loading="lazy" />
@@ -175,6 +183,10 @@ const arrow =
     object-fit: cover;
     transition: transform 0.45s var(--ease-expo);
   }
+  /* Single covers (landings, videos) show their top edge — the hero / first frame. */
+  .cp-cover {
+    object-position: top;
+  }
   .choice.is-preview:not(.disabled):hover .choice-cover img {
     transform: scale(1.035);
   }
@@ -194,6 +206,19 @@ const arrow =
     background:
       radial-gradient(circle at 50% 34%, color-mix(in srgb, var(--accent) 34%, transparent), transparent 66%),
       var(--bg-elev-2);
+  }
+  /* Empty state (e.g. a format with no items yet) — keeps the row consistent. */
+  .cp-empty {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    color: var(--fg-dim);
+    background: var(--bg-elev);
+  }
+  .cp-empty svg {
+    width: 34px;
+    height: 34px;
   }
   .cp-brand img {
     max-width: 46%;
