@@ -1,4 +1,6 @@
 ---
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 import Base from '../../layouts/Base.astro';
 import ChoiceCards, { type Choice } from '../../components/ChoiceCards.astro';
 import { url } from '../../lib/site';
@@ -11,22 +13,35 @@ export function getStaticPaths() {
 const { project } = Astro.params;
 const p = getProject(project!)!;
 
-// Collect up to 4 real thumbnails for the Portfolio preview (banners → landings → videos).
+// Collect up to 6 real thumbnails for the Portfolio preview (banners → landings → videos).
 const portfolioThumbs = [
   ...p.banners.map(firstSize),
   ...p.landings.map(landingThumb),
   ...p.videos.map(firstSize),
 ].filter((s): s is string => Boolean(s));
 
+// Brand Book cover: auto-detected from disk so it "just works" the moment a
+// cover image is uploaded to public/assets/<slug>/brandbook/cover.<ext>.
+// Prefers webp; falls back to png/jpg. Until one exists, the card shows the
+// brand wordmark on an accent panel instead.
+function brandbookCover(slug: string): string | undefined {
+  for (const ext of ['webp', 'png', 'jpg', 'jpeg']) {
+    const rel = `assets/${slug}/brandbook/cover.${ext}`;
+    if (existsSync(join(process.cwd(), 'public', rel))) return rel;
+  }
+  return undefined;
+}
+
 const portfolio = hasPortfolio(p);
 const choices: Choice[] = [];
 if (p.brandbook) {
+  const cover = brandbookCover(p.slug);
   choices.push({
     title: 'Brand Book',
     description: 'Logo, colors, typography, and usage guidelines.',
     href: `/${p.slug}/brandbook`,
     icon: 'book',
-    preview: { type: 'brand', logo: p.logo },
+    preview: cover ? { type: 'cover', image: cover } : { type: 'brand', logo: p.logo },
   });
 }
 if (portfolio) {
@@ -35,7 +50,7 @@ if (portfolio) {
     description: 'Banners, landing pages, and video creative.',
     href: `/${p.slug}/portfolio`,
     icon: 'grid',
-    preview: portfolioThumbs.length ? { type: 'grid', images: portfolioThumbs.slice(0, 4) } : undefined,
+    preview: portfolioThumbs.length ? { type: 'grid', images: portfolioThumbs.slice(0, 6) } : undefined,
   });
 }
 ---
