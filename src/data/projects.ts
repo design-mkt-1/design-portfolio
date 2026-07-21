@@ -60,8 +60,8 @@ export interface VideoItem {
   title: string;
   /** In-repo 1×1 poster image (webp) shown on the gallery tile before play. */
   poster: string;
-  /** size-key -> unlisted YouTube video ID. Include only the aspects that exist. */
-  youtube: Partial<Record<SizeKey, string>>;
+  /** size-key -> MP4 URL (GitHub Release asset or any CDN). Include only aspects that exist. */
+  src: Partial<Record<SizeKey, string>>;
 }
 
 export interface Project {
@@ -106,7 +106,7 @@ export function landingThumb(item: LandingItem): string | undefined {
 }
 
 export function availableVideoSizes(item: VideoItem): SizeKey[] {
-  return SIZE_ORDER.filter((k) => item.youtube[k]);
+  return SIZE_ORDER.filter((k) => item.src[k]);
 }
 
 // -- placeholder path helpers (kept terse so the data reads cleanly) ----------
@@ -169,14 +169,18 @@ export const projects: Project[] = [
       realMedia('winboss', 'banners', '28285 - CloverBox'),
       realMedia('winboss', 'banners', '28286 - RedBox Neon'),
     ],
-    // Videos: per-aspect unlisted YouTube IDs + a 1×1 poster in the repo.
-    // Posters live flat in videos/ as cover-<ID>.webp (uploaded as cover-<ID>.jpg,
-    // converted to webp). Each entry renders only once its poster exists on disk.
+    // Videos: .mp4 files committed under videos/<title>/ (dimension-named) plus a
+    // cover-<ID>.webp poster in the same folder. Each aspect tab appears only once
+    // its file exists on disk, so entries can be committed before the MP4s land.
     videos: [
       {
         title: '27170 - AsimetricW Tesla',
-        poster: 'assets/winboss/videos/cover-27170.webp',
-        youtube: { '1x1': 'Efc0Dtimc_c', '9x16': '8mKUDciRNbQ', '16x9': 'FA2AdEypg_4' },
+        poster: 'assets/winboss/videos/27170 - AsimetricW Tesla/cover-27170.webp',
+        src: {
+          '1x1': 'assets/winboss/videos/27170 - AsimetricW Tesla/1080x1080.mp4',
+          '9x16': 'assets/winboss/videos/27170 - AsimetricW Tesla/1080x1920.mp4',
+          '16x9': 'assets/winboss/videos/27170 - AsimetricW Tesla/1920x1080.mp4',
+        },
       },
     ],
     landings: [
