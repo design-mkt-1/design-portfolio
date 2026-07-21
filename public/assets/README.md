@@ -25,6 +25,8 @@ public/assets/marketing-solutions-logo.png     (or .svg / .webp)
 | `win2`     | portfolio  | `banners/ landings/ videos/`            |
 | `fansport` | brandbook  | `brandbook/`                            |
 | `topbet`   | brandbook  | `brandbook/`                            |
+| `top-win`  | brandbook + banners | `brandbook/ banners/`          |
+| `jackpot`  | banners (rebrand in progress) | `banners/`            |
 
 Each project also takes a logo:
 

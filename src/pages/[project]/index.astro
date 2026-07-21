@@ -5,7 +5,7 @@ import Base from '../../layouts/Base.astro';
 import ChoiceCards, { type Choice } from '../../components/ChoiceCards.astro';
 import { url } from '../../lib/site';
 import { projects, getProject, firstSize, landingThumb } from '../../data/projects';
-import { projectBanners, projectLandings, hasPortfolio } from '../../lib/portfolio';
+import { projectBanners, projectLandings, hasPortfolio, assetExists } from '../../lib/portfolio';
 import { readyVideos } from '../../lib/videos';
 
 export function getStaticPaths() {
@@ -38,16 +38,28 @@ function brandbookCover(slug: string): string | undefined {
   return undefined;
 }
 
+// Header art: prefer the brand icon, then the logo, then a text wordmark — so a
+// project whose assets haven't been uploaded yet still renders cleanly.
+const headerIcon = p.favicon && assetExists(p.favicon) ? p.favicon : undefined;
+const headerLogo = !headerIcon && assetExists(p.logo) ? p.logo : undefined;
+
 const portfolio = hasPortfolio(p);
 const choices: Choice[] = [];
 if (p.brandbook) {
   const cover = brandbookCover(p.slug);
+  // Fall back to the brand panel only when a logo exists; otherwise leave the
+  // preview off so the card shows its book-icon placeholder (no broken image).
+  const preview = cover
+    ? ({ type: 'cover', image: cover } as const)
+    : assetExists(p.logo)
+      ? ({ type: 'brand', logo: p.logo } as const)
+      : undefined;
   choices.push({
     title: 'Brand Book',
     description: 'Logo, colors, typography, and usage guidelines.',
     href: `/${p.slug}/brandbook`,
     icon: 'book',
-    preview: cover ? { type: 'cover', image: cover } : { type: 'brand', logo: p.logo },
+    preview,
   });
 }
 if (portfolio) {
@@ -72,10 +84,12 @@ if (portfolio) {
     <a class="backlink reveal" href={url('/')}>← All projects</a>
     <div class="head reveal">
       {
-        p.favicon ? (
-          <img class="icon" src={url(p.favicon)} alt={`${p.name} icon`} />
+        headerIcon ? (
+          <img class="icon" src={url(headerIcon)} alt={`${p.name} icon`} />
+        ) : headerLogo ? (
+          <img class="logo" src={url(headerLogo)} alt={`${p.name} logo`} />
         ) : (
-          <img class="logo" src={url(p.logo)} alt={`${p.name} logo`} />
+          <span class="wordmark">{p.name}</span>
         )
       }
       <div>
@@ -86,7 +100,13 @@ if (portfolio) {
   </section>
 
   <section class="container">
-    <ChoiceCards choices={choices} />
+    {
+      choices.length > 0 ? (
+        <ChoiceCards choices={choices} />
+      ) : (
+        <p class="empty muted reveal">Brand book and creative are coming soon.</p>
+      )
+    }
   </section>
 </Base>
 
@@ -113,6 +133,17 @@ if (portfolio) {
     object-fit: contain;
     flex: none;
     filter: drop-shadow(0 8px 30px rgba(0, 0, 0, 0.5));
+  }
+  .wordmark {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(1.6rem, 4vw, 2.2rem);
+    color: color-mix(in srgb, var(--accent) 70%, var(--fg));
+    flex: none;
+  }
+  .empty {
+    padding: 8px 0 40px;
+    font-size: 1.02rem;
   }
   h1 {
     font-size: clamp(2rem, 5vw, 3rem);

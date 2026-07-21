@@ -1,0 +1,57 @@
+---
+// Inline SVG flags — render identically on every OS (emoji flags don't on Windows).
+// RO = Romania, UA = Ukraine, WW = Worldwide (globe).
+import type { GeoCode } from '../data/projects';
+
+interface Props {
+  code: GeoCode;
+}
+const { code } = Astro.props;
+---
+
+{
+  code === 'RO' && (
+    <svg class="flag rect" viewBox="0 0 3 2" aria-hidden="true">
+      <rect width="3" height="2" fill="#FCD116" />
+      <rect width="1" height="2" fill="#002B7F" />
+      <rect x="2" width="1" height="2" fill="#CE1126" />
+    </svg>
+  )
+}
+{
+  code === 'UA' && (
+    <svg class="flag rect" viewBox="0 0 3 2" aria-hidden="true">
+      <rect width="3" height="1" fill="#0057B7" />
+      <rect y="1" width="3" height="1" fill="#FFD700" />
+    </svg>
+  )
+}
+{
+  code === 'WW' && (
+    <svg class="flag globe" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="9" />
+      <line x1="3" y1="12" x2="21" y2="12" />
+      <ellipse cx="12" cy="12" rx="4" ry="9" />
+    </svg>
+  )
+}
+
+<style>
+  .flag {
+    flex: none;
+    display: block;
+  }
+  .rect {
+    width: 18px;
+    height: 12px;
+    border-radius: 2px;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.16) inset;
+  }
+  .globe {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    opacity: 0.9;
+  }
+</style>

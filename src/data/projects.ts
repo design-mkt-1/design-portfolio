@@ -64,12 +64,23 @@ export interface VideoItem {
   src: Partial<Record<SizeKey, string>>;
 }
 
+/** GEO / market a project is based in. `code` drives the flag icon (see Flag.astro). */
+export type GeoCode = 'RO' | 'UA' | 'WW';
+
+export interface Geo {
+  code: GeoCode;
+  /** short human label shown next to the flag, e.g. "Romania" */
+  label: string;
+}
+
 export interface Project {
   slug: string;
   name: string;
   logo: string;
   /** square brand icon (used as the on-page header icon and the browser-tab favicon) */
   favicon?: string;
+  /** market the brand operates in — flag + label shown on the home grid */
+  geo?: Geo;
   tagline?: string;
   /** optional per-project accent override (hex) */
   accent?: string;
@@ -112,6 +123,7 @@ export const projects: Project[] = [
     name: 'Winboss',
     logo: 'assets/winboss/logo_winboss.svg',
     favicon: 'assets/winboss/favicon_winboss.webp',
+    geo: { code: 'RO', label: 'Romania' },
     accent: '#f5b301',
     tagline: 'Full brand system and campaign production.',
     figma: 'https://www.figma.com/design/yP4cFDQU6j2J8QVWHr4CUM/WinBoss?node-id=4-464&p=f&t=mUR3syzALRg87bR2-0',
@@ -136,6 +148,7 @@ export const projects: Project[] = [
     name: 'Win2',
     logo: 'assets/win2/logo_win2.webp',
     favicon: 'assets/win2/favicon_win2.webp',
+    geo: { code: 'RO', label: 'Romania' },
     accent: '#22d3ee',
     tagline: 'Performance creative across every placement.',
     videos: [],
@@ -145,6 +158,7 @@ export const projects: Project[] = [
     name: 'Fansport',
     logo: 'assets/fansport/logo_fansport.svg',
     favicon: 'assets/fansport/favicon_fansport.svg',
+    geo: { code: 'WW', label: 'Worldwide · Asia, Europe' },
     accent: '#34d399',
     tagline: 'Brand identity and guidelines.',
     figma: 'https://www.figma.com/design/eRr6wNLDitV8iWyUZY6qM8/FanSport?node-id=0-1&p=f&t=J65JMwCpOZU2TEya-0',
@@ -156,10 +170,36 @@ export const projects: Project[] = [
     name: 'Topbet',
     logo: 'assets/topbet/logo_topbet.svg',
     favicon: 'assets/topbet/favicon_topbet.svg',
+    geo: { code: 'WW', label: 'Worldwide · Asia, Europe' },
     accent: '#fb7185',
     tagline: 'Brand identity and guidelines.',
     figma: 'https://www.figma.com/design/5UpnZQKQOzud31MuwpTO1R/TopBet?node-id=0-1&p=f&t=hrOfpLlAyhsC0GC9-0',
     brandbook: { type: 'pdf', url: 'assets/topbet/brandbook/topbet-brandbook.pdf' },
+    videos: [],
+  },
+  {
+    // Brandbook + banners. Assets land under public/assets/top-win/ (logo_top-win.*,
+    // favicon_top-win.*, brandbook/*, banners/*); the site wires them up on upload.
+    slug: 'top-win',
+    name: 'Top-Win',
+    logo: 'assets/top-win/logo_top-win.svg',
+    favicon: 'assets/top-win/favicon_top-win.svg',
+    geo: { code: 'UA', label: 'Ukraine' },
+    accent: '#a78bfa',
+    tagline: 'Brand identity and guidelines.',
+    brandbook: { type: 'pdf', url: 'assets/top-win/brandbook/top-win-brandbook.pdf' },
+    videos: [],
+  },
+  {
+    // Rebrand in progress — banners only for now, kept last until the new identity
+    // lands. Drop creatives into public/assets/jackpot/banners/ to light up Portfolio.
+    slug: 'jackpot',
+    name: 'Jackpot',
+    logo: 'assets/jackpot/logo_jackpot.svg',
+    favicon: 'assets/jackpot/favicon_jackpot.svg',
+    geo: { code: 'WW', label: 'Worldwide · Asia, Europe' },
+    accent: '#f472b6',
+    tagline: 'Rebrand in progress.',
     videos: [],
   },
 ];

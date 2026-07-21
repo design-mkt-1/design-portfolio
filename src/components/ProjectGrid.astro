@@ -1,7 +1,8 @@
 ---
 import { url } from '../lib/site';
 import { projects, type Project } from '../data/projects';
-import { hasPortfolio } from '../lib/portfolio';
+import { hasPortfolio, assetExists } from '../lib/portfolio';
+import Flag from './Flag.astro';
 
 function tags(p: Project): string[] {
   const t: string[] = [];
@@ -17,10 +18,22 @@ function tags(p: Project): string[] {
       <a class="card reveal" href={url(`/${p.slug}`)} style={`--card-accent:${p.accent ?? 'var(--accent)'}`}>
         <span class="glow" aria-hidden="true" />
         <span class="logo-wrap">
-          <img src={url(p.logo)} alt={`${p.name} logo`} loading="lazy" />
+          {assetExists(p.logo) ? (
+            <img src={url(p.logo)} alt={`${p.name} logo`} loading="lazy" />
+          ) : (
+            <span class="logo-fallback">{p.name}</span>
+          )}
         </span>
         <span class="meta">
-          <span class="name">{p.name}</span>
+          <span class="meta-main">
+            <span class="name">{p.name}</span>
+            {p.geo && (
+              <span class="geo">
+                <Flag code={p.geo.code} />
+                <span class="geo-label">{p.geo.label}</span>
+              </span>
+            )}
+          </span>
           <span class="tags">
             {tags(p).map((t) => (
               <span class="tag">{t}</span>
@@ -79,17 +92,43 @@ function tags(p: Project): string[] {
     object-fit: contain;
     filter: drop-shadow(0 6px 24px rgba(0, 0, 0, 0.4));
   }
+  /* Shown until a real logo file is uploaded — reads as an intentional wordmark. */
+  .logo-fallback {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.6rem;
+    letter-spacing: 0.01em;
+    text-align: center;
+    color: color-mix(in srgb, var(--card-accent) 70%, var(--fg));
+  }
   .meta {
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: space-between;
     gap: 12px;
     position: relative;
+  }
+  .meta-main {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-width: 0;
   }
   .name {
     font-family: var(--font-display);
     font-weight: 700;
     font-size: 1.15rem;
+  }
+  .geo {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: var(--fg-muted);
+  }
+  .geo-label {
+    font-size: 0.76rem;
+    letter-spacing: 0.02em;
+    line-height: 1.2;
   }
   .tags {
     display: flex;

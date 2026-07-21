@@ -53,6 +53,12 @@ export function projectLandings(slug: string): LandingItem[] {
     .filter((l) => l.mobile || l.desktop);
 }
 
+/** Build-time check for a /public asset (e.g. a logo not yet uploaded). */
+export function assetExists(relPath: string): boolean {
+  if (!relPath) return false;
+  return existsSync(join(process.cwd(), 'public', relPath));
+}
+
 export function hasPortfolio(p: Project): boolean {
   return (
     projectBanners(p.slug).length > 0 ||
