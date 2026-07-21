@@ -56,6 +56,16 @@ export interface LandingItem {
   desktop?: string;
 }
 
+export interface VideoItem {
+  title: string;
+  /** Unlisted YouTube video ID (the part after watch?v= or youtu.be/). */
+  youtube: string;
+  /** In-repo poster image (webp) shown in the gallery before the video plays. */
+  poster: string;
+  /** Aspect ratio for the tile + player; defaults to 16x9. */
+  ratio?: SizeKey;
+}
+
 export interface Project {
   slug: string;
   name: string;
@@ -69,7 +79,8 @@ export interface Project {
   figma?: string;
   brandbook?: Brandbook;
   banners: MediaItem[];
-  videos: MediaItem[];
+  /** Videos are hosted on YouTube (unlisted); only the poster lives in the repo. */
+  videos: VideoItem[];
   landings: LandingItem[];
 }
 
@@ -94,6 +105,10 @@ export function availableDevices(item: LandingItem): Device[] {
 /** Preferred preview for a landing tile: mobile first, else desktop. */
 export function landingThumb(item: LandingItem): string | undefined {
   return item.mobile ?? item.desktop;
+}
+
+export function videoRatio(item: VideoItem): SizeKey {
+  return item.ratio ?? '16x9';
 }
 
 // -- placeholder path helpers (kept terse so the data reads cleanly) ----------
@@ -156,9 +171,9 @@ export const projects: Project[] = [
       realMedia('winboss', 'banners', '28285 - CloverBox'),
       realMedia('winboss', 'banners', '28286 - RedBox Neon'),
     ],
-    videos: [
-      mkMedia('winboss', 'videos', 'brand-intro', 'Brand Intro', ['1x1', '9x16', '16x9']),
-    ],
+    // Add videos like this (poster in public/assets/winboss/videos/<name>/poster.webp):
+    //   { title: 'Brand Intro', youtube: 'dQw4w9WgXcQ', poster: 'assets/winboss/videos/brand-intro/poster.webp', ratio: '16x9' }
+    videos: [],
     landings: [
       {
         title: '27735 - AlbaNeagra',
@@ -178,9 +193,7 @@ export const projects: Project[] = [
       mkMedia('win2', 'banners', 'first-deposit', 'First Deposit', ['1x1', '9x16', '16x9', '4x5']),
       mkMedia('win2', 'banners', 'free-spins', 'Free Spins', ['1x1', '9x16', '16x9']),
     ],
-    videos: [
-      mkMedia('win2', 'videos', 'promo-teaser', 'Promo Teaser', ['1x1', '9x16', '16x9']),
-    ],
+    videos: [],
     landings: [
       mkLanding('win2', 'homepage', 'Homepage', ['mobile', 'desktop']),
       mkLanding('win2', 'offer', 'Offer', ['mobile', 'desktop']),
