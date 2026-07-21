@@ -2,6 +2,8 @@
 import Base from '../layouts/Base.astro';
 
 const EMAIL = 'design1@marketing-solutions.ro';
+// FormSubmit alias — routes to EMAIL but keeps the address out of the page source.
+const ENDPOINT = '4c0dc0b2ba05e3a72ae2255ff32031c0';
 ---
 
 <Base
@@ -21,7 +23,7 @@ const EMAIL = 'design1@marketing-solutions.ro';
     <form
       class="contact-form reveal"
       id="contact-form"
-      action={`https://formsubmit.co/${EMAIL}`}
+      action={`https://formsubmit.co/${ENDPOINT}`}
       method="POST"
     >
       {/* FormSubmit options */}
@@ -57,6 +59,7 @@ const EMAIL = 'design1@marketing-solutions.ro';
   const form = document.getElementById('contact-form') as HTMLFormElement | null;
   const statusEl = document.getElementById('form-status');
   const EMAIL = 'design1@marketing-solutions.ro';
+  const ENDPOINT = '4c0dc0b2ba05e3a72ae2255ff32031c0';
 
   // Translate JS-set status via the global i18n helper (set by Base).
   const tk = (key: string, fallback: string) => {
@@ -73,7 +76,7 @@ const EMAIL = 'design1@marketing-solutions.ro';
     statusEl.className = 'form-status';
     if (btn) btn.disabled = true;
     try {
-      const res = await fetch(`https://formsubmit.co/ajax/${EMAIL}`, {
+      const res = await fetch(`https://formsubmit.co/ajax/${ENDPOINT}`, {
         method: 'POST',
         headers: { Accept: 'application/json' },
         body: new FormData(form),
