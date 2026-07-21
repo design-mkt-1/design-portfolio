@@ -1,5 +1,5 @@
 ---
-import { url } from '../lib/site';
+import { url, isVideoFile } from '../lib/site';
 
 export interface Choice {
   title: string;
@@ -56,7 +56,11 @@ const arrow =
                   ))}
                 </span>
               ) : c.preview.type === 'cover' ? (
-                <img class="cp-cover" src={url(c.preview.image)} alt="" loading="lazy" />
+                isVideoFile(c.preview.image) ? (
+                  <video class="cp-cover" src={url(c.preview.image)} muted playsinline preload="metadata" />
+                ) : (
+                  <img class="cp-cover" src={url(c.preview.image)} alt="" loading="lazy" />
+                )
               ) : (
                 <span class="cp-brand">
                   <img src={url(c.preview.logo)} alt="" loading="lazy" />
@@ -174,6 +178,10 @@ const arrow =
     height: 100%;
     object-fit: cover;
     transition: transform 0.45s var(--ease-expo);
+  }
+  /* Single covers (landings, videos) show their top edge — the hero / first frame. */
+  .cp-cover {
+    object-position: top;
   }
   .choice.is-preview:not(.disabled):hover .choice-cover img {
     transform: scale(1.035);

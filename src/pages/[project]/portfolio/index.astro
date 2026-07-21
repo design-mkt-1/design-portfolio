@@ -2,7 +2,7 @@
 import Base from '../../../layouts/Base.astro';
 import ChoiceCards, { type Choice } from '../../../components/ChoiceCards.astro';
 import { url } from '../../../lib/site';
-import { projects, getProject, hasPortfolio } from '../../../data/projects';
+import { projects, getProject, hasPortfolio, firstSize } from '../../../data/projects';
 
 export function getStaticPaths() {
   return projects.filter(hasPortfolio).map((p) => ({ params: { project: p.slug } }));
@@ -11,6 +11,18 @@ export function getStaticPaths() {
 const { project } = Astro.params;
 const p = getProject(project!)!;
 
+// Real thumbnails per format for the card previews.
+const bannerThumbs = p.banners.map(firstSize).filter((s): s is string => !!s); // 1:1 squares
+const landingThumbs = p.landings.map((l) => l.desktop ?? l.mobile).filter((s): s is string => !!s);
+const videoThumbs = p.videos.map((v) => v.sizes['16x9'] ?? firstSize(v)).filter((s): s is string => !!s);
+
+// 6+ thumbnails → 3×2 mosaic; 1–5 → single cover; none → fall back to the icon.
+function preview(thumbs: string[]): Choice['preview'] {
+  if (thumbs.length >= 6) return { type: 'grid', images: thumbs.slice(0, 6) };
+  if (thumbs.length) return { type: 'cover', image: thumbs[0] };
+  return undefined;
+}
+
 const choices: Choice[] = [
   {
     title: 'Banners',
@@ -18,6 +30,7 @@ const choices: Choice[] = [
     href: `/${p.slug}/portfolio/banners`,
     icon: 'image',
     meta: p.banners.length ? `${p.banners.length}` : undefined,
+    preview: preview(bannerThumbs),
     disabled: p.banners.length === 0,
   },
   {
@@ -26,6 +39,7 @@ const choices: Choice[] = [
     href: `/${p.slug}/portfolio/landings`,
     icon: 'layout',
     meta: p.landings.length ? `${p.landings.length}` : undefined,
+    preview: preview(landingThumbs),
     disabled: p.landings.length === 0,
   },
   {
@@ -34,6 +48,7 @@ const choices: Choice[] = [
     href: `/${p.slug}/portfolio/videos`,
     icon: 'film',
     meta: p.videos.length ? `${p.videos.length}` : undefined,
+    preview: preview(videoThumbs),
     disabled: p.videos.length === 0,
   },
 ];
