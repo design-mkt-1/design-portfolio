@@ -52,6 +52,34 @@ export const STRINGS: Record<string, [string, string, string]> = {
   'tag.brandbook': ['Brandbook', 'Brand Book', 'Брендбук'],
   'tag.portfolio': ['Portfolio', 'Portofoliu', 'Портфолио'],
 
+  // Project taglines (rendered from src/data/projects.ts). Matched by English text.
+  'tagline.winboss': [
+    'Full brand system and campaign production.',
+    'Sistem complet de brand și producție de campanii.',
+    'Полная система бренда и производство кампаний.',
+  ],
+  'tagline.win2': [
+    'Performance creative across every placement.',
+    'Creative de performanță pentru fiecare plasare.',
+    'Перформанс-креативы для каждого размещения.',
+  ],
+  'tagline.guidelines': [
+    'Brand identity and guidelines.',
+    'Identitate de brand și ghid de utilizare.',
+    'Фирменный стиль и рекомендации.',
+  ],
+  'tagline.rebrand': ['Rebrand in progress.', 'Rebranding în curs.', 'Ребрендинг в процессе.'],
+  'proj.comingSoon': [
+    'Brand book and creative are coming soon.',
+    'Brand book-ul și creativele urmează în curând.',
+    'Брендбук и креативы скоро появятся.',
+  ],
+
+  // GEO / market labels (rendered on the home grid). Matched by English text.
+  'geo.romania': ['Romania', 'România', 'Румыния'],
+  'geo.ukraine': ['Ukraine', 'Ucraina', 'Украина'],
+  'geo.worldwide': ['Worldwide · Asia, Europe', 'Global · Asia, Europa', 'Весь мир · Азия, Европа'],
+
   'pf.choose': [
     'Choose a format to browse the creative.',
     'Alege un format pentru a explora creativele.',
