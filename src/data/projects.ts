@@ -170,11 +170,12 @@ export const projects: Project[] = [
       realMedia('winboss', 'banners', '28286 - RedBox Neon'),
     ],
     // Videos: per-aspect unlisted YouTube IDs + a 1×1 poster in the repo.
-    // Each entry renders only once its poster file exists on disk.
+    // Posters live flat in videos/ as cover-<ID>.webp (uploaded as cover-<ID>.jpg,
+    // converted to webp). Each entry renders only once its poster exists on disk.
     videos: [
       {
         title: '27170 - AsimetricW Tesla',
-        poster: 'assets/winboss/videos/27170 - AsimetricW Tesla/1x1.webp',
+        poster: 'assets/winboss/videos/cover-27170.webp',
         youtube: { '1x1': 'Efc0Dtimc_c', '9x16': '8mKUDciRNbQ', '16x9': 'FA2AdEypg_4' },
       },
     ],
