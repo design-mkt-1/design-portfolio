@@ -182,8 +182,8 @@ export const projects: Project[] = [
     // favicon_top-win.*, brandbook/*, banners/*); the site wires them up on upload.
     slug: 'top-win',
     name: 'Top-Win',
-    logo: 'assets/top-win/logo_top-win.svg',
-    favicon: 'assets/top-win/favicon_top-win.svg',
+    logo: 'assets/top-win/logo_topwin.svg',
+    favicon: 'assets/top-win/favicon_topwin.svg',
     geo: { code: 'UA', label: 'Ukraine' },
     accent: '#a78bfa',
     tagline: 'Brand identity and guidelines.',
