@@ -1,24 +1,41 @@
 // Normalize uploaded media under public/assets/**:
-//  1) In banners/ and videos/ item folders, rename pixel-dimension filenames to
-//     size keys:  1080x1080 -> 1x1, 1080x1920 -> 9x16, 1920x1080 -> 16x9, 1080x1350 -> 4x5.
-//  2) Convert raster images (.jpg/.jpeg/.png) -> .webp (quality 82) and delete the original.
-//     Leaves .svg and video files (.mp4/.webm/...) untouched.
+//  * In banners/ and videos/ item folders, raster images are renamed to size keys
+//    derived from their ACTUAL pixel dimensions (robust to any filename):
+//      1:1 -> 1x1, 9:16 -> 9x16, 16:9 -> 16x9, 4:5 -> 4x5
+//  * All raster images (.jpg/.jpeg/.png) are converted to .webp (quality 82); the
+//    original is deleted. .svg and video files (.mp4/.webm/...) are left untouched.
 //
-// Idempotent: safe to re-run. Run: node scripts/normalize-assets.mjs
-import { readdirSync, statSync, renameSync, existsSync, unlinkSync } from 'node:fs';
+// Idempotent: safe to re-run (already-.webp files are skipped). Run:
+//   node scripts/normalize-assets.mjs
+import { readdirSync, statSync, existsSync, unlinkSync } from 'node:fs';
 import { join, extname, basename, dirname } from 'node:path';
 import sharp from 'sharp';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const ASSETS = join(ROOT, 'public', 'assets');
-
-const DIM_TO_KEY = new Map([
-  ['1080x1080', '1x1'],
-  ['1080x1920', '9x16'],
-  ['1920x1080', '16x9'],
-  ['1080x1350', '4x5'],
-]);
 const RASTER = new Set(['.jpg', '.jpeg', '.png']);
+
+// aspect ratio -> size key
+const RATIOS = [
+  ['1x1', 1 / 1],
+  ['9x16', 9 / 16],
+  ['16x9', 16 / 9],
+  ['4x5', 4 / 5],
+];
+function sizeKeyFromDims(w, h) {
+  if (!w || !h) return null;
+  const r = w / h;
+  let best = null,
+    bestErr = Infinity;
+  for (const [key, ratio] of RATIOS) {
+    const err = Math.abs(r - ratio) / ratio;
+    if (err < bestErr) {
+      bestErr = err;
+      best = key;
+    }
+  }
+  return bestErr < 0.06 ? best : null; // within 6% of a known ratio
+}
 
 function walk(dir) {
   const out = [];
@@ -30,42 +47,40 @@ function walk(dir) {
   return out;
 }
 
-// Rename by pixel dimensions (only inside banners/ or videos/ folders).
-function maybeRename(file) {
-  const dir = dirname(file);
-  if (!/(\/|^)(banners|videos)\//.test(file.replace(ROOT, ''))) return file;
-  const ext = extname(file);
-  const stem = basename(file, ext).toLowerCase().replace(/\s*px$/, '').trim();
-  const key = DIM_TO_KEY.get(stem);
-  if (!key) return file;
-  const target = join(dir, key + ext);
-  if (target === file || existsSync(target)) return file;
-  renameSync(file, target);
-  console.log(`renamed  ${basename(file)} -> ${basename(target)}`);
-  return target;
-}
+const isSizedFolder = (file) => /(^|\/)(banners|videos)\//.test(file.replace(ROOT, ''));
 
-async function maybeWebp(file) {
+async function process(file) {
   const ext = extname(file).toLowerCase();
   if (!RASTER.has(ext)) return;
-  const target = file.slice(0, -ext.length) + '.webp';
-  if (existsSync(target)) return;
+  const dir = dirname(file);
+
+  let targetBase = basename(file, extname(file));
+  if (isSizedFolder(file)) {
+    const meta = await sharp(file).metadata();
+    const key = sizeKeyFromDims(meta.width, meta.height);
+    if (key) targetBase = key;
+    else console.warn(`?? ${basename(file)} (${meta.width}x${meta.height}) — no size-key match, keeping name`);
+  }
+  const target = join(dir, `${targetBase}.webp`);
+
+  if (existsSync(target) && target !== file) {
+    console.warn(`skip (exists): ${basename(target)} <- ${basename(file)}`);
+    return;
+  }
   await sharp(file).webp({ quality: 82 }).toFile(target);
   unlinkSync(file);
-  console.log(`webp     ${basename(file)} -> ${basename(target)}`);
+  console.log(`${basename(file)}  ->  ${basename(target)}`);
 }
 
 if (!existsSync(ASSETS)) {
   console.log('no public/assets');
-  process.exit(0);
+  process.exit?.(0);
 }
-
-let files = walk(ASSETS).map(maybeRename);
-for (const f of files) {
+for (const f of walk(ASSETS)) {
   try {
-    await maybeWebp(f);
+    await process(f);
   } catch (e) {
-    console.error(`skip ${f}: ${e.message}`);
+    console.error(`ERR ${f}: ${e.message}`);
   }
 }
 console.log('normalize done.');

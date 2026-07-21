@@ -33,12 +33,19 @@ if (portfolio) {
 
 <Base
   title={`${p.name} — Marketing Solutions`}
+  favicon={p.favicon}
   crumbs={[{ label: 'Projects', href: '/' }, { label: p.name }]}
 >
   <section class="container intro">
     <a class="backlink reveal" href={url('/')}>← All projects</a>
     <div class="head reveal">
-      <img class="logo" src={url(p.logo)} alt={`${p.name} logo`} />
+      {
+        p.favicon ? (
+          <img class="icon" src={url(p.favicon)} alt={`${p.name} icon`} />
+        ) : (
+          <img class="logo" src={url(p.logo)} alt={`${p.name} logo`} />
+        )
+      }
       <div>
         <h1>{p.name}</h1>
         {p.tagline && <p class="muted lede">{p.tagline}</p>}
@@ -66,6 +73,13 @@ if (portfolio) {
     width: auto;
     max-width: 240px;
     object-fit: contain;
+    filter: drop-shadow(0 8px 30px rgba(0, 0, 0, 0.5));
+  }
+  .icon {
+    height: 68px;
+    width: 68px;
+    object-fit: contain;
+    flex: none;
     filter: drop-shadow(0 8px 30px rgba(0, 0, 0, 0.5));
   }
   h1 {
