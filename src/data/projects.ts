@@ -199,8 +199,7 @@ export const projects: Project[] = [
     accent: '#22d3ee',
     tagline: 'Performance creative across every placement.',
     banners: [
-      mkMedia('win2', 'banners', 'first-deposit', 'First Deposit', ['1x1', '9x16', '16x9', '4x5']),
-      mkMedia('win2', 'banners', 'free-spins', 'Free Spins', ['1x1', '9x16', '16x9']),
+      realMedia('win2', 'banners', '26954 - Hand SC'),
     ],
     videos: [],
     landings: [
