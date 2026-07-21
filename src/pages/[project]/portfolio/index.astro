@@ -14,7 +14,7 @@ const p = getProject(project!)!;
 // Real thumbnails per format for the card previews.
 const bannerThumbs = p.banners.map(firstSize).filter((s): s is string => !!s); // 1:1 squares
 const landingThumbs = p.landings.map((l) => l.desktop ?? l.mobile).filter((s): s is string => !!s);
-const videoThumbs = p.videos.map((v) => v.sizes['16x9'] ?? firstSize(v)).filter((s): s is string => !!s);
+const videoThumbs = p.videos.map((v) => v.poster).filter((s): s is string => !!s);
 
 // 6+ thumbnails → 3×2 mosaic; 1–5 → single cover; none → fall back to the icon.
 function preview(thumbs: string[]): Choice['preview'] {

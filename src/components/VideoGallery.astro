@@ -1,0 +1,291 @@
+---
+import { url } from '../lib/site';
+import { SIZE_RATIO, videoRatio, type VideoItem } from '../data/projects';
+
+interface Props {
+  items: VideoItem[];
+}
+const { items } = Astro.props;
+
+// Resolve poster URLs server-side so the client script is base-safe.
+const payload = items.map((v) => ({
+  title: v.title,
+  youtube: v.youtube,
+  ratio: SIZE_RATIO[videoRatio(v)],
+}));
+---
+
+<div class="vgrid">
+  {
+    items.map((v, i) => (
+      <button class="vtile reveal" data-index={i} aria-haspopup="dialog">
+        <span class="poster" style={`aspect-ratio:${SIZE_RATIO[videoRatio(v)]}`}>
+          <img src={url(v.poster)} alt={v.title} loading="lazy" />
+          <span class="play" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+          </span>
+        </span>
+        <span class="vmeta">
+          <span class="vtitle">{v.title}</span>
+        </span>
+      </button>
+    ))
+  }
+</div>
+
+<script type="application/json" id="video-data" set:html={JSON.stringify(payload)} />
+
+<div class="vlb" id="video-lightbox" role="dialog" aria-modal="true" aria-label="Video player" hidden>
+  <button class="vlb-close" aria-label="Close (Esc)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+  </button>
+  <button class="vlb-nav vlb-prev" aria-label="Previous">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6" /></svg>
+  </button>
+  <button class="vlb-nav vlb-next" aria-label="Next">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6" /></svg>
+  </button>
+  <div class="vlb-inner" role="document">
+    <div class="vlb-stage" id="vlb-stage"></div>
+    <div class="vlb-title" id="vlb-title"></div>
+  </div>
+</div>
+
+<script>
+  const data = JSON.parse(document.getElementById('video-data')?.textContent || '[]');
+  const lb = document.getElementById('video-lightbox')!;
+  const stage = document.getElementById('vlb-stage')!;
+  const titleEl = document.getElementById('vlb-title')!;
+  let current = 0;
+  let lastFocus: HTMLElement | null = null;
+
+  const navBtns = [lb.querySelector('.vlb-prev'), lb.querySelector('.vlb-next')];
+  if (data.length <= 1) navBtns.forEach((b) => b && ((b as HTMLElement).style.display = 'none'));
+
+  function render() {
+    const v = data[current];
+    titleEl.textContent = v.title;
+    // youtube-nocookie for privacy; autoplay + no related videos.
+    const embed = `https://www.youtube-nocookie.com/embed/${v.youtube}?autoplay=1&rel=0&modestbranding=1&playsinline=1`;
+    stage.style.aspectRatio = v.ratio;
+    stage.innerHTML =
+      `<iframe src="${embed}" title="${v.title.replace(/"/g, '&quot;')}" ` +
+      `allow="autoplay; fullscreen; picture-in-picture" allowfullscreen loading="eager"></iframe>`;
+  }
+  function open(i: number) {
+    current = i;
+    lastFocus = document.activeElement as HTMLElement;
+    lb.hidden = false;
+    document.body.style.overflow = 'hidden';
+    render();
+    (lb.querySelector('.vlb-close') as HTMLElement)?.focus();
+  }
+  function close() {
+    lb.hidden = true;
+    document.body.style.overflow = '';
+    stage.innerHTML = ''; // unload the iframe so audio stops
+    lastFocus?.focus();
+  }
+  function step(dir: number) {
+    current = (current + dir + data.length) % data.length;
+    render();
+  }
+  function trapFocus(e: KeyboardEvent) {
+    const f = Array.from(lb.querySelectorAll<HTMLElement>('button')).filter(
+      (el) => !el.hasAttribute('disabled') && el.offsetParent !== null,
+    );
+    if (!f.length) return;
+    const first = f[0];
+    const last = f[f.length - 1];
+    const a = document.activeElement as HTMLElement;
+    if (e.shiftKey && (a === first || !lb.contains(a))) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && a === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
+
+  document.querySelectorAll<HTMLElement>('.vtile').forEach((t) => {
+    t.addEventListener('click', () => open(Number(t.dataset.index)));
+  });
+  lb.querySelector('.vlb-close')?.addEventListener('click', close);
+  lb.querySelector('.vlb-prev')?.addEventListener('click', () => step(-1));
+  lb.querySelector('.vlb-next')?.addEventListener('click', () => step(1));
+  lb.addEventListener('click', (e) => {
+    if (e.target === lb) close();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (lb.hidden) return;
+    if (e.key === 'Escape') close();
+    else if (e.key === 'Tab') trapFocus(e);
+    else if (data.length <= 1) return;
+    else if (e.key === 'ArrowRight') step(1);
+    else if (e.key === 'ArrowLeft') step(-1);
+  });
+</script>
+
+<style>
+  .vgrid {
+    display: grid;
+    gap: 18px;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+  .vtile {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 0;
+    background: none;
+    border: none;
+    text-align: left;
+    color: inherit;
+  }
+  .poster {
+    position: relative;
+    display: block;
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
+    transition: transform 0.3s var(--ease-expo), border-color 0.3s, box-shadow 0.3s;
+  }
+  .poster img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .vtile:hover .poster {
+    transform: translateY(-4px);
+    border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.5);
+  }
+  .play {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: #fff;
+  }
+  .play svg {
+    width: 56px;
+    height: 56px;
+    padding: 15px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    transition: background 0.2s, transform 0.3s var(--ease-expo);
+  }
+  .vtile:hover .play svg {
+    background: color-mix(in srgb, var(--accent) 75%, black);
+    transform: scale(1.06);
+  }
+  .vmeta {
+    padding: 0 4px;
+  }
+  .vtitle {
+    font-weight: 600;
+    font-size: 0.98rem;
+  }
+
+  /* Lightbox */
+  .vlb[hidden] {
+    display: none;
+  }
+  .vlb {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: rgba(5, 5, 9, 0.9);
+    backdrop-filter: blur(10px);
+    animation: vfade 0.2s var(--ease-expo);
+  }
+  @keyframes vfade {
+    from {
+      opacity: 0;
+    }
+  }
+  .vlb-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: min(94vw, 1100px);
+  }
+  .vlb-stage {
+    width: 100%;
+    max-height: 78vh;
+    aspect-ratio: 16 / 9;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #000;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+    margin-inline: auto;
+  }
+  .vlb-stage :global(iframe) {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+  }
+  .vlb-title {
+    text-align: center;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+  .vlb-close,
+  .vlb-nav {
+    position: fixed;
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 999px;
+    background: rgba(20, 20, 31, 0.7);
+    border: 1px solid var(--border);
+    color: var(--fg);
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .vlb-close:hover,
+  .vlb-nav:hover {
+    border-color: var(--accent);
+    background: var(--bg-elev-2);
+  }
+  .vlb-close {
+    top: 20px;
+    right: 20px;
+  }
+  .vlb-close svg,
+  .vlb-nav svg {
+    width: 22px;
+    height: 22px;
+  }
+  .vlb-nav {
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .vlb-prev {
+    left: 18px;
+  }
+  .vlb-next {
+    right: 18px;
+  }
+  @media (max-width: 640px) {
+    .vlb-nav {
+      top: auto;
+      bottom: 20px;
+      transform: none;
+    }
+    .vlb-prev {
+      left: 30%;
+    }
+    .vlb-next {
+      right: 30%;
+    }
+  }
+</style>

@@ -1,6 +1,6 @@
 ---
 import Base from '../../../layouts/Base.astro';
-import MediaGallery from '../../../components/MediaGallery.astro';
+import VideoGallery from '../../../components/VideoGallery.astro';
 import { url } from '../../../lib/site';
 import { projects, getProject } from '../../../data/projects';
 
@@ -27,11 +27,11 @@ const p = getProject(project!)!;
   <section class="container head">
     <a class="backlink reveal" href={url(`/${p.slug}/portfolio`)}>← Portfolio</a>
     <h1 class="reveal">{p.name} <span class="muted">Videos</span></h1>
-    <p class="lede muted reveal">Each tile is the 1080×1080 cut. Open one to see every size.</p>
+    <p class="lede muted reveal">Tap a video to play it.</p>
   </section>
 
   <section class="container">
-    <MediaGallery items={p.videos} kind="video" />
+    <VideoGallery items={p.videos} />
   </section>
 </Base>
 

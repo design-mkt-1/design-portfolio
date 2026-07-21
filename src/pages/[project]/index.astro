@@ -17,7 +17,7 @@ const p = getProject(project!)!;
 const portfolioThumbs = [
   ...p.banners.map(firstSize),
   ...p.landings.map(landingThumb),
-  ...p.videos.map(firstSize),
+  ...p.videos.map((v) => v.poster),
 ].filter((s): s is string => Boolean(s));
 
 // Brand Book cover: auto-detected from disk. Prefers the first page frame
