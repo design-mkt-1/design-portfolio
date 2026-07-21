@@ -6,7 +6,7 @@ export interface Choice {
   description?: string;
   href: string;
   meta?: string;
-  icon?: 'book' | 'grid' | 'image' | 'film' | 'layout';
+  icon?: 'book' | 'grid' | 'image' | 'film' | 'layout' | 'store';
   /**
    * Optional visual preview. When present the card switches to a large vertical
    * layout: cover on top, then title, then description.
@@ -32,6 +32,7 @@ const icons: Record<string, string> = {
   image: '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/>',
   film: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 3v18M17 3v18M3 8h4M17 8h4M3 16h4M17 16h4"/>',
   layout: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>',
+  store: '<rect x="5" y="2" width="14" height="20" rx="2"/><path d="M9 18h6"/>',
 };
 
 const arrow =
