@@ -1,0 +1,187 @@
+---
+import Base from '../layouts/Base.astro';
+
+const EMAIL = 'design1@marketing-solutions.com';
+---
+
+<Base
+  title="Contact — Marketing Solutions"
+  description="Get in touch with Marketing Solutions — tell us about your project."
+  crumbs={[{ label: 'Projects', href: '/' }, { label: 'Contact' }]}
+>
+  <section class="container contact">
+    <div class="contact-head reveal">
+      <p class="eyebrow">Get in touch</p>
+      <h1>Contact <span class="gradient-text">us</span></h1>
+      <p class="lede muted">
+        Tell us about your project — brand, campaign, or creative — and we'll get back to you.
+      </p>
+    </div>
+
+    <form
+      class="contact-form reveal"
+      id="contact-form"
+      action={`https://formsubmit.co/${EMAIL}`}
+      method="POST"
+    >
+      {/* FormSubmit options */}
+      <input type="hidden" name="_subject" value="New enquiry — Marketing Solutions portfolio" />
+      <input type="hidden" name="_template" value="table" />
+      <input type="hidden" name="_captcha" value="false" />
+      {/* honeypot: bots fill this, humans don't */}
+      <input type="text" name="_honey" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true" />
+
+      <div class="field">
+        <label for="name">Name</label>
+        <input id="name" name="name" type="text" required autocomplete="name" placeholder="Your name" />
+      </div>
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" required autocomplete="email" placeholder="you@company.com" />
+      </div>
+      <div class="field">
+        <label for="message">Message</label>
+        <textarea id="message" name="message" rows="6" required placeholder="What can we help with?"></textarea>
+      </div>
+
+      <button class="btn btn-primary submit" type="submit">Send message</button>
+      <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
+      <p class="form-alt muted">
+        Prefer email? <a href={`mailto:${EMAIL}`}>{EMAIL}</a>
+      </p>
+    </form>
+  </section>
+</Base>
+
+<script>
+  const form = document.getElementById('contact-form') as HTMLFormElement | null;
+  const statusEl = document.getElementById('form-status');
+  const EMAIL = 'design1@marketing-solutions.com';
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!statusEl) return;
+    const btn = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+    if ((form.querySelector<HTMLInputElement>('input[name="_honey"]')?.value || '') !== '') return; // bot
+    statusEl.textContent = 'Sending…';
+    statusEl.className = 'form-status';
+    if (btn) btn.disabled = true;
+    try {
+      const res = await fetch(`https://formsubmit.co/ajax/${EMAIL}`, {
+        method: 'POST',
+        headers: { Accept: 'application/json' },
+        body: new FormData(form),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && String(data.success) === 'true') {
+        form.reset();
+        statusEl.textContent = 'Thanks! Your message has been sent.';
+        statusEl.classList.add('ok');
+      } else {
+        throw new Error(data.message || 'failed');
+      }
+    } catch {
+      statusEl.innerHTML = `Couldn't send. Please email us directly at <a href="mailto:${EMAIL}">${EMAIL}</a>.`;
+      statusEl.classList.add('err');
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  });
+</script>
+
+<style>
+  .contact {
+    max-width: 640px;
+    padding-top: 40px;
+    padding-bottom: 80px;
+  }
+  .contact-head {
+    text-align: center;
+    margin-bottom: 34px;
+  }
+  .contact-head h1 {
+    font-size: clamp(2rem, 6vw, 3rem);
+    margin: 12px 0 0;
+  }
+  .lede {
+    font-size: 1.05rem;
+    margin: 16px auto 0;
+    max-width: 480px;
+  }
+  .contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 30px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015));
+  }
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+  .field label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--fg-muted);
+  }
+  .field input,
+  .field textarea {
+    width: 100%;
+    padding: 12px 14px;
+    font: inherit;
+    color: var(--fg);
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    resize: vertical;
+  }
+  .field input::placeholder,
+  .field textarea::placeholder {
+    color: var(--fg-dim);
+  }
+  .field input:focus,
+  .field textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+  .hp {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+  }
+  .submit {
+    justify-content: center;
+    margin-top: 4px;
+  }
+  .submit:disabled {
+    opacity: 0.6;
+    cursor: progress;
+  }
+  .form-status {
+    font-size: 0.92rem;
+    min-height: 1.2em;
+    margin: 0;
+    text-align: center;
+  }
+  .form-status.ok {
+    color: var(--brand-teal);
+  }
+  .form-status.err {
+    color: #fb7185;
+  }
+  .form-alt {
+    text-align: center;
+    font-size: 0.88rem;
+    margin: 0;
+  }
+  .form-alt a {
+    color: var(--accent);
+  }
+</style>

@@ -85,6 +85,7 @@ const ogImageAbs = Astro.site ? new URL(url(ogImage), Astro.site).href : url(ogI
             </nav>
           )
         }
+        <a class="header-cta" href={url('/contact')}>Contact&nbsp;us</a>
       </div>
     </header>
 
@@ -159,6 +160,22 @@ const ogImageAbs = Astro.site ? new URL(url(ogImage), Astro.site).href : url(ogI
         align-items: center;
         gap: 20px;
         height: 68px;
+      }
+      .header-cta {
+        margin-left: auto;
+        flex: none;
+        padding: 9px 18px;
+        border-radius: 999px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--accent-fg);
+        background: var(--brand-gradient);
+        box-shadow: 0 6px 20px var(--accent-glow);
+        transition: transform 0.2s var(--ease-expo), box-shadow 0.2s;
+      }
+      .header-cta:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 28px var(--accent-glow);
       }
       .brand {
         display: inline-flex;
