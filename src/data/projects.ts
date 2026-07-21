@@ -60,6 +60,8 @@ export interface Project {
   slug: string;
   name: string;
   logo: string;
+  /** square brand icon (used as the on-page header icon and the browser-tab favicon) */
+  favicon?: string;
   tagline?: string;
   /** optional per-project accent override (hex) */
   accent?: string;
@@ -104,6 +106,17 @@ const mkLanding = (slug: string, name: string, title: string, devices: Device[])
   ...Object.fromEntries(devices.map((d) => [d, `assets/${slug}/landings/${name}/${d}.svg`])),
 });
 
+// Real uploaded media (normalized to size-keyed .webp). Defaults to all 4 sizes.
+const realMedia = (
+  slug: string,
+  kind: 'banners' | 'videos',
+  folder: string,
+  sizes: SizeKey[] = ['1x1', '9x16', '16x9', '4x5'],
+): MediaItem => ({
+  title: folder,
+  sizes: Object.fromEntries(sizes.map((s) => [s, `assets/${slug}/${kind}/${folder}/${s}.webp`])) as MediaItem['sizes'],
+});
+
 // ---- catalog ----------------------------------------------------------------
 
 export const projects: Project[] = [
@@ -111,18 +124,21 @@ export const projects: Project[] = [
     slug: 'winboss',
     name: 'Winboss',
     logo: 'assets/winboss/logo_winboss.svg',
+    favicon: 'assets/winboss/favicon_winboss.webp',
     tagline: 'Full brand system and campaign production.',
     brandbook: { type: 'pdf', url: 'assets/winboss/brandbook/winboss-brandbook.pdf' },
     banners: [
-      {
-        title: '28239 - Pull Offer',
-        sizes: {
-          '1x1': 'assets/winboss/banners/28239 - Pull Offer/1x1.webp',
-          '9x16': 'assets/winboss/banners/28239 - Pull Offer/9x16.webp',
-          '16x9': 'assets/winboss/banners/28239 - Pull Offer/16x9.webp',
-          '4x5': 'assets/winboss/banners/28239 - Pull Offer/4x5.webp',
-        },
-      },
+      realMedia('winboss', 'banners', '27442 - Gettt Out'),
+      realMedia('winboss', 'banners', '27960 - DarkRedWheel'),
+      realMedia('winboss', 'banners', '28003 - YellowWheel'),
+      realMedia('winboss', 'banners', '28040 - Main Game'),
+      realMedia('winboss', 'banners', '28048 - Carousel Games'),
+      realMedia('winboss', 'banners', '28177 - Burning Big'),
+      realMedia('winboss', 'banners', '28220 - Characters Blue'),
+      realMedia('winboss', 'banners', '28239 - Pull Offer'),
+      realMedia('winboss', 'banners', '28245 - Chamo'),
+      realMedia('winboss', 'banners', '28285 - CloverBox'),
+      realMedia('winboss', 'banners', '28286 - RedBox Neon'),
     ],
     videos: [
       mkMedia('winboss', 'videos', 'brand-intro', 'Brand Intro', ['1x1', '9x16', '16x9']),
@@ -139,6 +155,7 @@ export const projects: Project[] = [
     slug: 'win2',
     name: 'Win2',
     logo: 'assets/win2/logo.svg',
+    favicon: 'assets/win2/favicon_win2.webp',
     tagline: 'Performance creative across every placement.',
     banners: [
       mkMedia('win2', 'banners', 'first-deposit', 'First Deposit', ['1x1', '9x16', '16x9', '4x5']),
