@@ -3,6 +3,7 @@ import Base from '../../../layouts/Base.astro';
 import ChoiceCards, { type Choice } from '../../../components/ChoiceCards.astro';
 import { url } from '../../../lib/site';
 import { projects, getProject, hasPortfolio, firstSize } from '../../../data/projects';
+import { readyVideos } from '../../../lib/videos';
 
 export function getStaticPaths() {
   return projects.filter(hasPortfolio).map((p) => ({ params: { project: p.slug } }));
@@ -10,11 +11,12 @@ export function getStaticPaths() {
 
 const { project } = Astro.params;
 const p = getProject(project!)!;
+const videos = readyVideos(p.videos);
 
 // Real thumbnails per format for the card previews.
 const bannerThumbs = p.banners.map(firstSize).filter((s): s is string => !!s); // 1:1 squares
 const landingThumbs = p.landings.map((l) => l.desktop ?? l.mobile).filter((s): s is string => !!s);
-const videoThumbs = p.videos.map((v) => v.poster).filter((s): s is string => !!s);
+const videoThumbs = videos.map((v) => v.poster).filter((s): s is string => !!s);
 
 // 6+ thumbnails → 3×2 mosaic; 1–5 → single cover; none → fall back to the icon.
 function preview(thumbs: string[]): Choice['preview'] {
@@ -47,9 +49,9 @@ const choices: Choice[] = [
     description: 'Motion and video creative.',
     href: `/${p.slug}/portfolio/videos`,
     icon: 'film',
-    meta: p.videos.length ? `${p.videos.length}` : undefined,
+    meta: videos.length ? `${videos.length}` : undefined,
     preview: preview(videoThumbs),
-    disabled: p.videos.length === 0,
+    disabled: videos.length === 0,
   },
 ];
 ---

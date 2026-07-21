@@ -58,12 +58,10 @@ export interface LandingItem {
 
 export interface VideoItem {
   title: string;
-  /** Unlisted YouTube video ID (the part after watch?v= or youtu.be/). */
-  youtube: string;
-  /** In-repo poster image (webp) shown in the gallery before the video plays. */
+  /** In-repo 1×1 poster image (webp) shown on the gallery tile before play. */
   poster: string;
-  /** Aspect ratio for the tile + player; defaults to 16x9. */
-  ratio?: SizeKey;
+  /** size-key -> unlisted YouTube video ID. Include only the aspects that exist. */
+  youtube: Partial<Record<SizeKey, string>>;
 }
 
 export interface Project {
@@ -107,8 +105,8 @@ export function landingThumb(item: LandingItem): string | undefined {
   return item.mobile ?? item.desktop;
 }
 
-export function videoRatio(item: VideoItem): SizeKey {
-  return item.ratio ?? '16x9';
+export function availableVideoSizes(item: VideoItem): SizeKey[] {
+  return SIZE_ORDER.filter((k) => item.youtube[k]);
 }
 
 // -- placeholder path helpers (kept terse so the data reads cleanly) ----------
@@ -171,9 +169,15 @@ export const projects: Project[] = [
       realMedia('winboss', 'banners', '28285 - CloverBox'),
       realMedia('winboss', 'banners', '28286 - RedBox Neon'),
     ],
-    // Add videos like this (poster in public/assets/winboss/videos/<name>/poster.webp):
-    //   { title: 'Brand Intro', youtube: 'dQw4w9WgXcQ', poster: 'assets/winboss/videos/brand-intro/poster.webp', ratio: '16x9' }
-    videos: [],
+    // Videos: per-aspect unlisted YouTube IDs + a 1×1 poster in the repo.
+    // Each entry renders only once its poster file exists on disk.
+    videos: [
+      {
+        title: '27170 - AsimetricW Tesla',
+        poster: 'assets/winboss/videos/27170 - AsimetricW Tesla/1x1.webp',
+        youtube: { '1x1': 'Efc0Dtimc_c', '9x16': '8mKUDciRNbQ', '16x9': 'FA2AdEypg_4' },
+      },
+    ],
     landings: [
       {
         title: '27735 - AlbaNeagra',
