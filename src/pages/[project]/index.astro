@@ -5,6 +5,7 @@ import Base from '../../layouts/Base.astro';
 import ChoiceCards, { type Choice } from '../../components/ChoiceCards.astro';
 import { url } from '../../lib/site';
 import { projects, getProject, hasPortfolio, firstSize, landingThumb } from '../../data/projects';
+import { readyVideos } from '../../lib/videos';
 
 export function getStaticPaths() {
   return projects.map((p) => ({ params: { project: p.slug } }));
@@ -17,7 +18,7 @@ const p = getProject(project!)!;
 const portfolioThumbs = [
   ...p.banners.map(firstSize),
   ...p.landings.map(landingThumb),
-  ...p.videos.map((v) => v.poster),
+  ...readyVideos(p.videos).map((v) => v.poster),
 ].filter((s): s is string => Boolean(s));
 
 // Brand Book cover: auto-detected from disk. Prefers the first page frame

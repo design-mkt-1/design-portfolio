@@ -1,35 +1,43 @@
 ---
 import { url } from '../lib/site';
-import { SIZE_RATIO, videoRatio, type VideoItem } from '../data/projects';
+import { SIZE_LABEL, SIZE_RATIO, availableVideoSizes, type VideoItem } from '../data/projects';
 
 interface Props {
   items: VideoItem[];
 }
 const { items } = Astro.props;
 
-// Resolve poster URLs server-side so the client script is base-safe.
+// Resolve everything server-side so the client script is base-safe.
 const payload = items.map((v) => ({
   title: v.title,
-  youtube: v.youtube,
-  ratio: SIZE_RATIO[videoRatio(v)],
+  sizes: availableVideoSizes(v).map((k) => ({
+    key: k,
+    label: SIZE_LABEL[k],
+    ratio: SIZE_RATIO[k],
+    youtube: v.youtube[k],
+  })),
 }));
 ---
 
 <div class="vgrid">
   {
-    items.map((v, i) => (
-      <button class="vtile reveal" data-index={i} aria-haspopup="dialog">
-        <span class="poster" style={`aspect-ratio:${SIZE_RATIO[videoRatio(v)]}`}>
-          <img src={url(v.poster)} alt={v.title} loading="lazy" />
-          <span class="play" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+    items.map((v, i) => {
+      const count = availableVideoSizes(v).length;
+      return (
+        <button class="vtile reveal" data-index={i} aria-haspopup="dialog">
+          <span class="poster">
+            <img src={url(v.poster)} alt={v.title} loading="lazy" />
+            <span class="play" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+            </span>
           </span>
-        </span>
-        <span class="vmeta">
-          <span class="vtitle">{v.title}</span>
-        </span>
-      </button>
-    ))
+          <span class="vmeta">
+            <span class="vtitle">{v.title}</span>
+            <span class="vcount">{count} {count === 1 ? 'format' : 'formats'}</span>
+          </span>
+        </button>
+      );
+    })
   }
 </div>
 
@@ -47,7 +55,10 @@ const payload = items.map((v) => ({
   </button>
   <div class="vlb-inner" role="document">
     <div class="vlb-stage" id="vlb-stage"></div>
-    <div class="vlb-title" id="vlb-title"></div>
+    <div class="vlb-bar">
+      <div class="vlb-title" id="vlb-title"></div>
+      <div class="vlb-sizes" id="vlb-sizes" role="tablist" aria-label="Formats"></div>
+    </div>
   </div>
 </div>
 
@@ -56,39 +67,61 @@ const payload = items.map((v) => ({
   const lb = document.getElementById('video-lightbox')!;
   const stage = document.getElementById('vlb-stage')!;
   const titleEl = document.getElementById('vlb-title')!;
+  const sizesEl = document.getElementById('vlb-sizes')!;
   let current = 0;
+  let sizeIdx = 0;
   let lastFocus: HTMLElement | null = null;
 
   const navBtns = [lb.querySelector('.vlb-prev'), lb.querySelector('.vlb-next')];
   if (data.length <= 1) navBtns.forEach((b) => b && ((b as HTMLElement).style.display = 'none'));
 
-  function render() {
-    const v = data[current];
-    titleEl.textContent = v.title;
-    // youtube-nocookie for privacy; autoplay + no related videos.
-    const embed = `https://www.youtube-nocookie.com/embed/${v.youtube}?autoplay=1&rel=0&modestbranding=1&playsinline=1`;
-    stage.style.aspectRatio = v.ratio;
+  function renderPlayer() {
+    const s = data[current].sizes[sizeIdx];
+    const embed = `https://www.youtube-nocookie.com/embed/${s.youtube}?autoplay=1&rel=0&modestbranding=1&playsinline=1`;
+    stage.style.aspectRatio = s.ratio;
     stage.innerHTML =
-      `<iframe src="${embed}" title="${v.title.replace(/"/g, '&quot;')}" ` +
+      `<iframe src="${embed}" title="${data[current].title.replace(/"/g, '&quot;')}" ` +
       `allow="autoplay; fullscreen; picture-in-picture" allowfullscreen loading="eager"></iframe>`;
+  }
+  function renderSizes() {
+    const item = data[current];
+    titleEl.textContent = item.title;
+    sizesEl.innerHTML = '';
+    item.sizes.forEach((s: any, i: number) => {
+      const b = document.createElement('button');
+      b.className = 'vlb-size' + (i === sizeIdx ? ' active' : '');
+      b.setAttribute('role', 'tab');
+      b.setAttribute('aria-selected', i === sizeIdx ? 'true' : 'false');
+      b.innerHTML = `<strong>${s.key.replace('x', ':')}</strong><span>${s.label}</span>`;
+      b.addEventListener('click', () => {
+        sizeIdx = i;
+        renderSizes();
+        renderPlayer();
+      });
+      sizesEl.appendChild(b);
+    });
   }
   function open(i: number) {
     current = i;
+    sizeIdx = 0;
     lastFocus = document.activeElement as HTMLElement;
     lb.hidden = false;
     document.body.style.overflow = 'hidden';
-    render();
+    renderSizes();
+    renderPlayer();
     (lb.querySelector('.vlb-close') as HTMLElement)?.focus();
   }
   function close() {
     lb.hidden = true;
     document.body.style.overflow = '';
-    stage.innerHTML = ''; // unload the iframe so audio stops
+    stage.innerHTML = ''; // unload iframe so audio stops
     lastFocus?.focus();
   }
   function step(dir: number) {
     current = (current + dir + data.length) % data.length;
-    render();
+    sizeIdx = 0;
+    renderSizes();
+    renderPlayer();
   }
   function trapFocus(e: KeyboardEvent) {
     const f = Array.from(lb.querySelectorAll<HTMLElement>('button')).filter(
@@ -130,7 +163,7 @@ const payload = items.map((v) => ({
   .vgrid {
     display: grid;
     gap: 18px;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   }
   .vtile {
     display: flex;
@@ -145,6 +178,7 @@ const payload = items.map((v) => ({
   .poster {
     position: relative;
     display: block;
+    aspect-ratio: 1 / 1;
     border-radius: var(--radius);
     overflow: hidden;
     border: 1px solid var(--border);
@@ -183,11 +217,19 @@ const payload = items.map((v) => ({
     transform: scale(1.06);
   }
   .vmeta {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
     padding: 0 4px;
   }
   .vtitle {
     font-weight: 600;
     font-size: 0.98rem;
+  }
+  .vcount {
+    font-size: 0.78rem;
+    color: var(--fg-muted);
   }
 
   /* Lightbox */
@@ -218,13 +260,18 @@ const payload = items.map((v) => ({
   }
   .vlb-stage {
     width: 100%;
-    max-height: 78vh;
+    max-width: min(94vw, 1100px);
+    max-height: 74vh;
     aspect-ratio: 16 / 9;
+    margin-inline: auto;
     border-radius: 12px;
     overflow: hidden;
     background: #000;
     box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
-    margin-inline: auto;
+  }
+  /* portrait/square players stay centered and height-capped */
+  .vlb-stage:not([style*='16 / 9']) {
+    width: auto;
   }
   .vlb-stage :global(iframe) {
     width: 100%;
@@ -232,11 +279,51 @@ const payload = items.map((v) => ({
     border: 0;
     display: block;
   }
+  .vlb-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+  }
   .vlb-title {
-    text-align: center;
     font-family: var(--font-display);
     font-weight: 700;
-    font-size: 1.1rem;
+    font-size: 1.15rem;
+  }
+  .vlb-sizes {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .vlb-sizes :global(.vlb-size) {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1px;
+    padding: 7px 13px;
+    border-radius: 10px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    color: var(--fg-muted);
+    line-height: 1.2;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .vlb-sizes :global(.vlb-size strong) {
+    font-size: 0.9rem;
+    color: var(--fg);
+  }
+  .vlb-sizes :global(.vlb-size span) {
+    font-size: 0.68rem;
+  }
+  .vlb-sizes :global(.vlb-size:hover) {
+    border-color: var(--accent);
+  }
+  .vlb-sizes :global(.vlb-size.active) {
+    background: color-mix(in srgb, var(--accent) 20%, transparent);
+    border-color: var(--accent);
+    color: var(--fg);
   }
   .vlb-close,
   .vlb-nav {
