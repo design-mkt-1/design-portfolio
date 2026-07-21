@@ -10,13 +10,15 @@ export interface Choice {
   /**
    * Optional visual preview. When present the card switches to a large vertical
    * layout: cover on top, then title, then description.
-   *  - 'grid'  → a 3×2 mosaic of real thumbnails (needs 6; renders what it has)
-   *  - 'cover' → a single full-bleed 16:9 image (e.g. a brand book first page)
-   *  - 'brand' → the brand mark on an accent panel (fallback until a cover exists)
+   *  - 'grid'     → a 3×2 mosaic of real thumbnails (needs 6; renders what it has)
+   *  - 'cover'    → a single full-bleed 16:9 image (e.g. a brand book first page)
+   *  - 'carousel' → a continuous auto-scrolling strip of images
+   *  - 'brand'    → the brand mark on an accent panel (fallback until a cover exists)
    */
   preview?:
     | { type: 'grid'; images: string[] }
     | { type: 'cover'; image: string }
+    | { type: 'carousel'; images: string[] }
     | { type: 'brand'; logo: string };
   disabled?: boolean;
 }
@@ -37,6 +39,14 @@ const icons: Record<string, string> = {
 
 const arrow =
   '<path d="M5 12h14M13 6l6 6-6 6"/>';
+
+// Repeat images until there are enough tiles for a seamless card marquee.
+function carouselLoop(images: string[]): string[] {
+  if (!images.length) return [];
+  const out = [...images];
+  while (out.length < 8) out.push(...images);
+  return out;
+}
 ---
 
 <div class:list={['choices', { preview: hasPreview }]}>
@@ -66,6 +76,14 @@ const arrow =
                 ) : (
                   <img class="cp-cover" src={url(c.preview.image)} alt="" loading="lazy" />
                 )
+              ) : c.preview.type === 'carousel' ? (
+                <span class="cp-carousel">
+                  <span class="cp-track" style={`--dur:${carouselLoop(c.preview.images).length * 2.2}s`}>
+                    {[...carouselLoop(c.preview.images), ...carouselLoop(c.preview.images)].map((src) => (
+                      <img src={url(src)} alt="" loading="lazy" />
+                    ))}
+                  </span>
+                </span>
               ) : (
                 <span class="cp-brand">
                   <img src={url(c.preview.logo)} alt="" loading="lazy" />
@@ -207,6 +225,40 @@ const arrow =
     background:
       radial-gradient(circle at 50% 34%, color-mix(in srgb, var(--accent) 34%, transparent), transparent 66%),
       var(--bg-elev-2);
+  }
+  /* Continuous auto-scrolling carousel (store screenshots) */
+  .cp-carousel {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg-elev-2);
+  }
+  .cp-track {
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+    height: 100%;
+    width: max-content;
+    animation: cp-marq var(--dur, 30s) linear infinite;
+  }
+  .cp-track img {
+    height: 100%;
+    width: auto;
+    object-fit: cover;
+  }
+  .choice:hover .cp-track {
+    animation-play-state: paused;
+  }
+  @keyframes cp-marq {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cp-track {
+      animation: none;
+    }
   }
   /* Empty state (e.g. a format with no items yet) — keeps the row consistent. */
   .cp-empty {

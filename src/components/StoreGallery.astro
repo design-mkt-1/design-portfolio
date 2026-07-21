@@ -1,4 +1,6 @@
 ---
+import { statSync } from 'node:fs';
+import { join } from 'node:path';
 import { url } from '../lib/site';
 import type { StoreGroup } from '../lib/store';
 
@@ -7,14 +9,28 @@ interface Props {
   alt: string;
 }
 const { groups, alt } = Astro.props;
+const single = groups.length === 1;
 
-// Assign a running index so each tile maps into the flat lightbox list.
+// Cache-bust by content length so re-uploaded screenshots aren't served stale.
+function bust(path: string): string {
+  let v = '';
+  try {
+    v = String(statSync(join(process.cwd(), 'public', path)).size);
+  } catch {
+    /* missing — leave unversioned */
+  }
+  return url(path) + (v ? `?v=${v}` : '');
+}
+
+// Assign a running index so each tile maps into the flat lightbox list, and
+// build a repeated "loop" long enough for a seamless continuous marquee.
 let counter = 0;
-const rendered = groups.map((g) => ({
-  key: g.key,
-  label: g.label,
-  items: g.images.map((src) => ({ src: url(src), index: counter++ })),
-}));
+const rendered = groups.map((g) => {
+  const items = g.images.map((src) => ({ src: bust(src), index: counter++ }));
+  const loop = [...items];
+  while (loop.length < 16) loop.push(...items);
+  return { key: g.key, label: g.label, items, loop };
+});
 const flat = rendered.flatMap((g) => g.items.map((it) => ({ src: it.src, label: g.label })));
 ---
 
@@ -22,24 +38,20 @@ const flat = rendered.flatMap((g) => g.items.map((it) => ({ src: it.src, label: 
   {
     rendered.map((g) => (
       <section class="store-group">
-        <div class="group-head reveal">
-          <h2>{g.label}</h2>
-          <span class="group-count muted">{g.items.length}</span>
-        </div>
-        <div class="carousel-wrap">
-          <button class="car-nav car-prev" aria-label="Scroll left" data-group={g.key}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6" /></svg>
-          </button>
-          <div class="carousel reveal" data-group={g.key}>
-            {g.items.map((it) => (
-              <button class="shot" data-index={it.index} aria-haspopup="dialog">
-                <img src={it.src} alt={`${alt} — ${g.label}`} loading="lazy" />
+        {!single && (
+          <div class="group-head reveal">
+            <h2>{g.label}</h2>
+            <span class="group-count muted">{g.items.length}</span>
+          </div>
+        )}
+        <div class="marquee reveal">
+          <div class="mtrack">
+            {[...g.loop, ...g.loop, ...g.loop].map((it) => (
+              <button class="shot" data-index={it.index} aria-label={`${alt} — ${g.label}`} aria-haspopup="dialog">
+                <img src={it.src} alt="" loading="lazy" draggable="false" />
               </button>
             ))}
           </div>
-          <button class="car-nav car-next" aria-label="Scroll right" data-group={g.key}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6" /></svg>
-          </button>
         </div>
       </section>
     ))
@@ -110,15 +122,89 @@ const flat = rendered.flatMap((g) => g.items.map((it) => ({ src: it.src, label: 
     }
   }
 
-  document.querySelectorAll<HTMLElement>('.shot').forEach((s) => {
-    s.addEventListener('click', () => open(Number(s.dataset.index)));
-  });
-  // Carousel arrows scroll their row by ~one image width.
-  document.querySelectorAll<HTMLElement>('.car-nav').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const row = btn.parentElement!.querySelector<HTMLElement>('.carousel')!;
-      const dir = btn.classList.contains('car-prev') ? -1 : 1;
-      row.scrollBy({ left: dir * Math.min(row.clientWidth * 0.8, 420), behavior: 'smooth' });
+  // JS-driven marquee: auto-scroll, pause on hover, drag/swipe to scroll freely.
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.querySelectorAll<HTMLElement>('.marquee').forEach((m) => {
+    const track = m.querySelector<HTMLElement>('.mtrack')!;
+    let loopW = 0;
+    let started = false;
+    const measure = () => {
+      const w = track.scrollWidth / 3; // three identical copies
+      if (w) {
+        loopW = w;
+        if (!started) {
+          m.scrollLeft = loopW; // start in the middle copy → buffer both ways
+          started = true;
+        }
+      }
+    };
+    measure();
+    window.addEventListener('load', measure);
+    window.addEventListener('resize', measure);
+    track.querySelectorAll('img').forEach((im) => im.addEventListener('load', measure, { once: true }));
+
+    // Wrap by exactly one copy width → seamless (identical content on both sides).
+    const normalize = () => {
+      if (!loopW) return;
+      if (m.scrollLeft >= loopW * 1.5) m.scrollLeft -= loopW;
+      else if (m.scrollLeft < loopW * 0.5) m.scrollLeft += loopW;
+    };
+
+    let hovering = false;
+    let dragging = false;
+    let touching = false;
+    function frame() {
+      if (!reduce && !hovering && !dragging && !touching) m.scrollLeft += 0.5;
+      normalize();
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+
+    m.addEventListener('mouseenter', () => (hovering = true));
+    m.addEventListener('mouseleave', () => (hovering = false));
+    m.addEventListener('touchstart', () => {
+      touching = true;
+      moved = 0;
+    }, { passive: true });
+    m.addEventListener('touchend', () => (touching = false));
+
+    // Mouse drag-to-scroll via window listeners (no pointer capture, so the
+    // subsequent click still targets the tile). Touch uses native scrolling.
+    let startX = 0;
+    let startLeft = 0;
+    let moved = 0;
+    const onMove = (e: PointerEvent) => {
+      const dx = e.clientX - startX;
+      moved = Math.max(moved, Math.abs(dx));
+      m.scrollLeft = startLeft - dx;
+    };
+    const onUp = () => {
+      dragging = false;
+      m.classList.remove('grabbing');
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+    };
+    m.addEventListener('pointerdown', (e) => {
+      if (e.pointerType !== 'mouse') return;
+      dragging = true;
+      moved = 0;
+      startX = e.clientX;
+      startLeft = m.scrollLeft;
+      m.classList.add('grabbing');
+      window.addEventListener('pointermove', onMove);
+      window.addEventListener('pointerup', onUp);
+    });
+
+    // Open the lightbox on a tap/click — unless the pointer was dragged.
+    m.addEventListener('click', (e) => {
+      if (moved > 6) {
+        e.preventDefault();
+        e.stopPropagation();
+        moved = 0;
+        return;
+      }
+      const shot = (e.target as HTMLElement).closest<HTMLElement>('.shot');
+      if (shot?.dataset.index) open(Number(shot.dataset.index));
     });
   });
   lb.querySelector('.slb-close')?.addEventListener('click', close);
@@ -155,28 +241,38 @@ const flat = rendered.flatMap((g) => g.items.map((it) => ({ src: it.src, label: 
   .group-count {
     font-size: 0.85rem;
   }
-  .carousel-wrap {
-    position: relative;
+
+  /* Continuous marquee — auto-scrolls (JS), pause on hover, drag/swipe to scroll.
+     Vertical padding gives the hover gold-glow room so it isn't clipped. */
+  .marquee {
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 30px 0;
+    cursor: grab;
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
   }
-  .carousel {
+  .marquee::-webkit-scrollbar {
+    display: none;
+  }
+  .marquee.grabbing {
+    cursor: grabbing;
+  }
+  .mtrack {
     display: flex;
     gap: 16px;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    padding: 4px 2px 16px;
-    scrollbar-width: thin;
+    width: max-content;
   }
   .shot {
     flex: 0 0 auto;
-    scroll-snap-align: start;
     padding: 0;
     border: 0;
     background: none;
-    cursor: pointer;
-    border-radius: 20px;
-    overflow: hidden;
+    cursor: inherit;
     line-height: 0;
-    transition: transform 0.3s var(--ease-expo);
+    border-radius: 20px;
   }
   .shot img {
     height: clamp(360px, 56vh, 560px);
@@ -184,49 +280,16 @@ const flat = rendered.flatMap((g) => g.items.map((it) => ({ src: it.src, label: 
     border-radius: 20px;
     border: 1px solid var(--border);
     background: var(--bg-elev);
+    pointer-events: none; /* clicks + drag handled on .marquee */
+    user-select: none;
     transition: border-color 0.3s, box-shadow 0.3s;
   }
-  .shot:hover {
-    transform: translateY(-4px);
-  }
   .shot:hover img {
-    border-color: color-mix(in srgb, var(--accent) 55%, transparent);
-    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.5);
-  }
-  .car-nav {
-    position: absolute;
-    top: calc(50% - 8px);
-    transform: translateY(-50%);
-    z-index: 2;
-    display: grid;
-    place-items: center;
-    width: 44px;
-    height: 44px;
-    border-radius: 999px;
-    background: rgba(20, 20, 31, 0.82);
-    border: 1px solid var(--border);
-    color: var(--fg);
-    backdrop-filter: blur(6px);
-    transition: background 0.2s, border-color 0.2s;
-  }
-  .car-nav:hover {
-    border-color: var(--accent);
-    background: var(--bg-elev-2);
-  }
-  .car-nav svg {
-    width: 22px;
-    height: 22px;
-  }
-  .car-prev {
-    left: -6px;
-  }
-  .car-next {
-    right: -6px;
-  }
-  @media (max-width: 640px) {
-    .car-nav {
-      display: none; /* touch users swipe */
-    }
+    border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+    box-shadow:
+      0 0 0 1.5px color-mix(in srgb, var(--accent) 50%, transparent),
+      0 0 18px color-mix(in srgb, var(--accent) 40%, transparent),
+      0 18px 45px rgba(0, 0, 0, 0.5);
   }
 
   /* Lightbox — scrollable full-length view */
