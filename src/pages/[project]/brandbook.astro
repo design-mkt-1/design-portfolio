@@ -1,4 +1,6 @@
 ---
+import { readdirSync, existsSync } from 'node:fs';
+import { join } from 'node:path';
 import Base from '../../layouts/Base.astro';
 import { url } from '../../lib/site';
 import { projects, getProject } from '../../data/projects';
@@ -10,6 +12,19 @@ export function getStaticPaths() {
 const { project } = Astro.params;
 const p = getProject(project!)!;
 const bb = p.brandbook!;
+
+// Prefer a page-image reader when numbered frames exist on disk
+// (public/assets/<slug>/brandbook/1.webp, 2.webp, …). This avoids embedding a
+// huge PDF and renders far faster. Falls back to the PDF/Figma embed otherwise.
+function brandbookFrames(slug: string): string[] {
+  const dir = join(process.cwd(), 'public', 'assets', slug, 'brandbook');
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir)
+    .filter((f) => /^\d+\.(webp|png|jpe?g)$/i.test(f))
+    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
+    .map((f) => `assets/${slug}/brandbook/${f}`);
+}
+const frames = brandbookFrames(p.slug);
 const src = bb.type === 'pdf' ? url(bb.url) : bb.url;
 ---
 
@@ -25,7 +40,9 @@ const src = bb.type === 'pdf' ? url(bb.url) : bb.url;
     <div class="row reveal">
       <h1>{p.name} <span class="muted">Brand Book</span></h1>
       {
-        bb.type === 'pdf' ? (
+        frames.length > 0 ? (
+          <span class="pagecount muted">{frames.length} pages</span>
+        ) : bb.type === 'pdf' ? (
           <a class="btn" href={src} download>
             Download PDF
           </a>
@@ -38,15 +55,29 @@ const src = bb.type === 'pdf' ? url(bb.url) : bb.url;
     </div>
   </section>
 
-  <section class="container viewer-wrap reveal">
-    {
-      bb.type === 'figma' ? (
-        <iframe class="viewer" src={src} allowfullscreen title={`${p.name} brand book`} />
-      ) : (
-        <iframe class="viewer" src={`${src}#view=FitH`} title={`${p.name} brand book`} />
-      )
-    }
-  </section>
+  {
+    frames.length > 0 ? (
+      <section class="container reader">
+        {frames.map((f, i) => (
+          <img
+            class="page reveal"
+            src={url(f)}
+            alt={`${p.name} brand book — page ${i + 1}`}
+            loading={i < 2 ? 'eager' : 'lazy'}
+            decoding="async"
+          />
+        ))}
+      </section>
+    ) : (
+      <section class="container viewer-wrap reveal">
+        {bb.type === 'figma' ? (
+          <iframe class="viewer" src={src} allowfullscreen title={`${p.name} brand book`} />
+        ) : (
+          <iframe class="viewer" src={`${src}#view=FitH`} title={`${p.name} brand book`} />
+        )}
+      </section>
+    )
+  }
 </Base>
 
 <style>
@@ -64,6 +95,32 @@ const src = bb.type === 'pdf' ? url(bb.url) : bb.url;
   h1 {
     font-size: clamp(1.7rem, 4vw, 2.4rem);
   }
+  .pagecount {
+    font-size: 0.9rem;
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+  }
+
+  /* ---- Page-image reader ---- */
+  .reader {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding-bottom: 60px;
+  }
+  .reader .page {
+    width: 100%;
+    max-width: 1040px;
+    height: auto;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    background: var(--bg-elev);
+  }
+
+  /* ---- PDF / Figma embed (fallback) ---- */
   .viewer-wrap {
     padding-bottom: 40px;
   }
