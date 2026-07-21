@@ -4,7 +4,7 @@ import ChoiceCards, { type Choice } from '../../../components/ChoiceCards.astro'
 import { url } from '../../../lib/site';
 import { projects, getProject, hasPortfolio, firstSize } from '../../../data/projects';
 import { readyVideos } from '../../../lib/videos';
-import { storeCount, allStoreImages } from '../../../lib/store';
+import { storeCount, allStoreImages, storeTitle } from '../../../lib/store';
 
 export function getStaticPaths() {
   return projects.filter(hasPortfolio).map((p) => ({ params: { project: p.slug } }));
@@ -60,12 +60,12 @@ const choices: Choice[] = [
 // New optional format: only shown once store screenshots are uploaded.
 if (storeImages.length > 0) {
   choices.push({
-    title: 'Play Market & App Store',
-    description: 'Store listing carousels for iOS and Android.',
+    title: storeTitle(p.slug),
+    description: 'Store listing creative.',
     href: `/${p.slug}/portfolio/store`,
     icon: 'store',
     meta: `${storeCount(p.slug)}`,
-    preview: preview(storeImages),
+    preview: { type: 'carousel', images: storeImages },
   });
 }
 ---
