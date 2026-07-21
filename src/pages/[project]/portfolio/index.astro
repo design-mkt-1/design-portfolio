@@ -3,7 +3,7 @@ import Base from '../../../layouts/Base.astro';
 import ChoiceCards, { type Choice } from '../../../components/ChoiceCards.astro';
 import { url } from '../../../lib/site';
 import { projects, getProject, firstSize } from '../../../data/projects';
-import { projectBanners, projectLandings, hasPortfolio } from '../../../lib/portfolio';
+import { projectBanners, projectLandings, hasPortfolio, projectCrumb, sectionBack } from '../../../lib/portfolio';
 import { readyVideos } from '../../../lib/videos';
 import { storeCount, allStoreImages, storeTitle } from '../../../lib/store';
 
@@ -78,10 +78,10 @@ if (storeImages.length > 0) {
   description={`${p.name} creative portfolio — banners, landing pages, and video.`}
   favicon={p.favicon}
   accent={p.accent}
-  crumbs={[{ label: 'Projects', href: '/' }, { label: p.name, href: `/${p.slug}` }, { label: 'Portfolio' }]}
+  crumbs={[{ label: 'Projects', href: '/' }, projectCrumb(p), { label: 'Portfolio' }]}
 >
   <section class="container head">
-    <a class="backlink reveal" href={url(`/${p.slug}`)}>← {p.name}</a>
+    <a class="backlink reveal" href={url(sectionBack(p).href)}>← {sectionBack(p).label}</a>
     <h1 class="reveal">{p.name} <span class="muted">Portfolio</span></h1>
     <p class="lede muted reveal">Choose a format to browse the creative.</p>
   </section>

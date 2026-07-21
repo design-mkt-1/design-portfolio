@@ -4,6 +4,7 @@ import VideoGallery from '../../../components/VideoGallery.astro';
 import { url } from '../../../lib/site';
 import { projects, getProject } from '../../../data/projects';
 import { readyVideos } from '../../../lib/videos';
+import { projectCrumb } from '../../../lib/portfolio';
 
 export function getStaticPaths() {
   return projects.filter((p) => readyVideos(p.videos).length > 0).map((p) => ({ params: { project: p.slug } }));
@@ -21,7 +22,7 @@ const videos = readyVideos(p.videos);
   accent={p.accent}
   crumbs={[
     { label: 'Projects', href: '/' },
-    { label: p.name, href: `/${p.slug}` },
+    projectCrumb(p),
     { label: 'Portfolio', href: `/${p.slug}/portfolio` },
     { label: 'Videos' },
   ]}

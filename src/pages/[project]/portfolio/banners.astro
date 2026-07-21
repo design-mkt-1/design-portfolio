@@ -3,7 +3,7 @@ import Base from '../../../layouts/Base.astro';
 import MediaGallery from '../../../components/MediaGallery.astro';
 import { url } from '../../../lib/site';
 import { projects, getProject } from '../../../data/projects';
-import { projectBanners } from '../../../lib/portfolio';
+import { projectBanners, projectCrumb } from '../../../lib/portfolio';
 
 export function getStaticPaths() {
   return projects.filter((p) => projectBanners(p.slug).length > 0).map((p) => ({ params: { project: p.slug } }));
@@ -21,7 +21,7 @@ const banners = projectBanners(p.slug);
   accent={p.accent}
   crumbs={[
     { label: 'Projects', href: '/' },
-    { label: p.name, href: `/${p.slug}` },
+    projectCrumb(p),
     { label: 'Portfolio', href: `/${p.slug}/portfolio` },
     { label: 'Banners' },
   ]}

@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import Base from '../../layouts/Base.astro';
 import { url } from '../../lib/site';
 import { projects, getProject } from '../../data/projects';
+import { projectCrumb, sectionBack } from '../../lib/portfolio';
 
 export function getStaticPaths() {
   return projects.filter((p) => p.brandbook).map((p) => ({ params: { project: p.slug } }));
@@ -27,6 +28,7 @@ function brandbookFrames(slug: string): string[] {
 }
 const frames = brandbookFrames(p.slug);
 const src = bb.type === 'pdf' ? url(bb.url) : bb.url;
+const back = sectionBack(p);
 
 // Figma wordmark logo (5 brand-colored tiles)
 const figmaLogo = `
@@ -42,10 +44,10 @@ const figmaLogo = `
   description={`${p.name} brand book — logo, colors, typography, and usage guidelines.`}
   favicon={p.favicon}
   accent={p.accent}
-  crumbs={[{ label: 'Projects', href: '/' }, { label: p.name, href: `/${p.slug}` }, { label: 'Brand Book' }]}
+  crumbs={[{ label: 'Projects', href: '/' }, projectCrumb(p), { label: 'Brand Book' }]}
 >
   <section class="container head">
-    <a class="backlink reveal" href={url(`/${p.slug}`)}>← {p.name}</a>
+    <a class="backlink reveal" href={url(back.href)}>← {back.label}</a>
     <div class="row reveal">
       <h1>{p.name} <span class="muted">Brand Book</span></h1>
       {
