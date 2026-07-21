@@ -3,7 +3,7 @@ import Base from '../../../layouts/Base.astro';
 import StoreGallery from '../../../components/StoreGallery.astro';
 import { url } from '../../../lib/site';
 import { projects, getProject } from '../../../data/projects';
-import { storeGroups, hasStore } from '../../../lib/store';
+import { storeGroups, hasStore, storeTitle } from '../../../lib/store';
 
 export function getStaticPaths() {
   return projects.filter((p) => hasStore(p.slug)).map((p) => ({ params: { project: p.slug } }));
@@ -12,24 +12,25 @@ export function getStaticPaths() {
 const { project } = Astro.params;
 const p = getProject(project!)!;
 const groups = storeGroups(p.slug);
+const title = storeTitle(p.slug);
 ---
 
 <Base
-  title={`${p.name} App Store & Play Market — Marketing Solutions`}
-  description={`${p.name} App Store and Play Market store creative.`}
+  title={`${p.name} ${title} — Marketing Solutions`}
+  description={`${p.name} ${title} store creative.`}
   favicon={p.favicon}
   accent={p.accent}
   crumbs={[
     { label: 'Projects', href: '/' },
     { label: p.name, href: `/${p.slug}` },
     { label: 'Portfolio', href: `/${p.slug}/portfolio` },
-    { label: 'Play Market & App Store' },
+    { label: title },
   ]}
 >
   <section class="container head">
     <a class="backlink reveal" href={url(`/${p.slug}/portfolio`)}>← Portfolio</a>
-    <h1 class="reveal">{p.name} <span class="muted">Play Market & App Store</span></h1>
-    <p class="lede muted reveal">Store listing creative. Swipe a row, or tap a screenshot to view it full-size.</p>
+    <h1 class="reveal">{p.name} <span class="muted">{title}</span></h1>
+    <p class="lede muted reveal">Store listing creative. Tap a screenshot to view it full-size.</p>
   </section>
 
   <section class="container">

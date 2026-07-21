@@ -1,4 +1,6 @@
 ---
+import { statSync } from 'node:fs';
+import { join } from 'node:path';
 import { url } from '../lib/site';
 import type { StoreGroup } from '../lib/store';
 
@@ -7,14 +9,28 @@ interface Props {
   alt: string;
 }
 const { groups, alt } = Astro.props;
+const single = groups.length === 1;
 
-// Assign a running index so each tile maps into the flat lightbox list.
+// Cache-bust by content length so re-uploaded screenshots aren't served stale.
+function bust(path: string): string {
+  let v = '';
+  try {
+    v = String(statSync(join(process.cwd(), 'public', path)).size);
+  } catch {
+    /* missing — leave unversioned */
+  }
+  return url(path) + (v ? `?v=${v}` : '');
+}
+
+// Assign a running index so each tile maps into the flat lightbox list, and
+// build a repeated "loop" long enough for a seamless continuous marquee.
 let counter = 0;
-const rendered = groups.map((g) => ({
-  key: g.key,
-  label: g.label,
-  items: g.images.map((src) => ({ src: url(src), index: counter++ })),
-}));
+const rendered = groups.map((g) => {
+  const items = g.images.map((src) => ({ src: bust(src), index: counter++ }));
+  const loop = [...items];
+  while (loop.length < 16) loop.push(...items);
+  return { key: g.key, label: g.label, items, loop, dur: `${loop.length * 3.2}s` };
+});
 const flat = rendered.flatMap((g) => g.items.map((it) => ({ src: it.src, label: g.label })));
 ---
 
@@ -22,24 +38,20 @@ const flat = rendered.flatMap((g) => g.items.map((it) => ({ src: it.src, label: 
   {
     rendered.map((g) => (
       <section class="store-group">
-        <div class="group-head reveal">
-          <h2>{g.label}</h2>
-          <span class="group-count muted">{g.items.length}</span>
-        </div>
-        <div class="carousel-wrap">
-          <button class="car-nav car-prev" aria-label="Scroll left" data-group={g.key}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6" /></svg>
-          </button>
-          <div class="carousel reveal" data-group={g.key}>
-            {g.items.map((it) => (
-              <button class="shot" data-index={it.index} aria-haspopup="dialog">
-                <img src={it.src} alt={`${alt} — ${g.label}`} loading="lazy" />
+        {!single && (
+          <div class="group-head reveal">
+            <h2>{g.label}</h2>
+            <span class="group-count muted">{g.items.length}</span>
+          </div>
+        )}
+        <div class="marquee reveal">
+          <div class="mtrack" style={`--dur:${g.dur}`}>
+            {[...g.loop, ...g.loop].map((it) => (
+              <button class="shot" data-index={it.index} aria-label={`${alt} — ${g.label}`} aria-haspopup="dialog">
+                <img src={it.src} alt="" loading="lazy" />
               </button>
             ))}
           </div>
-          <button class="car-nav car-next" aria-label="Scroll right" data-group={g.key}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6" /></svg>
-          </button>
         </div>
       </section>
     ))
@@ -110,15 +122,11 @@ const flat = rendered.flatMap((g) => g.items.map((it) => ({ src: it.src, label: 
     }
   }
 
-  document.querySelectorAll<HTMLElement>('.shot').forEach((s) => {
-    s.addEventListener('click', () => open(Number(s.dataset.index)));
-  });
-  // Carousel arrows scroll their row by ~one image width.
-  document.querySelectorAll<HTMLElement>('.car-nav').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const row = btn.parentElement!.querySelector<HTMLElement>('.carousel')!;
-      const dir = btn.classList.contains('car-prev') ? -1 : 1;
-      row.scrollBy({ left: dir * Math.min(row.clientWidth * 0.8, 420), behavior: 'smooth' });
+  // Delegated click so marquee clones open the lightbox too.
+  document.querySelectorAll<HTMLElement>('.mtrack').forEach((track) => {
+    track.addEventListener('click', (e) => {
+      const shot = (e.target as HTMLElement).closest<HTMLElement>('.shot');
+      if (shot?.dataset.index) open(Number(shot.dataset.index));
     });
   });
   lb.querySelector('.slb-close')?.addEventListener('click', close);
@@ -155,27 +163,35 @@ const flat = rendered.flatMap((g) => g.items.map((it) => ({ src: it.src, label: 
   .group-count {
     font-size: 0.85rem;
   }
-  .carousel-wrap {
-    position: relative;
+
+  /* Continuous marquee — full-bleed within the container, fades at the edges */
+  .marquee {
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
   }
-  .carousel {
+  .mtrack {
     display: flex;
     gap: 16px;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    padding: 4px 2px 16px;
-    scrollbar-width: thin;
+    width: max-content;
+    animation: marq var(--dur, 40s) linear infinite;
+  }
+  .marquee:hover .mtrack {
+    animation-play-state: paused;
+  }
+  @keyframes marq {
+    to {
+      transform: translateX(-50%);
+    }
   }
   .shot {
     flex: 0 0 auto;
-    scroll-snap-align: start;
     padding: 0;
     border: 0;
     background: none;
     cursor: pointer;
-    border-radius: 20px;
-    overflow: hidden;
     line-height: 0;
+    border-radius: 20px;
     transition: transform 0.3s var(--ease-expo);
   }
   .shot img {
@@ -190,42 +206,17 @@ const flat = rendered.flatMap((g) => g.items.map((it) => ({ src: it.src, label: 
     transform: translateY(-4px);
   }
   .shot:hover img {
-    border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+    border-color: color-mix(in srgb, var(--accent) 60%, transparent);
     box-shadow: 0 18px 45px rgba(0, 0, 0, 0.5);
   }
-  .car-nav {
-    position: absolute;
-    top: calc(50% - 8px);
-    transform: translateY(-50%);
-    z-index: 2;
-    display: grid;
-    place-items: center;
-    width: 44px;
-    height: 44px;
-    border-radius: 999px;
-    background: rgba(20, 20, 31, 0.82);
-    border: 1px solid var(--border);
-    color: var(--fg);
-    backdrop-filter: blur(6px);
-    transition: background 0.2s, border-color 0.2s;
-  }
-  .car-nav:hover {
-    border-color: var(--accent);
-    background: var(--bg-elev-2);
-  }
-  .car-nav svg {
-    width: 22px;
-    height: 22px;
-  }
-  .car-prev {
-    left: -6px;
-  }
-  .car-next {
-    right: -6px;
-  }
-  @media (max-width: 640px) {
-    .car-nav {
-      display: none; /* touch users swipe */
+  @media (prefers-reduced-motion: reduce) {
+    .marquee {
+      overflow-x: auto;
+      -webkit-mask-image: none;
+      mask-image: none;
+    }
+    .mtrack {
+      animation: none;
     }
   }
 
