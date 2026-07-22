@@ -346,18 +346,9 @@ const faviconHref = url(squareFavicon(favicon && assetExists(favicon) ? favicon 
         align-items: center;
         transition: opacity 0.2s;
       }
-      /* phones: the full wordmark is unreadable at header size — show the
-         square MS mark instead */
-      .brand-mark {
+      /* the compact square MS mark is the header brand on every screen */
+      .brand-full {
         display: none;
-      }
-      @media (max-width: 768px) {
-        .brand-full {
-          display: none;
-        }
-        .brand-mark {
-          display: block;
-        }
       }
       .brand:hover {
         opacity: 0.85;
