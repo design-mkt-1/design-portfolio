@@ -14,7 +14,7 @@ const payload = items.map((item) => ({
   title: item.title,
   sizes: SIZE_ORDER.filter((k) => item.sizes[k]).map((k) => ({
     key: k,
-    label: SIZE_LABEL[k],
+    label: item.labels?.[k] ?? SIZE_LABEL[k],
     ratio: SIZE_RATIO[k],
     src: url(item.sizes[k]!),
     video: isVideoFile(item.sizes[k]!),
