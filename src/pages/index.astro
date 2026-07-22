@@ -33,6 +33,10 @@ const stats = [
     <div class="hero container">
     <div class="hero-logo reveal">
       <img src={url('assets/marketing-solutions-logo.webp')} alt="Marketing Solutions" />
+      <button class="spin-hint" type="button" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36" /><path d="M21 3v6h-6" /></svg>
+        Tap the logo to spin
+      </button>
     </div>
     <p class="eyebrow reveal">iGaming Creative Studio</p>
     <h1 class="reveal">Creative that <span class="gradient-text">converts players.</span></h1>
@@ -185,8 +189,41 @@ const stats = [
   .hero-logo img {
     height: 84px;
     width: auto;
-    margin: 0 auto 30px;
+    margin: 0 auto 12px;
     filter: drop-shadow(0 10px 50px rgba(74, 146, 224, 0.28));
+  }
+  /* easter-egg invitation: appears shortly after load, gone after the first spin */
+  .spin-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 14px;
+    padding: 5px 13px;
+    font-size: 0.76rem;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    color: var(--fg-muted);
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    animation: hint-bob 2.4s ease-in-out infinite;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .spin-hint[hidden] {
+    display: none;
+  }
+  .spin-hint:hover {
+    color: var(--fg);
+    border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+  }
+  .spin-hint svg {
+    width: 13px;
+    height: 13px;
+    color: var(--accent);
+  }
+  @keyframes hint-bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
   }
   .hero h1 {
     font-size: clamp(2.2rem, 6vw, 3.6rem);

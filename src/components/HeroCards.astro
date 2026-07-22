@@ -186,6 +186,20 @@ const imgCards = unique.length
           respin();
         }
       });
+      // invite the tap: hint pill fades in shortly after load, disappears
+      // forever (this visit) once the visitor has spun
+      const hint = document.querySelector<HTMLElement>('.spin-hint');
+      if (hint) {
+        setTimeout(() => {
+          hint.hidden = false;
+        }, 1800);
+        hint.addEventListener('click', respin);
+        const dismiss = () => {
+          hint.hidden = true;
+        };
+        logo.addEventListener('click', dismiss, { once: true });
+        hint.addEventListener('click', dismiss, { once: true });
+      }
     }
   }
 </script>

@@ -43,6 +43,8 @@ export const STRINGS: Record<string, [string, string, string]> = {
   'stat.videos': ['videos', 'videouri', 'видео'],
   'stat.markets': ['markets', 'piețe', 'рынков'],
 
+  'hint.spin': ['Tap the logo to spin', 'Atinge logo-ul pentru un spin', 'Нажми на логотип — крути'],
+
   // Conversion CTAs
   'cta.start': ['Start a project', 'Începe un proiect', 'Начать проект'],
   'cta.browse': ['Browse the work', 'Vezi lucrările', 'Смотреть работы'],
