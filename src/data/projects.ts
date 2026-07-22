@@ -62,12 +62,16 @@ export interface LandingItem {
   desktop?: string;
 }
 
+/** Auto-detected from public/assets/<slug>/videos/ (see src/lib/portfolio.ts).
+ *  src values may also be absolute URLs (GitHub Release asset / CDN). */
 export interface VideoItem {
   title: string;
-  /** In-repo 1×1 poster image (webp) shown on the gallery tile before play. */
+  /** poster image shown on the gallery tile (auto-generated when missing) */
   poster: string;
-  /** size-key -> MP4 URL (GitHub Release asset or any CDN). Include only aspects that exist. */
+  /** size-key -> MP4 path or URL */
   src: Partial<Record<SizeKey, string>>;
+  /** optional per-size label with the file's real pixel dimensions */
+  labels?: Partial<Record<SizeKey, string>>;
 }
 
 /** GEO / market a project is based in. `code` drives the flag icon (see Flag.astro). */
@@ -93,9 +97,8 @@ export interface Project {
   /** Figma brand book link, opened via the "Open in Figma" button */
   figma?: string;
   brandbook?: Brandbook;
-  /** Videos stream from committed MP4s; only the poster + entry live here. */
-  videos: VideoItem[];
-  // Banners & landings are auto-detected from disk (see src/lib/portfolio.ts).
+  // Banners, landings, videos, and store sets are auto-detected from disk
+  // (see src/lib/portfolio.ts / src/lib/store.ts) — nothing to declare here.
 }
 
 // ---- helpers ----------------------------------------------------------------
@@ -134,20 +137,6 @@ export const projects: Project[] = [
     tagline: 'Full brand system and campaign production.',
     figma: 'https://www.figma.com/design/yP4cFDQU6j2J8QVWHr4CUM/WinBoss?node-id=4-464&p=f&t=mUR3syzALRg87bR2-0',
     brandbook: { type: 'pdf', url: 'assets/winboss/brandbook/winboss-brandbook.pdf' },
-    // Videos: .mp4 files committed under videos/<title>/ (dimension-named) plus a
-    // cover-<ID>.webp poster in the same folder. Each aspect tab appears only once
-    // its file exists on disk, so entries can be committed before the MP4s land.
-    videos: [
-      {
-        title: '27170 - AsimetricW Tesla',
-        poster: 'assets/winboss/videos/27170 - AsimetricW Tesla/cover-27170.webp',
-        src: {
-          '1x1': 'assets/winboss/videos/27170 - AsimetricW Tesla/1080x1080.mp4',
-          '9x16': 'assets/winboss/videos/27170 - AsimetricW Tesla/1080x1920.mp4',
-          '16x9': 'assets/winboss/videos/27170 - AsimetricW Tesla/1920x1080.mp4',
-        },
-      },
-    ],
   },
   {
     slug: 'win2',
@@ -157,7 +146,6 @@ export const projects: Project[] = [
     geo: { code: 'RO', label: 'Romania' },
     accent: '#22d3ee',
     tagline: 'Performance creative across every placement.',
-    videos: [],
   },
   {
     slug: 'fansport',
@@ -169,7 +157,6 @@ export const projects: Project[] = [
     tagline: 'Brand identity and guidelines.',
     figma: 'https://www.figma.com/design/eRr6wNLDitV8iWyUZY6qM8/FanSport?node-id=0-1&p=f&t=J65JMwCpOZU2TEya-0',
     brandbook: { type: 'pdf', url: 'assets/fansport/brandbook/fansport-brandbook.pdf' },
-    videos: [],
   },
   {
     slug: 'topbet',
@@ -181,7 +168,6 @@ export const projects: Project[] = [
     tagline: 'Brand identity and guidelines.',
     figma: 'https://www.figma.com/design/5UpnZQKQOzud31MuwpTO1R/TopBet?node-id=0-1&p=f&t=hrOfpLlAyhsC0GC9-0',
     brandbook: { type: 'pdf', url: 'assets/topbet/brandbook/topbet-brandbook.pdf' },
-    videos: [],
   },
   {
     // Brandbook + banners. Assets land under public/assets/top-win/ (logo_top-win.*,
@@ -194,7 +180,6 @@ export const projects: Project[] = [
     accent: '#a78bfa',
     tagline: 'Brand identity and guidelines.',
     brandbook: { type: 'pdf', url: 'assets/top-win/brandbook/top-win-brandbook.pdf' },
-    videos: [],
   },
   {
     // Brandbook + banners, both landing in the coming days. Assets go under
@@ -207,7 +192,6 @@ export const projects: Project[] = [
     accent: '#fb923c',
     tagline: 'Brand identity and guidelines.',
     brandbook: { type: 'pdf', url: 'assets/bet2fun/brandbook/bet2fun-brandbook.pdf' },
-    videos: [],
   },
   {
     // Scaffolded ahead of uploads (hidden from the home grid until content lands).
@@ -220,7 +204,6 @@ export const projects: Project[] = [
     geo: { code: 'GE', label: 'Georgia' },
     accent: '#ef4444',
     tagline: 'Brand identity and guidelines.',
-    videos: [],
   },
   {
     // Scaffolded ahead of uploads (hidden from the home grid until content lands).
@@ -232,7 +215,6 @@ export const projects: Project[] = [
     geo: { code: 'UZ', label: 'Uzbekistan' },
     accent: '#38bdf8',
     tagline: 'Brand identity and guidelines.',
-    videos: [],
   },
   {
     // Rebrand in progress — banners only for now, kept last until the new identity
@@ -244,7 +226,6 @@ export const projects: Project[] = [
     geo: { code: 'WW', label: 'Worldwide · Asia, Europe' },
     accent: '#f472b6',
     tagline: 'Rebrand in progress.',
-    videos: [],
   },
 ];
 

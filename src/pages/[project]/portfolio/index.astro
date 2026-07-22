@@ -4,8 +4,7 @@ import CtaBanner from '../../../components/CtaBanner.astro';
 import ChoiceCards, { type Choice } from '../../../components/ChoiceCards.astro';
 import { url } from '../../../lib/site';
 import { projects, getProject, firstSize } from '../../../data/projects';
-import { projectBanners, projectLandings, hasPortfolio, projectCrumb, sectionBack, projectOg } from '../../../lib/portfolio';
-import { readyVideos } from '../../../lib/videos';
+import { projectBanners, projectLandings, projectVideos, hasPortfolio, projectCrumb, sectionBack, projectOg } from '../../../lib/portfolio';
 import { storeCount, allStoreImages, storeTitle } from '../../../lib/store';
 import { thumbFor } from '../../../lib/thumbs';
 
@@ -17,7 +16,7 @@ const { project } = Astro.params;
 const p = getProject(project!)!;
 const banners = projectBanners(p.slug);
 const landings = projectLandings(p.slug);
-const videos = readyVideos(p.videos);
+const videos = projectVideos(p.slug);
 const storeImages = allStoreImages(p.slug);
 
 // Real thumbnails per format for the card previews.

@@ -1,0 +1,46 @@
+name: Compress videos
+
+# Optimizes freshly uploaded MP4s and generates missing posters, then commits
+# the results back to main (which re-triggers the normal Pages deploy).
+# Already-processed files carry a metadata tag, so the run after our own
+# commit is a no-op — no loops.
+
+on:
+  push:
+    branches: [main]
+    paths: ['public/assets/**/videos/**']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: compress-videos
+  cancel-in-progress: false
+
+jobs:
+  compress:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Ensure ffmpeg
+        run: ffmpeg -version >/dev/null 2>&1 || (sudo apt-get update && sudo apt-get install -y ffmpeg)
+      - name: Compress videos + generate posters
+        run: node scripts/compress-videos.mjs
+      - name: Commit optimized files
+        run: |
+          if [[ -n "$(git status --porcelain public/assets)" ]]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add public/assets
+            git commit -m "Compress videos + generate posters"
+            git pull --rebase origin main
+            git push origin main
+          else
+            echo "All videos already optimized — nothing to commit."
+          fi

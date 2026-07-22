@@ -6,18 +6,17 @@
 import { readdirSync, existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { imageSize } from 'image-size';
-import { projects, type MediaItem, type LandingItem, type SizeKey, type Project } from '../data/projects';
-import { readyVideos } from './videos';
+import { projects, type MediaItem, type LandingItem, type VideoItem, type SizeKey, type Project } from '../data/projects';
 import { hasStore } from './store';
 import { cleanTitle, isInProgress } from './titles';
 
 const natural = (a: string, b: string) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
 const IMG = /\.(webp|png|jpe?g)$/i;
 
-function kindDir(slug: string, kind: 'banners' | 'landings'): string {
+function kindDir(slug: string, kind: 'banners' | 'landings' | 'videos'): string {
   return join(process.cwd(), 'public', 'assets', slug, kind);
 }
-function setFolders(slug: string, kind: 'banners' | 'landings'): string[] {
+function setFolders(slug: string, kind: 'banners' | 'landings' | 'videos'): string[] {
   const d = kindDir(slug, kind);
   if (!existsSync(d)) return [];
   return readdirSync(d, { withFileTypes: true })
@@ -118,6 +117,41 @@ export function projectLandings(slug: string): LandingItem[] {
     .filter((l) => l.mobile || l.tablet || l.desktop);
 }
 
+/** Videos, auto-detected like banners: one folder per video under
+ *  videos/<ID - Name>/ with dimension-named MP4s (1080x1080.mp4, 1920x1080.mp4;
+ *  Cyrillic х and dashes tolerated) and a cover.* poster. The poster is
+ *  generated automatically by the compress-videos workflow if missing, so a
+ *  folder shows up within a minute of uploading the MP4s. */
+const VIDEO_DIM = /(\d{3,4})\s*[xх×\-]\s*(\d{3,4})/i;
+const videoCache = new Map<string, VideoItem[]>();
+export function projectVideos(slug: string): VideoItem[] {
+  const hit = videoCache.get(slug);
+  if (hit) return hit;
+  const out: VideoItem[] = [];
+  for (const folder of setFolders(slug, 'videos')) {
+    const dir = join(kindDir(slug, 'videos'), folder);
+    const files = readdirSync(dir);
+    const poster = files.find((f) => /^cover.*\.(webp|png|jpe?g)$/i.test(f));
+    if (!poster) continue;
+    const src: VideoItem['src'] = {};
+    const labels: VideoItem['labels'] = {};
+    for (const f of files.filter((n) => /\.mp4$/i.test(n)).sort(natural)) {
+      const m = f.match(VIDEO_DIM);
+      if (!m) continue;
+      const [w, h] = [parseInt(m[1], 10), parseInt(m[2], 10)];
+      const key = bucketFor(w, h);
+      if (!src[key]) {
+        src[key] = `assets/${slug}/videos/${folder}/${f}`;
+        labels[key] = `${w} × ${h}`;
+      }
+    }
+    if (Object.keys(src).length === 0) continue;
+    out.push({ title: cleanTitle(folder), poster: `assets/${slug}/videos/${folder}/${poster}`, src, labels });
+  }
+  videoCache.set(slug, out);
+  return out;
+}
+
 /** Build-time check for a /public asset (e.g. a logo not yet uploaded). */
 export function assetExists(relPath: string): boolean {
   if (!relPath) return false;
@@ -128,7 +162,7 @@ export function hasPortfolio(p: Project): boolean {
   return (
     projectBanners(p.slug).length > 0 ||
     projectLandings(p.slug).length > 0 ||
-    readyVideos(p.videos).length > 0 ||
+    projectVideos(p.slug).length > 0 ||
     hasStore(p.slug)
   );
 }
@@ -214,7 +248,7 @@ export function portfolioFormats(p: Project): PortfolioFormat[] {
   const f: PortfolioFormat[] = [];
   if (projectBanners(p.slug).length > 0) f.push('banners');
   if (projectLandings(p.slug).length > 0) f.push('landings');
-  if (readyVideos(p.videos).length > 0) f.push('videos');
+  if (projectVideos(p.slug).length > 0) f.push('videos');
   if (hasStore(p.slug)) f.push('store');
   return f;
 }
