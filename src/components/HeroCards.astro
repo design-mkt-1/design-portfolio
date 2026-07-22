@@ -1,0 +1,136 @@
+---
+// Floating 3D creative wall behind the home hero — real banner thumbnails from
+// the asset tree, drifting slowly in perspective at low opacity, each card
+// crossfading to another piece of work every few seconds. Decorative only:
+// aria-hidden, pointer-events none, fully disabled for prefers-reduced-motion
+// (static cards remain), trimmed to two cards on phones.
+import { url } from '../lib/site';
+import { thumbFor } from '../lib/thumbs';
+import { visibleProjects, projectBanners } from '../lib/portfolio';
+import { firstSize } from '../data/projects';
+
+// Pool: a few square banner thumbs from every visible brand (small WebPs from
+// the thumbnail pipeline, so the whole layer costs a few hundred KB at most).
+const pool: string[] = [];
+for (const p of visibleProjects()) {
+  for (const t of projectBanners(p.slug).map(firstSize).filter((s): s is string => !!s).slice(0, 4)) {
+    pool.push(url(thumbFor(t)!));
+  }
+}
+// Spread the starting images across brands rather than showing one project 5×.
+const step = Math.max(1, Math.floor(pool.length / 5));
+const cards = pool.length ? [0, 1, 2, 3, 4].map((i) => pool[(i * step) % pool.length]) : [];
+---
+
+{
+  cards.length > 0 && (
+    <div class="hc" aria-hidden="true">
+      {cards.map((src) => (
+        <div class="hc-card">
+          <img class="a" src={src} alt="" decoding="async" />
+          <img class="b" alt="" />
+        </div>
+      ))}
+      <script type="application/json" id="hc-pool" set:html={JSON.stringify(pool)} />
+    </div>
+  )
+}
+
+<script>
+  // Crossfade a random card to the next artwork every few seconds.
+  const layer = document.querySelector<HTMLElement>('.hc');
+  const poolEl = document.getElementById('hc-pool');
+  if (layer && poolEl && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const pool: string[] = JSON.parse(poolEl.textContent || '[]');
+    const cards = Array.from(layer.querySelectorAll<HTMLElement>('.hc-card'));
+    if (pool.length > cards.length) {
+      let cursor = cards.length;
+      let last = -1;
+      setInterval(() => {
+        let i = Math.floor(Math.random() * cards.length);
+        if (i === last) i = (i + 1) % cards.length;
+        last = i;
+        const card = cards[i];
+        const a = card.querySelector<HTMLImageElement>('img.a')!;
+        const b = card.querySelector<HTMLImageElement>('img.b')!;
+        const next = pool[cursor++ % pool.length];
+        b.onload = () => {
+          card.classList.add('swap');
+          setTimeout(() => {
+            a.src = next;
+            card.classList.remove('swap');
+          }, 700);
+        };
+        b.src = next;
+      }, 7000);
+    }
+  }
+</script>
+
+<style>
+  .hc {
+    position: absolute;
+    inset: 0;
+    perspective: 1200px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .hc-card {
+    position: absolute;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+    opacity: 0.15;
+    transform-style: preserve-3d;
+    animation: hc-float var(--dur, 26s) ease-in-out var(--delay, 0s) infinite alternate;
+    will-change: transform;
+  }
+  .hc-card img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .hc-card img.b {
+    opacity: 0;
+    transition: opacity 0.7s ease;
+  }
+  .hc-card.swap img.b {
+    opacity: 1;
+  }
+
+  /* base pose per card: --rx/--ry/--rz define its resting 3D tilt */
+  @keyframes hc-float {
+    from {
+      transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) rotateZ(var(--rz, 0deg)) translateY(0);
+    }
+    to {
+      transform: rotateX(calc(var(--rx, 0deg) * -0.6)) rotateY(calc(var(--ry, 0deg) * 1.4)) rotateZ(calc(var(--rz, 0deg) * -1)) translateY(-22px);
+    }
+  }
+
+  .hc-card:nth-child(1) { left: 2%;  top: 14%;    width: 170px; aspect-ratio: 1; --ry: 22deg;  --rx: 6deg;  --rz: -4deg; --dur: 27s; }
+  .hc-card:nth-child(2) { right: 3%; top: 9%;     width: 200px; aspect-ratio: 1; --ry: -20deg; --rx: 8deg;  --rz: 3deg;  --dur: 31s; --delay: -9s; }
+  .hc-card:nth-child(3) { left: 9%;  bottom: 4%;  width: 140px; aspect-ratio: 1; --ry: 16deg;  --rx: -7deg; --rz: 5deg;  --dur: 24s; --delay: -14s; }
+  .hc-card:nth-child(4) { right: 10%; bottom: 10%; width: 150px; aspect-ratio: 1; --ry: -14deg; --rx: -5deg; --rz: -6deg; --dur: 29s; --delay: -5s; }
+  .hc-card:nth-child(5) { left: 22%; top: 2%;     width: 120px; aspect-ratio: 1; --ry: 12deg;  --rx: 10deg; --rz: 2deg;  --dur: 34s; --delay: -20s; }
+
+  /* phones: two corner cards only, extra quiet, so the copy stays king */
+  @media (max-width: 700px) {
+    .hc-card { opacity: 0.1; }
+    .hc-card:nth-child(1) { width: 110px; left: -4%; top: 6%; }
+    .hc-card:nth-child(2) { width: 120px; right: -5%; top: auto; bottom: 6%; }
+    .hc-card:nth-child(3),
+    .hc-card:nth-child(4),
+    .hc-card:nth-child(5) { display: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hc-card {
+      animation: none;
+      transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) rotateZ(var(--rz, 0deg));
+    }
+  }
+</style>
