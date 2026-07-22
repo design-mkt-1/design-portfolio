@@ -23,7 +23,9 @@ function setFolders(slug: string, kind: 'banners' | 'landings' | 'videos'): stri
     .filter((x) => x.isDirectory())
     .map((x) => x.name)
     .filter((n) => !isInProgress(n))
-    .sort(natural);
+    // newest work first: folders are "<task ID> - Name", so descending natural
+    // order puts the highest (latest) IDs at the top of every gallery
+    .sort((a, b) => natural(b, a));
 }
 
 /** Aspect buckets: real pixel dimensions are snapped to the nearest ratio, so

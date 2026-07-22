@@ -1,0 +1,219 @@
+---
+// Floating 3D creative wall behind the home hero — real Winboss/Win2 creative
+// drifting slowly in perspective at low opacity. Image cards crossfade through
+// the banner pool every few seconds; up to two cards play muted looping promo
+// videos (lazy-started after page load so they never block first paint).
+// Decorative only: aria-hidden, pointer-events none, two quiet cards on phones,
+// static images (no videos, no cycling) under prefers-reduced-motion.
+import { url } from '../lib/site';
+import { thumbFor } from '../lib/thumbs';
+import { projectBanners, projectVideos } from '../lib/portfolio';
+import { firstSize } from '../data/projects';
+
+const SLUGS = ['winboss', 'win2'];
+
+// image pool: square banner thumbs from the featured brands
+const pool: string[] = [];
+for (const slug of SLUGS) {
+  for (const t of projectBanners(slug).map(firstSize).filter((s): s is string => !!s).slice(0, 8)) {
+    pool.push(url(thumbFor(t)!));
+  }
+}
+
+// video pool: every Winboss/Win2 video with a 1×1 version. Two cards play them
+// (lazy-started after page load); when a clip ends the card moves on to a
+// random one that isn't already playing elsewhere — no replays back-to-back.
+const vids = SLUGS.flatMap((slug) => projectVideos(slug).filter((v) => v.src['1x1']));
+const vPool = vids.map((v) => ({ poster: url(thumbFor(v.poster)!), src: url(v.src['1x1']!) }));
+const nVideoCards = Math.min(2, vPool.length);
+const vStart = Array.from({ length: nVideoCards }, (_, i) => Math.floor((i * vPool.length) / nVideoCards));
+const videoPayload = vStart.map((idx) => ({ idx, poster: vPool[idx].poster }));
+
+// 5 cards total: video cards take the two biggest slots, banners fill the rest.
+// Starting picks are evenly spaced over the DISTINCT pool so no two cards open
+// with the same artwork.
+const unique = [...new Set(pool)];
+const imgCount = 5 - videoPayload.length;
+const imgCards = unique.length
+  ? Array.from({ length: imgCount }, (_, i) => unique[Math.floor((i * unique.length) / imgCount) % unique.length])
+  : [];
+---
+
+{
+  (pool.length > 0 || videoPayload.length > 0) && (
+    <div class="hc" aria-hidden="true">
+      {videoPayload.map((v) => (
+        <div class="hc-card hc-video" data-vi={v.idx}>
+          <img class="a" src={v.poster} alt="" decoding="async" />
+          <video muted playsinline preload="none" />
+        </div>
+      ))}
+      {imgCards.map((src) => (
+        <div class="hc-card">
+          <img class="a" src={src} alt="" decoding="async" />
+          <img class="b" alt="" />
+        </div>
+      ))}
+      <script type="application/json" id="hc-pool" set:html={JSON.stringify(pool)} />
+      <script type="application/json" id="hc-vpool" set:html={JSON.stringify(vPool)} />
+    </div>
+  )
+}
+
+<script>
+  const layer = document.querySelector<HTMLElement>('.hc');
+  const poolEl = document.getElementById('hc-pool');
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // lazy-start the video cards after page load; when a clip ends, advance to a
+  // random pool entry not already playing on the other card (replay only when
+  // the pool is too small to rotate)
+  const vpoolEl = document.getElementById('hc-vpool');
+  if (layer && vpoolEl && !reduce) {
+    const vpool: { poster: string; src: string }[] = JSON.parse(vpoolEl.textContent || '[]');
+    const vcards = Array.from(layer.querySelectorAll<HTMLElement>('.hc-video'));
+    const vshow = vcards.map((c) => Number(c.dataset.vi) || 0);
+    const startVideos = () => {
+      vcards.forEach((card, ci) => {
+        const v = card.querySelector('video')!;
+        const img = card.querySelector<HTMLImageElement>('img.a')!;
+        const playIdx = (idx: number) => {
+          vshow[ci] = idx;
+          img.src = vpool[idx].poster;
+          v.src = vpool[idx].src;
+          v.play().catch(() => {});
+        };
+        v.addEventListener('ended', () => {
+          if (vpool.length <= vcards.length) {
+            v.currentTime = 0;
+            v.play().catch(() => {});
+            return;
+          }
+          let idx = Math.floor(Math.random() * vpool.length);
+          while (vshow.includes(idx)) idx = (idx + 1) % vpool.length;
+          playIdx(idx);
+        });
+        playIdx(vshow[ci]);
+      });
+    };
+    if (document.readyState === 'complete') startVideos();
+    else window.addEventListener('load', startVideos, { once: true });
+  }
+
+  // crossfade a random image card to the next artwork every few seconds —
+  // never to something already visible on another card
+  if (layer && poolEl && !reduce) {
+    const pool: string[] = [...new Set(JSON.parse(poolEl.textContent || '[]') as string[])];
+    const cards = Array.from(layer.querySelectorAll<HTMLElement>('.hc-card:not(.hc-video)'));
+    if (cards.length && pool.length > cards.length) {
+      const showing = cards.map((c) => c.querySelector<HTMLImageElement>('img.a')!.getAttribute('src') || '');
+      let cursor = 0;
+      let last = -1;
+      setInterval(() => {
+        let i = Math.floor(Math.random() * cards.length);
+        if (i === last) i = (i + 1) % cards.length;
+        last = i;
+        const card = cards[i];
+        const a = card.querySelector<HTMLImageElement>('img.a')!;
+        const b = card.querySelector<HTMLImageElement>('img.b')!;
+        // next artwork = first pool entry not currently on ANY card
+        let next = '';
+        for (let k = 0; k < pool.length; k++) {
+          const cand = pool[cursor++ % pool.length];
+          if (!showing.includes(cand)) {
+            next = cand;
+            break;
+          }
+        }
+        if (!next) return;
+        showing[i] = next; // reserve immediately so parallel swaps can't collide
+        b.onload = () => {
+          card.classList.add('swap');
+          setTimeout(() => {
+            a.src = next;
+            card.classList.remove('swap');
+          }, 700);
+        };
+        b.src = next;
+      }, 7000);
+    }
+  }
+</script>
+
+<style>
+  .hc {
+    position: absolute;
+    inset: 0;
+    perspective: 1200px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .hc-card {
+    position: absolute;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+    opacity: 0.15;
+    transform-style: preserve-3d;
+    animation: hc-float var(--dur, 26s) ease-in-out var(--delay, 0s) infinite alternate;
+    will-change: transform;
+  }
+  .hc-card img,
+  .hc-card video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .hc-card img.b {
+    opacity: 0;
+    transition: opacity 0.7s ease;
+  }
+  .hc-card.swap img.b {
+    opacity: 1;
+  }
+  /* the looping video sits above its poster; visible only once it has frames */
+  .hc-video video {
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+  .hc-video video[src] {
+    opacity: 1;
+  }
+
+  /* base pose per card: --rx/--ry/--rz define its resting 3D tilt */
+  @keyframes hc-float {
+    from {
+      transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) rotateZ(var(--rz, 0deg)) translateY(0);
+    }
+    to {
+      transform: rotateX(calc(var(--rx, 0deg) * -0.6)) rotateY(calc(var(--ry, 0deg) * 1.4)) rotateZ(calc(var(--rz, 0deg) * -1)) translateY(-22px);
+    }
+  }
+
+  /* video cards render first in the DOM, so they get the two biggest slots */
+  .hc-card:nth-child(1) { right: 3%; top: 9%;     width: 200px; aspect-ratio: 1; --ry: -20deg; --rx: 8deg;  --rz: 3deg;  --dur: 31s; --delay: -9s; }
+  .hc-card:nth-child(2) { left: 2%;  top: 14%;    width: 170px; aspect-ratio: 1; --ry: 22deg;  --rx: 6deg;  --rz: -4deg; --dur: 27s; }
+  .hc-card:nth-child(3) { left: 9%;  bottom: 4%;  width: 140px; aspect-ratio: 1; --ry: 16deg;  --rx: -7deg; --rz: 5deg;  --dur: 24s; --delay: -14s; }
+  .hc-card:nth-child(4) { right: 10%; bottom: 10%; width: 150px; aspect-ratio: 1; --ry: -14deg; --rx: -5deg; --rz: -6deg; --dur: 29s; --delay: -5s; }
+  .hc-card:nth-child(5) { left: 22%; top: 2%;     width: 120px; aspect-ratio: 1; --ry: 12deg;  --rx: 10deg; --rz: 2deg;  --dur: 34s; --delay: -20s; }
+
+  /* phones: two corner cards only, extra quiet, so the copy stays king */
+  @media (max-width: 700px) {
+    .hc-card { opacity: 0.1; }
+    .hc-card:nth-child(1) { width: 120px; right: -5%; top: auto; bottom: 6%; }
+    .hc-card:nth-child(2) { width: 110px; left: -4%; top: 6%; }
+    .hc-card:nth-child(3),
+    .hc-card:nth-child(4),
+    .hc-card:nth-child(5) { display: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hc-card {
+      animation: none;
+      transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) rotateZ(var(--rz, 0deg));
+    }
+  }
+</style>

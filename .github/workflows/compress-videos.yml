@@ -13,6 +13,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: compress-videos
@@ -24,6 +25,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # always process the CURRENT tip, not the triggering commit — a queued
+          # run would otherwise check out a pre-compression snapshot, redo all
+          # the work, and conflict with the bot commit from the previous run
+          ref: main
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -41,6 +47,11 @@ jobs:
             git commit -m "Compress videos + generate posters"
             git pull --rebase origin main
             git push origin main
+            # pushes made with GITHUB_TOKEN don't trigger other workflows
+            # (recursion guard), so kick the Pages deploy explicitly
+            gh workflow run deploy.yml --ref main
           else
             echo "All videos already optimized — nothing to commit."
           fi
+        env:
+          GH_TOKEN: ${{ github.token }}
