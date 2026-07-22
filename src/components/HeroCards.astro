@@ -1,31 +1,53 @@
 ---
-// Floating 3D creative wall behind the home hero — real banner thumbnails from
-// the asset tree, drifting slowly in perspective at low opacity, each card
-// crossfading to another piece of work every few seconds. Decorative only:
-// aria-hidden, pointer-events none, fully disabled for prefers-reduced-motion
-// (static cards remain), trimmed to two cards on phones.
+// Floating 3D creative wall behind the home hero — real Winboss/Win2 creative
+// drifting slowly in perspective at low opacity. Image cards crossfade through
+// the banner pool every few seconds; up to two cards play muted looping promo
+// videos (lazy-started after page load so they never block first paint).
+// Decorative only: aria-hidden, pointer-events none, two quiet cards on phones,
+// static images (no videos, no cycling) under prefers-reduced-motion.
 import { url } from '../lib/site';
 import { thumbFor } from '../lib/thumbs';
-import { visibleProjects, projectBanners } from '../lib/portfolio';
+import { projectBanners, projectVideos } from '../lib/portfolio';
 import { firstSize } from '../data/projects';
 
-// Pool: a few square banner thumbs from every visible brand (small WebPs from
-// the thumbnail pipeline, so the whole layer costs a few hundred KB at most).
+const SLUGS = ['winboss', 'win2'];
+
+// image pool: square banner thumbs from the featured brands
 const pool: string[] = [];
-for (const p of visibleProjects()) {
-  for (const t of projectBanners(p.slug).map(firstSize).filter((s): s is string => !!s).slice(0, 4)) {
+for (const slug of SLUGS) {
+  for (const t of projectBanners(slug).map(firstSize).filter((s): s is string => !!s).slice(0, 8)) {
     pool.push(url(thumbFor(t)!));
   }
 }
-// Spread the starting images across brands rather than showing one project 5×.
-const step = Math.max(1, Math.floor(pool.length / 5));
-const cards = pool.length ? [0, 1, 2, 3, 4].map((i) => pool[(i * step) % pool.length]) : [];
+
+// video picks: up to two, spread across the brands (1×1 versions; each card
+// shows the poster thumb until the mp4 lazy-loads and loops)
+const vids = SLUGS.flatMap((slug) => projectVideos(slug).filter((v) => v.src['1x1']));
+const step = Math.max(1, Math.floor(vids.length / 2));
+const videoCards = vids.length
+  ? [vids[0], vids[step % vids.length]].filter((v, i, a) => a.indexOf(v) === i).slice(0, 2)
+  : [];
+const videoPayload = videoCards.map((v) => ({
+  poster: url(thumbFor(v.poster)!),
+  src: url(v.src['1x1']!),
+}));
+
+// 5 cards total: video cards take the two biggest slots, banners fill the rest
+const imgCount = 5 - videoPayload.length;
+const imgStep = Math.max(1, Math.floor(pool.length / Math.max(1, imgCount)));
+const imgCards = pool.length ? Array.from({ length: imgCount }, (_, i) => pool[(i * imgStep) % pool.length]) : [];
 ---
 
 {
-  cards.length > 0 && (
+  (pool.length > 0 || videoPayload.length > 0) && (
     <div class="hc" aria-hidden="true">
-      {cards.map((src) => (
+      {videoPayload.map((v) => (
+        <div class="hc-card hc-video">
+          <img class="a" src={v.poster} alt="" decoding="async" />
+          <video data-src={v.src} muted loop playsinline preload="none" />
+        </div>
+      ))}
+      {imgCards.map((src) => (
         <div class="hc-card">
           <img class="a" src={src} alt="" decoding="async" />
           <img class="b" alt="" />
@@ -37,13 +59,29 @@ const cards = pool.length ? [0, 1, 2, 3, 4].map((i) => pool[(i * step) % pool.le
 }
 
 <script>
-  // Crossfade a random card to the next artwork every few seconds.
   const layer = document.querySelector<HTMLElement>('.hc');
   const poolEl = document.getElementById('hc-pool');
-  if (layer && poolEl && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // lazy-start the looping videos once the page has finished loading
+  if (layer && !reduce) {
+    const startVideos = () => {
+      layer.querySelectorAll<HTMLVideoElement>('.hc-video video').forEach((v) => {
+        const src = v.dataset.src;
+        if (!src) return;
+        v.src = src;
+        v.play().catch(() => {});
+      });
+    };
+    if (document.readyState === 'complete') startVideos();
+    else window.addEventListener('load', startVideos, { once: true });
+  }
+
+  // crossfade a random image card to the next artwork every few seconds
+  if (layer && poolEl && !reduce) {
     const pool: string[] = JSON.parse(poolEl.textContent || '[]');
-    const cards = Array.from(layer.querySelectorAll<HTMLElement>('.hc-card'));
-    if (pool.length > cards.length) {
+    const cards = Array.from(layer.querySelectorAll<HTMLElement>('.hc-card:not(.hc-video)'));
+    if (cards.length && pool.length > cards.length) {
       let cursor = cards.length;
       let last = -1;
       setInterval(() => {
@@ -86,7 +124,8 @@ const cards = pool.length ? [0, 1, 2, 3, 4].map((i) => pool[(i * step) % pool.le
     animation: hc-float var(--dur, 26s) ease-in-out var(--delay, 0s) infinite alternate;
     will-change: transform;
   }
-  .hc-card img {
+  .hc-card img,
+  .hc-card video {
     position: absolute;
     inset: 0;
     width: 100%;
@@ -100,6 +139,14 @@ const cards = pool.length ? [0, 1, 2, 3, 4].map((i) => pool[(i * step) % pool.le
   .hc-card.swap img.b {
     opacity: 1;
   }
+  /* the looping video sits above its poster; visible only once it has frames */
+  .hc-video video {
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+  .hc-video video[src] {
+    opacity: 1;
+  }
 
   /* base pose per card: --rx/--ry/--rz define its resting 3D tilt */
   @keyframes hc-float {
@@ -111,8 +158,9 @@ const cards = pool.length ? [0, 1, 2, 3, 4].map((i) => pool[(i * step) % pool.le
     }
   }
 
-  .hc-card:nth-child(1) { left: 2%;  top: 14%;    width: 170px; aspect-ratio: 1; --ry: 22deg;  --rx: 6deg;  --rz: -4deg; --dur: 27s; }
-  .hc-card:nth-child(2) { right: 3%; top: 9%;     width: 200px; aspect-ratio: 1; --ry: -20deg; --rx: 8deg;  --rz: 3deg;  --dur: 31s; --delay: -9s; }
+  /* video cards render first in the DOM, so they get the two biggest slots */
+  .hc-card:nth-child(1) { right: 3%; top: 9%;     width: 200px; aspect-ratio: 1; --ry: -20deg; --rx: 8deg;  --rz: 3deg;  --dur: 31s; --delay: -9s; }
+  .hc-card:nth-child(2) { left: 2%;  top: 14%;    width: 170px; aspect-ratio: 1; --ry: 22deg;  --rx: 6deg;  --rz: -4deg; --dur: 27s; }
   .hc-card:nth-child(3) { left: 9%;  bottom: 4%;  width: 140px; aspect-ratio: 1; --ry: 16deg;  --rx: -7deg; --rz: 5deg;  --dur: 24s; --delay: -14s; }
   .hc-card:nth-child(4) { right: 10%; bottom: 10%; width: 150px; aspect-ratio: 1; --ry: -14deg; --rx: -5deg; --rz: -6deg; --dur: 29s; --delay: -5s; }
   .hc-card:nth-child(5) { left: 22%; top: 2%;     width: 120px; aspect-ratio: 1; --ry: 12deg;  --rx: 10deg; --rz: 2deg;  --dur: 34s; --delay: -20s; }
@@ -120,8 +168,8 @@ const cards = pool.length ? [0, 1, 2, 3, 4].map((i) => pool[(i * step) % pool.le
   /* phones: two corner cards only, extra quiet, so the copy stays king */
   @media (max-width: 700px) {
     .hc-card { opacity: 0.1; }
-    .hc-card:nth-child(1) { width: 110px; left: -4%; top: 6%; }
-    .hc-card:nth-child(2) { width: 120px; right: -5%; top: auto; bottom: 6%; }
+    .hc-card:nth-child(1) { width: 120px; right: -5%; top: auto; bottom: 6%; }
+    .hc-card:nth-child(2) { width: 110px; left: -4%; top: 6%; }
     .hc-card:nth-child(3),
     .hc-card:nth-child(4),
     .hc-card:nth-child(5) { display: none; }
