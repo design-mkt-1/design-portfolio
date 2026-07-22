@@ -20,31 +20,32 @@ for (const slug of SLUGS) {
   }
 }
 
-// video picks: up to two, spread across the brands (1×1 versions; each card
-// shows the poster thumb until the mp4 lazy-loads and loops)
+// video pool: every Winboss/Win2 video with a 1×1 version. Two cards play them
+// (lazy-started after page load); when a clip ends the card moves on to a
+// random one that isn't already playing elsewhere — no replays back-to-back.
 const vids = SLUGS.flatMap((slug) => projectVideos(slug).filter((v) => v.src['1x1']));
-const step = Math.max(1, Math.floor(vids.length / 2));
-const videoCards = vids.length
-  ? [vids[0], vids[step % vids.length]].filter((v, i, a) => a.indexOf(v) === i).slice(0, 2)
-  : [];
-const videoPayload = videoCards.map((v) => ({
-  poster: url(thumbFor(v.poster)!),
-  src: url(v.src['1x1']!),
-}));
+const vPool = vids.map((v) => ({ poster: url(thumbFor(v.poster)!), src: url(v.src['1x1']!) }));
+const nVideoCards = Math.min(2, vPool.length);
+const vStart = Array.from({ length: nVideoCards }, (_, i) => Math.floor((i * vPool.length) / nVideoCards));
+const videoPayload = vStart.map((idx) => ({ idx, poster: vPool[idx].poster }));
 
-// 5 cards total: video cards take the two biggest slots, banners fill the rest
+// 5 cards total: video cards take the two biggest slots, banners fill the rest.
+// Starting picks are evenly spaced over the DISTINCT pool so no two cards open
+// with the same artwork.
+const unique = [...new Set(pool)];
 const imgCount = 5 - videoPayload.length;
-const imgStep = Math.max(1, Math.floor(pool.length / Math.max(1, imgCount)));
-const imgCards = pool.length ? Array.from({ length: imgCount }, (_, i) => pool[(i * imgStep) % pool.length]) : [];
+const imgCards = unique.length
+  ? Array.from({ length: imgCount }, (_, i) => unique[Math.floor((i * unique.length) / imgCount) % unique.length])
+  : [];
 ---
 
 {
   (pool.length > 0 || videoPayload.length > 0) && (
     <div class="hc" aria-hidden="true">
       {videoPayload.map((v) => (
-        <div class="hc-card hc-video">
+        <div class="hc-card hc-video" data-vi={v.idx}>
           <img class="a" src={v.poster} alt="" decoding="async" />
-          <video data-src={v.src} muted loop playsinline preload="none" />
+          <video muted playsinline preload="none" />
         </div>
       ))}
       {imgCards.map((src) => (
@@ -54,6 +55,7 @@ const imgCards = pool.length ? Array.from({ length: imgCount }, (_, i) => pool[(
         </div>
       ))}
       <script type="application/json" id="hc-pool" set:html={JSON.stringify(pool)} />
+      <script type="application/json" id="hc-vpool" set:html={JSON.stringify(vPool)} />
     </div>
   )
 }
@@ -63,26 +65,49 @@ const imgCards = pool.length ? Array.from({ length: imgCount }, (_, i) => pool[(
   const poolEl = document.getElementById('hc-pool');
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // lazy-start the looping videos once the page has finished loading
-  if (layer && !reduce) {
+  // lazy-start the video cards after page load; when a clip ends, advance to a
+  // random pool entry not already playing on the other card (replay only when
+  // the pool is too small to rotate)
+  const vpoolEl = document.getElementById('hc-vpool');
+  if (layer && vpoolEl && !reduce) {
+    const vpool: { poster: string; src: string }[] = JSON.parse(vpoolEl.textContent || '[]');
+    const vcards = Array.from(layer.querySelectorAll<HTMLElement>('.hc-video'));
+    const vshow = vcards.map((c) => Number(c.dataset.vi) || 0);
     const startVideos = () => {
-      layer.querySelectorAll<HTMLVideoElement>('.hc-video video').forEach((v) => {
-        const src = v.dataset.src;
-        if (!src) return;
-        v.src = src;
-        v.play().catch(() => {});
+      vcards.forEach((card, ci) => {
+        const v = card.querySelector('video')!;
+        const img = card.querySelector<HTMLImageElement>('img.a')!;
+        const playIdx = (idx: number) => {
+          vshow[ci] = idx;
+          img.src = vpool[idx].poster;
+          v.src = vpool[idx].src;
+          v.play().catch(() => {});
+        };
+        v.addEventListener('ended', () => {
+          if (vpool.length <= vcards.length) {
+            v.currentTime = 0;
+            v.play().catch(() => {});
+            return;
+          }
+          let idx = Math.floor(Math.random() * vpool.length);
+          while (vshow.includes(idx)) idx = (idx + 1) % vpool.length;
+          playIdx(idx);
+        });
+        playIdx(vshow[ci]);
       });
     };
     if (document.readyState === 'complete') startVideos();
     else window.addEventListener('load', startVideos, { once: true });
   }
 
-  // crossfade a random image card to the next artwork every few seconds
+  // crossfade a random image card to the next artwork every few seconds —
+  // never to something already visible on another card
   if (layer && poolEl && !reduce) {
-    const pool: string[] = JSON.parse(poolEl.textContent || '[]');
+    const pool: string[] = [...new Set(JSON.parse(poolEl.textContent || '[]') as string[])];
     const cards = Array.from(layer.querySelectorAll<HTMLElement>('.hc-card:not(.hc-video)'));
     if (cards.length && pool.length > cards.length) {
-      let cursor = cards.length;
+      const showing = cards.map((c) => c.querySelector<HTMLImageElement>('img.a')!.getAttribute('src') || '');
+      let cursor = 0;
       let last = -1;
       setInterval(() => {
         let i = Math.floor(Math.random() * cards.length);
@@ -91,7 +116,17 @@ const imgCards = pool.length ? Array.from({ length: imgCount }, (_, i) => pool[(
         const card = cards[i];
         const a = card.querySelector<HTMLImageElement>('img.a')!;
         const b = card.querySelector<HTMLImageElement>('img.b')!;
-        const next = pool[cursor++ % pool.length];
+        // next artwork = first pool entry not currently on ANY card
+        let next = '';
+        for (let k = 0; k < pool.length; k++) {
+          const cand = pool[cursor++ % pool.length];
+          if (!showing.includes(cand)) {
+            next = cand;
+            break;
+          }
+        }
+        if (!next) return;
+        showing[i] = next; // reserve immediately so parallel swaps can't collide
         b.onload = () => {
           card.classList.add('swap');
           setTimeout(() => {
