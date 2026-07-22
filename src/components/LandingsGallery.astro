@@ -136,6 +136,7 @@ const tiles = items.map((item) => {
     closeSelector: '.lgb-close',
     prevSelector: '.lgb-prev',
     nextSelector: '.lgb-next',
+    swipe: { listen: scroll, el: () => img },
     backdropCloses: (t) => (t as HTMLElement)?.classList?.contains('lgb-scroll'),
     onShow(i) {
       idx = i;

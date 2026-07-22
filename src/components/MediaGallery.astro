@@ -138,6 +138,7 @@ const payload = items.map((item) => ({
     closeSelector: '.lb-close',
     prevSelector: '.lb-prev',
     nextSelector: '.lb-next',
+    swipe: { listen: stage },
     onShow(i) {
       current = i;
       sizeIdx = 0;
