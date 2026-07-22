@@ -13,6 +13,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: compress-videos
@@ -46,6 +47,11 @@ jobs:
             git commit -m "Compress videos + generate posters"
             git pull --rebase origin main
             git push origin main
+            # pushes made with GITHUB_TOKEN don't trigger other workflows
+            # (recursion guard), so kick the Pages deploy explicitly
+            gh workflow run deploy.yml --ref main
           else
             echo "All videos already optimized — nothing to commit."
           fi
+        env:
+          GH_TOKEN: ${{ github.token }}
