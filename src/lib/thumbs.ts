@@ -34,3 +34,13 @@ export function thumbDims(relPath: string | undefined): { w: number; h: number }
   if (!relPath) return undefined;
   return loadManifest()[relPath];
 }
+
+/** Square, letterboxed favicon for the browser tab (non-square brand marks get
+ *  stretched by the tab slot otherwise). Falls back to the original file. */
+export function squareFavicon(relPath: string): string {
+  const m = relPath.match(/^assets\/(?:([^/]+)\/)?favicon[^/]*$/i);
+  const slug = m ? (m[1] ?? 'ms') : undefined;
+  if (!slug) return relPath;
+  const squared = `assets/_thumbs/favicons/${slug}.png`;
+  return existsSync(join(PUB, squared)) ? squared : relPath;
+}

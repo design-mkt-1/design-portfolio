@@ -67,7 +67,7 @@ export interface VideoItem {
 }
 
 /** GEO / market a project is based in. `code` drives the flag icon (see Flag.astro). */
-export type GeoCode = 'RO' | 'UA' | 'WW';
+export type GeoCode = 'RO' | 'UA' | 'GE' | 'UZ' | 'WW';
 
 export interface Geo {
   code: GeoCode;
@@ -203,6 +203,31 @@ export const projects: Project[] = [
     accent: '#fb923c',
     tagline: 'Brand identity and guidelines.',
     brandbook: { type: 'pdf', url: 'assets/bet2fun/brandbook/bet2fun-brandbook.pdf' },
+    videos: [],
+  },
+  {
+    // Scaffolded ahead of uploads (hidden from the home grid until content lands).
+    // Assets go under public/assets/max-win/ (logo_maxwin.*, favicon_maxwin.*,
+    // brandbook/*, banners/*, landings/*, videos/*, store/*).
+    slug: 'max-win',
+    name: 'Max-Win',
+    logo: 'assets/max-win/logo_maxwin.svg',
+    favicon: 'assets/max-win/favicon_maxwin.svg',
+    geo: { code: 'GE', label: 'Georgia' },
+    accent: '#ef4444',
+    tagline: 'Brand identity and guidelines.',
+    videos: [],
+  },
+  {
+    // Scaffolded ahead of uploads (hidden from the home grid until content lands).
+    // Assets go under public/assets/doncash/ (logo_doncash.*, favicon_doncash.*, …).
+    slug: 'doncash',
+    name: 'DonCash',
+    logo: 'assets/doncash/logo_doncash.svg',
+    favicon: 'assets/doncash/favicon_doncash.svg',
+    geo: { code: 'UZ', label: 'Uzbekistan' },
+    accent: '#38bdf8',
+    tagline: 'Brand identity and guidelines.',
     videos: [],
   },
   {

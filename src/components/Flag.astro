@@ -27,6 +27,39 @@ const { code } = Astro.props;
   )
 }
 {
+  code === 'GE' && (
+    <svg class="flag rect" viewBox="0 0 3 2" aria-hidden="true">
+      <rect width="3" height="2" fill="#fff" />
+      <rect x="1.32" width="0.36" height="2" fill="#DA291C" />
+      <rect y="0.82" width="3" height="0.36" fill="#DA291C" />
+      {[
+        [0.66, 0.41],
+        [2.34, 0.41],
+        [0.66, 1.59],
+        [2.34, 1.59],
+      ].map(([cx, cy]) => (
+        <>
+          <rect x={cx - 0.18} y={cy - 0.06} width="0.36" height="0.12" fill="#DA291C" />
+          <rect x={cx - 0.06} y={cy - 0.18} width="0.12" height="0.36" fill="#DA291C" />
+        </>
+      ))}
+    </svg>
+  )
+}
+{
+  code === 'UZ' && (
+    <svg class="flag rect" viewBox="0 0 3 2" aria-hidden="true">
+      <rect width="3" height="2" fill="#0099B5" />
+      <rect y="0.62" width="3" height="0.76" fill="#fff" />
+      <rect y="0.62" width="3" height="0.05" fill="#CE1126" />
+      <rect y="1.33" width="3" height="0.05" fill="#CE1126" />
+      <rect y="1.38" width="3" height="0.62" fill="#1EB53A" />
+      <circle cx="0.47" cy="0.31" r="0.2" fill="#fff" />
+      <circle cx="0.55" cy="0.31" r="0.17" fill="#0099B5" />
+    </svg>
+  )
+}
+{
   code === 'WW' && (
     <svg class="flag globe" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <circle cx="12" cy="12" r="9" />

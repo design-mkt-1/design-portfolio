@@ -28,6 +28,8 @@ public/assets/marketing-solutions-logo.png     (or .svg / .webp)
 | `top-win`  | brandbook + banners | `brandbook/ banners/`          |
 | `bet2fun`  | brandbook + banners | `brandbook/ banners/`          |
 | `jackpot`  | banners (rebrand in progress) | `banners/`            |
+| `max-win`  | scaffolded — GEO Georgia (upload pending) | `brandbook/ banners/ landings/ videos/ store/` |
+| `doncash`  | scaffolded — GEO Uzbekistan (upload pending) | `brandbook/ banners/ landings/ videos/ store/` |
 
 Each project also takes a logo:
 

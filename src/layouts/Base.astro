@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import { url } from '../lib/site';
 import { assetExists } from '../lib/portfolio';
+import { squareFavicon } from '../lib/thumbs';
 
 interface Crumb {
   label: string;
@@ -31,7 +32,9 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : un
 const ogImageAbs = Astro.site ? new URL(url(ogImage), Astro.site).href : url(ogImage);
 
 // Per-project favicon when the file is actually on disk; MS mark otherwise.
-const faviconHref = url(favicon && assetExists(favicon) ? favicon : 'assets/favicon_ms.webp');
+// squareFavicon() serves the letterboxed square PNG so non-square brand marks
+// aren't stretched by the browser's square tab slot.
+const faviconHref = url(squareFavicon(favicon && assetExists(favicon) ? favicon : 'assets/favicon_ms.webp'));
 ---
 
 <!doctype html>

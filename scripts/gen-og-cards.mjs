@@ -25,6 +25,8 @@ const PROJECTS = {
   topbet: { logo: 'assets/topbet/logo_topbet.svg', accent: '#fb7185' },
   'top-win': { logo: 'assets/top-win/logo_topwin.svg', accent: '#a78bfa' },
   bet2fun: { logo: 'assets/bet2fun/logo_bet2fun.svg', accent: '#fb923c' },
+  'max-win': { logo: 'assets/max-win/logo_maxwin.svg', accent: '#ef4444' },
+  doncash: { logo: 'assets/doncash/logo_doncash.svg', accent: '#38bdf8' },
   jackpot: { logo: 'assets/jackpot/logo_jackpot.svg', accent: '#f472b6' },
 };
 

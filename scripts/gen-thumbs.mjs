@@ -69,6 +69,38 @@ function collectJobs() {
   return jobs;
 }
 
+// ---- square favicons --------------------------------------------------------
+// Browser tabs render favicons in a square slot; several brand marks are
+// non-square files and get stretched to fill it. Letterbox each one into a
+// transparent 128×128 PNG (fit: contain) so the mark displays intact.
+// Output: _thumbs/favicons/<slug>.png (+ ms.png for the site mark).
+async function makeFavicons() {
+  const jobs = [];
+  const ms = join(ASSETS, 'favicon_ms.webp');
+  if (existsSync(ms)) jobs.push(['ms', ms]);
+  for (const p of readdirSync(ASSETS, { withFileTypes: true })) {
+    if (!p.isDirectory() || p.name === '_thumbs') continue;
+    const f = readdirSync(join(ASSETS, p.name)).find((n) => /^favicon.*\.(svg|webp|png|jpe?g)$/i.test(n));
+    if (f) jobs.push([p.name, join(ASSETS, p.name, f)]);
+  }
+  let n = 0;
+  for (const [slug, src] of jobs) {
+    const dest = join(OUT, 'favicons', `${slug}.png`);
+    try {
+      if (existsSync(dest) && statSync(dest).mtimeMs >= statSync(src).mtimeMs) continue;
+      mkdirSync(dirname(dest), { recursive: true });
+      await sharp(src, { density: 300 })
+        .resize({ width: 128, height: 128, fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+        .png()
+        .toFile(dest);
+      n++;
+    } catch (e) {
+      console.warn(`[thumbs] favicon skip ${slug}: ${e.message}`);
+    }
+  }
+  return n;
+}
+
 function thumbPath(absSrc) {
   const rel = relative(ASSETS, absSrc);
   const { dir, name } = parse(rel);
@@ -111,6 +143,8 @@ for (const [src, kind] of collectJobs()) {
   }
 }
 
+const favs = await makeFavicons();
+
 mkdirSync(OUT, { recursive: true });
 writeFileSync(join(OUT, 'manifest.json'), JSON.stringify(manifest));
-console.log(`[thumbs] ${made} generated, ${kept} up-to-date, ${Object.keys(manifest).length} total`);
+console.log(`[thumbs] ${made} generated, ${kept} up-to-date, ${Object.keys(manifest).length} total, ${favs} favicons squared`);

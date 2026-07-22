@@ -139,6 +139,8 @@ export const STRINGS: Record<string, [string, string, string]> = {
   // GEO / market labels (rendered on the home grid). Matched by English text.
   'geo.romania': ['Romania', 'România', 'Румыния'],
   'geo.ukraine': ['Ukraine', 'Ucraina', 'Украина'],
+  'geo.georgia': ['Georgia', 'Georgia', 'Грузия'],
+  'geo.uzbekistan': ['Uzbekistan', 'Uzbekistan', 'Узбекистан'],
   'geo.worldwide': ['Worldwide · Asia, Europe', 'Global · Asia, Europa', 'Весь мир · Азия, Европа'],
 
   'pf.choose': [
