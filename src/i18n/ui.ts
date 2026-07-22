@@ -89,7 +89,7 @@ export const STRINGS: Record<string, [string, string, string]> = {
   ],
   'svc.point.mobile': ['Mobile-first design', 'Design mobile-first', 'Mobile-first дизайн'],
   'svc.point.speed': ['Campaign-speed turnaround', 'Livrare în ritmul campaniilor', 'Скорость под график кампаний'],
-  'svc.point.langs': ['Creative in EN, RO and RU', 'Creative în EN, RO și RU', 'Креативы на EN, RO и RU'],
+  'svc.point.langs': ['Creative in RO, EN and Worldwide', 'Creative în RO, EN și Worldwide', 'Креативы — RO, EN и Worldwide'],
 
   'footer.age': [
     '18+ · Responsible, compliance-aware creative for licensed iGaming operators.',
