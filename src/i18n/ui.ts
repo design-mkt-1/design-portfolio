@@ -21,9 +21,9 @@ export const LOCALE_NAME: Record<Locale, string> = {
 export const STRINGS: Record<string, [string, string, string]> = {
   'nav.contact': ['Contact us', 'Contactează-ne', 'Связаться'],
   'footer.copy': [
-    '© Marketing Solutions — design portfolio',
-    '© Marketing Solutions — portofoliu de design',
-    '© Marketing Solutions — портфолио дизайна',
+    '© Marketing Solutions — Design Portfolio',
+    '© Marketing Solutions — Portofoliu de Design',
+    '© Marketing Solutions — Портфолио Дизайна',
   ],
 
   'home.eyebrow': ['iGaming Creative Studio', 'Studio de Creație iGaming', 'Креативная студия iGaming'],
