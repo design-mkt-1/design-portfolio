@@ -236,7 +236,9 @@ const stats = [
     background-clip: text;
     color: transparent;
   }
-  /* slot-reel digits (built by JS; background-clip:text on .stat-n covers them) */
+  /* Slot-reel digits (built by JS). The parent's background-clip:text cannot
+     paint through transformed/overflow-hidden children, so every reel cell and
+     symbol carries the gradient itself. */
   .stat-n :global(.digit) {
     display: inline-block;
     height: 1.1em;
@@ -251,6 +253,13 @@ const stats = [
     display: block;
     transition: transform 1.7s var(--ease-expo);
     will-change: transform;
+  }
+  .stat-n :global(.reel span),
+  .stat-n :global(.sym) {
+    background: var(--brand-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
   .stat-n :global(.reel span) {
     display: block;
