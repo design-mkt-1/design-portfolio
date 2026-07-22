@@ -1,5 +1,6 @@
 ---
 import Base from '../../../layouts/Base.astro';
+import CtaBanner from '../../../components/CtaBanner.astro';
 import VideoGallery from '../../../components/VideoGallery.astro';
 import { url } from '../../../lib/site';
 import { projects, getProject } from '../../../data/projects';
@@ -36,6 +37,7 @@ const videos = readyVideos(p.videos);
   <section class="container">
     <VideoGallery items={videos} />
   </section>
+  <CtaBanner />
 </Base>
 
 <style>

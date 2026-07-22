@@ -1,5 +1,6 @@
 ---
 import Base from '../../../layouts/Base.astro';
+import CtaBanner from '../../../components/CtaBanner.astro';
 import MediaGallery from '../../../components/MediaGallery.astro';
 import { url } from '../../../lib/site';
 import { projects, getProject } from '../../../data/projects';
@@ -35,6 +36,7 @@ const banners = projectBanners(p.slug);
   <section class="container">
     <MediaGallery items={banners} kind="banner" />
   </section>
+  <CtaBanner />
 </Base>
 
 <style>

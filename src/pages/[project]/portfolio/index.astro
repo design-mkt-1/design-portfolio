@@ -1,5 +1,6 @@
 ---
 import Base from '../../../layouts/Base.astro';
+import CtaBanner from '../../../components/CtaBanner.astro';
 import ChoiceCards, { type Choice } from '../../../components/ChoiceCards.astro';
 import { url } from '../../../lib/site';
 import { projects, getProject, firstSize } from '../../../data/projects';
@@ -89,6 +90,7 @@ if (storeImages.length > 0) {
   <section class="container">
     <ChoiceCards choices={choices} />
   </section>
+  <CtaBanner />
 </Base>
 
 <style>

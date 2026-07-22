@@ -1,5 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
+import CtaBanner from '../../components/CtaBanner.astro';
 import { url } from '../../lib/site';
 import { projects, getProject } from '../../data/projects';
 import { projectCrumb, sectionBack, hasBrandbook, brandbookFrames } from '../../lib/portfolio';
@@ -92,6 +93,7 @@ const figmaLogo = `
       </section>
     )
   }
+  <CtaBanner />
 </Base>
 
 <style>

@@ -26,15 +26,35 @@ export const STRINGS: Record<string, [string, string, string]> = {
     '© Marketing Solutions — портфолио дизайна',
   ],
 
-  'home.eyebrow': ['Design Portfolio', 'Portofoliu de Design', 'Портфолио дизайна'],
-  'home.h1a': ['Brands we build,', 'Branduri pe care le construim,', 'Бренды, которые мы создаём,'],
-  'home.h1b': ['campaigns we ship.', 'campanii pe care le livrăm.', 'кампании, которые мы запускаем.'],
+  'home.eyebrow': ['iGaming Creative Studio', 'Studio de Creație iGaming', 'Креативная студия iGaming'],
+  'home.h1a': ['Creative that', 'Creație care', 'Креатив, который'],
+  'home.h1b': ['converts players.', 'convertește jucători.', 'конвертирует игроков.'],
   'home.lede': [
-    'Open any project to see its brand book and the creative we made for it: banners, landing pages, and video.',
-    'Deschide orice proiect pentru a vedea brand book-ul și creativele realizate pentru el: bannere, pagini de destinație și video.',
-    'Откройте любой проект, чтобы увидеть брендбук и созданные материалы: баннеры, лендинги и видео.',
+    'Brand systems, promo landings, banners and video for casino & sportsbook operators — across Romania, Ukraine and worldwide markets.',
+    'Sisteme de brand, landing-uri promoționale, bannere și video pentru operatori de cazino și pariuri sportive — în România, Ucraina și pe piețe internaționale.',
+    'Бренд-системы, промо-лендинги, баннеры и видео для операторов казино и спортивных ставок — в Румынии, Украине и на мировых рынках.',
   ],
   'home.projects': ['Projects', 'Proiecte', 'Проекты'],
+
+  // Hero stats (numbers are language-neutral; labels translate by English text)
+  'stat.brands': ['brands', 'branduri', 'брендов'],
+  'stat.landings': ['promo landings', 'landing-uri promo', 'промо-лендингов'],
+  'stat.banners': ['banner sets', 'seturi de bannere', 'серий баннеров'],
+  'stat.markets': ['markets', 'piețe', 'рынка'],
+
+  // Conversion CTAs
+  'cta.start': ['Start a project', 'Începe un proiect', 'Начать проект'],
+  'cta.browse': ['Browse the work', 'Vezi lucrările', 'Смотреть работы'],
+  'ctab.h': [
+    'Need creative like this for your brand?',
+    'Ai nevoie de creative ca acestea pentru brandul tău?',
+    'Нужны такие креативы для вашего бренда?',
+  ],
+  'ctab.p': [
+    'We ship brand systems, landings, banners and video for iGaming operators — in EN, RO and RU.',
+    'Livrăm sisteme de brand, landing-uri, bannere și video pentru operatori iGaming — în EN, RO și RU.',
+    'Мы создаём бренд-системы, лендинги, баннеры и видео для iGaming-операторов — на EN, RO и RU.',
+  ],
 
   'proj.all': ['← All projects', '← Toate proiectele', '← Все проекты'],
   'proj.brandbook': ['Brand Book', 'Brand Book', 'Брендбук'],

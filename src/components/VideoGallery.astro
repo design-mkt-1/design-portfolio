@@ -80,6 +80,8 @@ const payload = items.map((v) => ({
 </div>
 
 <script>
+  import { createLightbox } from '../lib/lightbox';
+
   const data = JSON.parse(document.getElementById('video-data')?.textContent || '[]');
   const lb = document.getElementById('video-lightbox')!;
   const stage = document.getElementById('vlb-stage')!;
@@ -87,10 +89,6 @@ const payload = items.map((v) => ({
   const sizesEl = document.getElementById('vlb-sizes')!;
   let current = 0;
   let sizeIdx = 0;
-  let lastFocus: HTMLElement | null = null;
-
-  const navBtns = [lb.querySelector('.vlb-prev'), lb.querySelector('.vlb-next')];
-  if (data.length <= 1) navBtns.forEach((b) => b && ((b as HTMLElement).style.display = 'none'));
 
   function renderPlayer() {
     const item = data[current];
@@ -124,61 +122,25 @@ const payload = items.map((v) => ({
       sizesEl.appendChild(b);
     });
   }
-  function open(i: number) {
-    current = i;
-    sizeIdx = 0;
-    lastFocus = document.activeElement as HTMLElement;
-    lb.hidden = false;
-    document.body.style.overflow = 'hidden';
-    renderSizes();
-    renderPlayer();
-    (lb.querySelector('.vlb-close') as HTMLElement)?.focus();
-  }
-  function close() {
-    lb.hidden = true;
-    document.body.style.overflow = '';
-    stage.innerHTML = ''; // unload iframe so audio stops
-    lastFocus?.focus();
-  }
-  function step(dir: number) {
-    current = (current + dir + data.length) % data.length;
-    sizeIdx = 0;
-    renderSizes();
-    renderPlayer();
-  }
-  function trapFocus(e: KeyboardEvent) {
-    const f = Array.from(lb.querySelectorAll<HTMLElement>('button')).filter(
-      (el) => !el.hasAttribute('disabled') && el.offsetParent !== null,
-    );
-    if (!f.length) return;
-    const first = f[0];
-    const last = f[f.length - 1];
-    const a = document.activeElement as HTMLElement;
-    if (e.shiftKey && (a === first || !lb.contains(a))) {
-      e.preventDefault();
-      last.focus();
-    } else if (!e.shiftKey && a === last) {
-      e.preventDefault();
-      first.focus();
-    }
-  }
+  const ctrl = createLightbox({
+    root: lb,
+    count: data.length,
+    closeSelector: '.vlb-close',
+    prevSelector: '.vlb-prev',
+    nextSelector: '.vlb-next',
+    onShow(i) {
+      current = i;
+      sizeIdx = 0;
+      renderSizes();
+      renderPlayer();
+    },
+    onClose() {
+      stage.innerHTML = ''; // unload the player so audio stops
+    },
+  });
 
   document.querySelectorAll<HTMLElement>('.vtile').forEach((t) => {
-    t.addEventListener('click', () => open(Number(t.dataset.index)));
-  });
-  lb.querySelector('.vlb-close')?.addEventListener('click', close);
-  lb.querySelector('.vlb-prev')?.addEventListener('click', () => step(-1));
-  lb.querySelector('.vlb-next')?.addEventListener('click', () => step(1));
-  lb.addEventListener('click', (e) => {
-    if (e.target === lb) close();
-  });
-  document.addEventListener('keydown', (e) => {
-    if (lb.hidden) return;
-    if (e.key === 'Escape') close();
-    else if (e.key === 'Tab') trapFocus(e);
-    else if (data.length <= 1) return;
-    else if (e.key === 'ArrowRight') step(1);
-    else if (e.key === 'ArrowLeft') step(-1);
+    t.addEventListener('click', () => ctrl.open(Number(t.dataset.index)));
   });
 </script>
 

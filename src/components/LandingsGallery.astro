@@ -80,6 +80,8 @@ const payload = items.map((item) => ({
 </div>
 
 <script>
+  import { createLightbox } from '../lib/lightbox';
+
   type DeviceKey = 'mobile' | 'tablet' | 'desktop';
   interface Dev { key: DeviceKey; label: string; src: string }
   interface Item { title: string; devices: Dev[] }
@@ -91,36 +93,12 @@ const payload = items.map((item) => ({
   const devBtns = Array.from(lb.querySelectorAll<HTMLButtonElement>('.dev'));
 
   let idx = 0;
+  // The chosen device persists across prev/next; falls back per item when a
+  // version is missing. Opening from the grid always starts on mobile.
   let device: DeviceKey = 'mobile';
-  let lastFocus: HTMLElement | null = null;
 
-  // Single-item galleries have nothing to page through — hide the arrows.
-  const navBtns = [lb.querySelector('.lgb-prev'), lb.querySelector('.lgb-next')];
-  if (data.length <= 1) navBtns.forEach((b) => b && ((b as HTMLElement).style.display = 'none'));
-
-  // Keep Tab focus inside the modal while it is open (aria-modal contract).
-  function trapFocus(e: KeyboardEvent) {
-    const focusables = Array.from(lb.querySelectorAll<HTMLElement>('button')).filter(
-      (el) => !el.hasAttribute('disabled') && el.offsetParent !== null,
-    );
-    if (!focusables.length) return;
-    const first = focusables[0];
-    const last = focusables[focusables.length - 1];
-    const active = document.activeElement as HTMLElement;
-    if (e.shiftKey && (active === first || !lb.contains(active))) {
-      e.preventDefault();
-      last.focus();
-    } else if (!e.shiftKey && active === last) {
-      e.preventDefault();
-      first.focus();
-    }
-  }
-
-  function current() {
-    return data[idx];
-  }
   function pick(dev: DeviceKey) {
-    const item = current();
+    const item = data[idx];
     const found = item.devices.find((d) => d.key === dev) || item.devices[0];
     device = found.key;
     img.src = found.src;
@@ -135,43 +113,31 @@ const payload = items.map((item) => ({
       b.setAttribute('aria-selected', b.dataset.device === device ? 'true' : 'false');
     });
   }
-  function show(i: number, preferMobile = true) {
-    idx = (i + data.length) % data.length;
-    titleEl.textContent = current().title;
-    pick(preferMobile ? 'mobile' : device);
-  }
-  function open(i: number) {
-    lastFocus = document.activeElement as HTMLElement;
-    show(i);
-    lb.hidden = false;
-    document.body.style.overflow = 'hidden';
-    (lb.querySelector('.lgb-close') as HTMLElement)?.focus();
-  }
-  function close() {
-    lb.hidden = true;
-    document.body.style.overflow = '';
-    img.src = '';
-    lastFocus?.focus();
-  }
+
+  const ctrl = createLightbox({
+    root: lb,
+    count: data.length,
+    closeSelector: '.lgb-close',
+    prevSelector: '.lgb-prev',
+    nextSelector: '.lgb-next',
+    backdropCloses: (t) => (t as HTMLElement)?.classList?.contains('lgb-scroll'),
+    onShow(i) {
+      idx = i;
+      titleEl.textContent = data[idx].title;
+      pick(device);
+    },
+    onClose() {
+      img.src = '';
+    },
+  });
 
   document.querySelectorAll<HTMLElement>('.lg-item').forEach((el) => {
-    el.addEventListener('click', () => open(Number(el.dataset.index)));
+    el.addEventListener('click', () => {
+      device = 'mobile';
+      ctrl.open(Number(el.dataset.index));
+    });
   });
   devBtns.forEach((b) => b.addEventListener('click', () => !b.disabled && pick(b.dataset.device as DeviceKey)));
-  lb.querySelector('.lgb-close')?.addEventListener('click', close);
-  lb.querySelector('.lgb-prev')?.addEventListener('click', () => show(idx - 1));
-  lb.querySelector('.lgb-next')?.addEventListener('click', () => show(idx + 1));
-  lb.addEventListener('click', (e) => {
-    if (e.target === lb || (e.target as HTMLElement).classList.contains('lgb-scroll')) close();
-  });
-  document.addEventListener('keydown', (e) => {
-    if (lb.hidden) return;
-    if (e.key === 'Escape') close();
-    else if (e.key === 'Tab') trapFocus(e);
-    else if (data.length <= 1) return;
-    else if (e.key === 'ArrowRight') show(idx + 1);
-    else if (e.key === 'ArrowLeft') show(idx - 1);
-  });
 </script>
 
 <style>

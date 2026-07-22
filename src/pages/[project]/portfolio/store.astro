@@ -1,5 +1,6 @@
 ---
 import Base from '../../../layouts/Base.astro';
+import CtaBanner from '../../../components/CtaBanner.astro';
 import StoreGallery from '../../../components/StoreGallery.astro';
 import { url } from '../../../lib/site';
 import { projects, getProject } from '../../../data/projects';
@@ -37,6 +38,7 @@ const title = storeTitle(p.slug);
   <section class="container">
     <StoreGallery groups={groups} alt={p.name} />
   </section>
+  <CtaBanner />
 </Base>
 
 <style>

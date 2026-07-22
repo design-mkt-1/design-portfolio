@@ -79,53 +79,31 @@ const flat = rendered.flatMap((g) => g.items.map((it) => ({ src: it.src, label: 
 </div>
 
 <script>
+  import { createLightbox } from '../lib/lightbox';
+
   const data: { src: string; label: string }[] = JSON.parse(
     document.getElementById('store-data')?.textContent || '[]',
   );
   const lb = document.getElementById('store-lightbox')!;
   const img = document.getElementById('slb-img') as HTMLImageElement;
   const scroll = lb.querySelector('.slb-scroll') as HTMLElement;
-  let idx = 0;
-  let lastFocus: HTMLElement | null = null;
 
-  const navBtns = [lb.querySelector('.slb-prev'), lb.querySelector('.slb-next')];
-  if (data.length <= 1) navBtns.forEach((b) => b && ((b as HTMLElement).style.display = 'none'));
-
-  function show(i: number) {
-    idx = (i + data.length) % data.length;
-    img.src = data[idx].src;
-    img.alt = data[idx].label;
-    scroll.scrollTop = 0;
-  }
-  function open(i: number) {
-    lastFocus = document.activeElement as HTMLElement;
-    show(i);
-    lb.hidden = false;
-    document.body.style.overflow = 'hidden';
-    (lb.querySelector('.slb-close') as HTMLElement)?.focus();
-  }
-  function close() {
-    lb.hidden = true;
-    document.body.style.overflow = '';
-    img.src = '';
-    lastFocus?.focus();
-  }
-  function trapFocus(e: KeyboardEvent) {
-    const f = Array.from(lb.querySelectorAll<HTMLElement>('button')).filter(
-      (el) => !el.hasAttribute('disabled') && el.offsetParent !== null,
-    );
-    if (!f.length) return;
-    const first = f[0];
-    const last = f[f.length - 1];
-    const a = document.activeElement as HTMLElement;
-    if (e.shiftKey && (a === first || !lb.contains(a))) {
-      e.preventDefault();
-      last.focus();
-    } else if (!e.shiftKey && a === last) {
-      e.preventDefault();
-      first.focus();
-    }
-  }
+  const ctrl = createLightbox({
+    root: lb,
+    count: data.length,
+    closeSelector: '.slb-close',
+    prevSelector: '.slb-prev',
+    nextSelector: '.slb-next',
+    backdropCloses: (t) => (t as HTMLElement)?.classList?.contains('slb-scroll'),
+    onShow(i) {
+      img.src = data[i].src;
+      img.alt = data[i].label;
+      scroll.scrollTop = 0;
+    },
+    onClose() {
+      img.src = '';
+    },
+  });
 
   // JS-driven marquee: auto-scroll, pause on hover, drag/swipe to scroll freely.
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -209,22 +187,8 @@ const flat = rendered.flatMap((g) => g.items.map((it) => ({ src: it.src, label: 
         return;
       }
       const shot = (e.target as HTMLElement).closest<HTMLElement>('.shot');
-      if (shot?.dataset.index) open(Number(shot.dataset.index));
+      if (shot?.dataset.index) ctrl.open(Number(shot.dataset.index));
     });
-  });
-  lb.querySelector('.slb-close')?.addEventListener('click', close);
-  lb.querySelector('.slb-prev')?.addEventListener('click', () => show(idx - 1));
-  lb.querySelector('.slb-next')?.addEventListener('click', () => show(idx + 1));
-  lb.addEventListener('click', (e) => {
-    if (e.target === lb || (e.target as HTMLElement).classList.contains('slb-scroll')) close();
-  });
-  document.addEventListener('keydown', (e) => {
-    if (lb.hidden) return;
-    if (e.key === 'Escape') close();
-    else if (e.key === 'Tab') trapFocus(e);
-    else if (data.length <= 1) return;
-    else if (e.key === 'ArrowRight') show(idx + 1);
-    else if (e.key === 'ArrowLeft') show(idx - 1);
   });
 </script>
 

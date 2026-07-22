@@ -1,0 +1,49 @@
+---
+// Closing conversion block for gallery / brand-book pages, so browsing never
+// dead-ends: pitch line + "Start a project" → contact. Copy translates via the
+// standard English-text i18n matching (strings in src/i18n/ui.ts).
+import { url } from '../lib/site';
+---
+
+<section class="container ctab-wrap">
+  <div class="ctab reveal">
+    <div class="ctab-glow" aria-hidden="true"></div>
+    <h2>Need creative like this for your brand?</h2>
+    <p class="muted">We ship brand systems, landings, banners and video for iGaming operators — in EN, RO and RU.</p>
+    <a class="btn btn-primary" href={url('/contact')}>Start a project</a>
+  </div>
+</section>
+
+<style>
+  .ctab-wrap {
+    margin-top: 70px;
+  }
+  .ctab {
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+    padding: 52px 30px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015));
+  }
+  .ctab-glow {
+    position: absolute;
+    inset: -1px;
+    background: radial-gradient(600px 260px at 50% -20%, var(--accent-glow), transparent 70%);
+    pointer-events: none;
+  }
+  .ctab h2 {
+    position: relative;
+    font-size: clamp(1.4rem, 3.4vw, 1.9rem);
+  }
+  .ctab p {
+    position: relative;
+    max-width: 520px;
+    margin: 12px auto 24px;
+    font-size: 1rem;
+  }
+  .ctab .btn {
+    position: relative;
+  }
+</style>

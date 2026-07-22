@@ -1,5 +1,6 @@
 ---
 import Base from '../../../layouts/Base.astro';
+import CtaBanner from '../../../components/CtaBanner.astro';
 import LandingsGallery from '../../../components/LandingsGallery.astro';
 import { url } from '../../../lib/site';
 import { projects, getProject } from '../../../data/projects';
@@ -35,6 +36,7 @@ const landings = projectLandings(p.slug);
   <section class="container">
     <LandingsGallery items={landings} alt={p.name} />
   </section>
+  <CtaBanner />
 </Base>
 
 <style>
