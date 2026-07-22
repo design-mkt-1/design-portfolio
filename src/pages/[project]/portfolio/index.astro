@@ -32,37 +32,39 @@ function preview(thumbs: string[]): Choice['preview'] {
   return undefined;
 }
 
-const choices: Choice[] = [
-  {
+// Formats appear only once they have content — an empty greyed-out card reads
+// as unfinished on a partner-facing site. Upload assets and the card shows up.
+const choices: Choice[] = [];
+if (banners.length > 0) {
+  choices.push({
     title: 'Banners',
     description: 'Static creative in every placement size.',
     href: `/${p.slug}/portfolio/banners`,
     icon: 'image',
-    meta: banners.length ? `${banners.length}` : undefined,
+    meta: `${banners.length}`,
     preview: preview(bannerThumbs),
-    disabled: banners.length === 0,
-  },
-  {
+  });
+}
+if (landings.length > 0) {
+  choices.push({
     title: 'Landings',
     description: 'Landing page designs.',
     href: `/${p.slug}/portfolio/landings`,
     icon: 'layout',
-    meta: landings.length ? `${landings.length}` : undefined,
+    meta: `${landings.length}`,
     preview: preview(landingThumbs),
-    disabled: landings.length === 0,
-  },
-  {
+  });
+}
+if (videos.length > 0) {
+  choices.push({
     title: 'Videos',
     description: 'Motion and video creative.',
     href: `/${p.slug}/portfolio/videos`,
     icon: 'film',
-    meta: videos.length ? `${videos.length}` : undefined,
+    meta: `${videos.length}`,
     preview: preview(videoThumbs),
-    disabled: videos.length === 0,
-  },
-];
-
-// New optional format: only shown once store screenshots are uploaded.
+  });
+}
 if (storeImages.length > 0) {
   choices.push({
     title: storeTitle(p.slug),
