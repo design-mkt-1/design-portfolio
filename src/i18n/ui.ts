@@ -180,6 +180,7 @@ export const STRINGS: Record<string, [string, string, string]> = {
   'contact.message': ['Message', 'Mesaj', 'Сообщение'],
   'contact.send': ['Send message', 'Trimite mesajul', 'Отправить'],
   'contact.prefer': ['Prefer email?', 'Preferi emailul?', 'Предпочитаете email?'],
+  'contact.linkedin': ['Or connect with us on', 'Sau conectează-te cu noi pe', 'Или свяжитесь с нами в'],
   // placeholders / JS status (looked up by key)
   'contact.ph.name': ['Your name', 'Numele tău', 'Ваше имя'],
   'contact.ph.message': ['What can we help with?', 'Cu ce te putem ajuta?', 'Чем мы можем помочь?'],
