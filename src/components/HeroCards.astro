@@ -200,13 +200,13 @@ const imgCards = unique.length
   .hc-card:nth-child(4) { right: 10%; bottom: 10%; width: 150px; aspect-ratio: 1; --ry: -14deg; --rx: -5deg; --rz: -6deg; --dur: 29s; --delay: -5s; }
   .hc-card:nth-child(5) { left: 22%; top: 2%;     width: 120px; aspect-ratio: 1; --ry: 12deg;  --rx: 10deg; --rz: 2deg;  --dur: 34s; --delay: -20s; }
 
-  /* phones: two corner cards only, extra quiet, so the copy stays king */
+  /* phones: four smaller edge cards, extra quiet, so the copy stays king */
   @media (max-width: 700px) {
     .hc-card { opacity: 0.1; }
-    .hc-card:nth-child(1) { width: 120px; right: -5%; top: auto; bottom: 6%; }
-    .hc-card:nth-child(2) { width: 110px; left: -4%; top: 6%; }
-    .hc-card:nth-child(3),
-    .hc-card:nth-child(4),
+    .hc-card:nth-child(1) { width: 108px; right: -5%; top: auto; bottom: 7%; }
+    .hc-card:nth-child(2) { width: 98px;  left: -5%;  top: 4%; }
+    .hc-card:nth-child(3) { width: 84px;  right: 3%;  top: 10%; bottom: auto; left: auto; }
+    .hc-card:nth-child(4) { width: 90px;  left: 1%;   bottom: 22%; top: auto; right: auto; }
     .hc-card:nth-child(5) { display: none; }
   }
 

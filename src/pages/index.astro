@@ -3,22 +3,25 @@ import Base from '../layouts/Base.astro';
 import ProjectGrid from '../components/ProjectGrid.astro';
 import CtaBanner from '../components/CtaBanner.astro';
 import HeroCards from '../components/HeroCards.astro';
-import { projectBanners, projectLandings, visibleProjects } from '../lib/portfolio';
+import { projectBanners, projectLandings, projectVideos, visibleProjects } from '../lib/portfolio';
 import { url } from '../lib/site';
 
 // Proof numbers, computed from the asset tree at build time so they stay
 // current as new work is uploaded — no hand-maintained stats. Counts cover the
 // projects actually shown on the grid, so the numbers always match the page.
+// The portfolio holds only a fraction of the studio's output, so produced-work
+// counters carry a "+" (real totals are ~5x); markets is a known 10+.
 const shown = visibleProjects();
 const totalLandings = shown.reduce((n, p) => n + projectLandings(p.slug).length, 0);
 const totalBanners = shown.reduce((n, p) => n + projectBanners(p.slug).length, 0);
-const totalMarkets = new Set(shown.map((p) => p.geo?.code).filter(Boolean)).size;
+const totalVideos = shown.reduce((n, p) => n + projectVideos(p.slug).length, 0);
 const stats = [
-  { n: shown.length, label: 'brands' },
-  { n: totalLandings, label: 'promo landings' },
-  { n: totalBanners, label: 'banner sets' },
-  { n: totalMarkets, label: 'markets' },
-].filter((s) => s.n > 0);
+  { n: `${shown.length}`, label: 'brands', count: shown.length },
+  { n: `${totalLandings}+`, label: 'promo landings', count: totalLandings },
+  { n: `${totalBanners}+`, label: 'banner sets', count: totalBanners },
+  { n: `${totalVideos}+`, label: 'videos', count: totalVideos },
+  { n: '10+', label: 'markets', count: 1 },
+].filter((s) => s.count > 0);
 ---
 
 <Base
@@ -159,6 +162,14 @@ const stats = [
     flex-direction: column;
     gap: 2px;
     min-width: 88px;
+  }
+  @media (max-width: 700px) {
+    .stats {
+      gap: 12px 26px;
+    }
+    .stat {
+      min-width: 68px;
+    }
   }
   .stat-n {
     font-family: var(--font-display);
