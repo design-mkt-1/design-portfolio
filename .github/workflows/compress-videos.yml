@@ -24,6 +24,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # always process the CURRENT tip, not the triggering commit — a queued
+          # run would otherwise check out a pre-compression snapshot, redo all
+          # the work, and conflict with the bot commit from the previous run
+          ref: main
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
