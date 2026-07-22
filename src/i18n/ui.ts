@@ -112,9 +112,9 @@ export const STRINGS: Record<string, [string, string, string]> = {
     'Каждая плитка — 1080×1080. Откройте, чтобы увидеть все размеры.',
   ],
   'landings.lede': [
-    'Mobile-first. Tap any landing to view it full-length and switch between mobile and desktop.',
-    'Mobile-first. Atinge orice landing pentru a-l vedea integral și a comuta între mobil și desktop.',
-    'Сначала мобильные. Нажмите на лендинг, чтобы увидеть его целиком и переключаться между мобильной и десктопной версией.',
+    'Mobile-first. Tap any landing to view it full-length and switch between mobile, tablet, and desktop.',
+    'Mobile-first. Atinge orice landing pentru a-l vedea integral și a comuta între mobil, tabletă și desktop.',
+    'Сначала мобильные. Нажмите на лендинг, чтобы увидеть его целиком и переключаться между мобильной, планшетной и десктопной версией.',
   ],
   'videos.lede': ['Tap a video to play it.', 'Atinge un video pentru a-l reda.', 'Нажмите на видео, чтобы воспроизвести.'],
   'store.lede': [

@@ -65,6 +65,10 @@ const payload = items.map((item) => ({
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="7" y="3" width="10" height="18" rx="2" /><path d="M11 18h2" /></svg>
         Mobile
       </button>
+      <button class="dev" data-device="tablet" role="tab">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="4" y="3" width="16" height="18" rx="2" /><path d="M11 18h2" /></svg>
+        Tablet
+      </button>
       <button class="dev" data-device="desktop" role="tab">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="4" width="18" height="12" rx="2" /><path d="M8 20h8M12 16v4" /></svg>
         Desktop
@@ -76,7 +80,8 @@ const payload = items.map((item) => ({
 </div>
 
 <script>
-  interface Dev { key: 'mobile' | 'desktop'; label: string; src: string }
+  type DeviceKey = 'mobile' | 'tablet' | 'desktop';
+  interface Dev { key: DeviceKey; label: string; src: string }
   interface Item { title: string; devices: Dev[] }
   const data: Item[] = JSON.parse(document.getElementById('landing-data')?.textContent || '[]');
   const lb = document.getElementById('landing-lightbox')!;
@@ -86,7 +91,7 @@ const payload = items.map((item) => ({
   const devBtns = Array.from(lb.querySelectorAll<HTMLButtonElement>('.dev'));
 
   let idx = 0;
-  let device: 'mobile' | 'desktop' = 'mobile';
+  let device: DeviceKey = 'mobile';
   let lastFocus: HTMLElement | null = null;
 
   // Single-item galleries have nothing to page through — hide the arrows.
@@ -114,7 +119,7 @@ const payload = items.map((item) => ({
   function current() {
     return data[idx];
   }
-  function pick(dev: 'mobile' | 'desktop') {
+  function pick(dev: DeviceKey) {
     const item = current();
     const found = item.devices.find((d) => d.key === dev) || item.devices[0];
     device = found.key;
@@ -152,7 +157,7 @@ const payload = items.map((item) => ({
   document.querySelectorAll<HTMLElement>('.lg-item').forEach((el) => {
     el.addEventListener('click', () => open(Number(el.dataset.index)));
   });
-  devBtns.forEach((b) => b.addEventListener('click', () => !b.disabled && pick(b.dataset.device as 'mobile' | 'desktop')));
+  devBtns.forEach((b) => b.addEventListener('click', () => !b.disabled && pick(b.dataset.device as DeviceKey)));
   lb.querySelector('.lgb-close')?.addEventListener('click', close);
   lb.querySelector('.lgb-prev')?.addEventListener('click', () => show(idx - 1));
   lb.querySelector('.lgb-next')?.addEventListener('click', () => show(idx + 1));
@@ -292,6 +297,9 @@ const payload = items.map((item) => ({
   }
   .lgb[data-device='mobile'] .lgb-scroll img {
     max-width: min(92vw, 420px);
+  }
+  .lgb[data-device='tablet'] .lgb-scroll img {
+    max-width: min(94vw, 720px);
   }
   .lgb[data-device='desktop'] .lgb-scroll img {
     max-width: min(94vw, 1040px);

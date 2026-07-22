@@ -39,13 +39,14 @@ export interface Brandbook {
   url: string;
 }
 
-export type Device = 'mobile' | 'desktop';
+export type Device = 'mobile' | 'tablet' | 'desktop';
 
 /** Device order: mobile first — gambling products are mobile-led. */
-export const DEVICE_ORDER: Device[] = ['mobile', 'desktop'];
+export const DEVICE_ORDER: Device[] = ['mobile', 'tablet', 'desktop'];
 
 export const DEVICE_LABEL: Record<Device, string> = {
   mobile: 'Mobile',
+  tablet: 'Tablet',
   desktop: 'Desktop',
 };
 
@@ -53,6 +54,7 @@ export interface LandingItem {
   title: string;
   /** device -> image path under /public. Include only the versions that exist. */
   mobile?: string;
+  tablet?: string;
   desktop?: string;
 }
 
@@ -106,9 +108,9 @@ export function availableDevices(item: LandingItem): Device[] {
   return DEVICE_ORDER.filter((d) => item[d]);
 }
 
-/** Preferred preview for a landing tile: mobile first, else desktop. */
+/** Preferred preview for a landing tile: mobile first, then tablet, then desktop. */
 export function landingThumb(item: LandingItem): string | undefined {
-  return item.mobile ?? item.desktop;
+  return item.mobile ?? item.tablet ?? item.desktop;
 }
 
 export function availableVideoSizes(item: VideoItem): SizeKey[] {

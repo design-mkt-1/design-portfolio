@@ -38,19 +38,19 @@ export function projectBanners(slug: string): MediaItem[] {
     .filter((m) => Object.keys(m.sizes).length > 0);
 }
 
-/** Landings, natural order; a *mobile* and/or *desktop* image per folder. */
+/** Landings, natural order; a *mobile*, *tablet*, and/or *desktop* image per folder. */
 export function projectLandings(slug: string): LandingItem[] {
   return setFolders(slug, 'landings')
     .map((folder) => {
       const files = readdirSync(join(kindDir(slug, 'landings'), folder)).filter((f) => IMG.test(f));
-      const mobile = files.find((f) => /mobile/i.test(f));
-      const desktop = files.find((f) => /desktop/i.test(f));
       const item: LandingItem = { title: folder };
-      if (mobile) item.mobile = `assets/${slug}/landings/${folder}/${mobile}`;
-      if (desktop) item.desktop = `assets/${slug}/landings/${folder}/${desktop}`;
+      for (const device of ['mobile', 'tablet', 'desktop'] as const) {
+        const file = files.find((f) => new RegExp(device, 'i').test(f));
+        if (file) item[device] = `assets/${slug}/landings/${folder}/${file}`;
+      }
       return item;
     })
-    .filter((l) => l.mobile || l.desktop);
+    .filter((l) => l.mobile || l.tablet || l.desktop);
 }
 
 /** Build-time check for a /public asset (e.g. a logo not yet uploaded). */
