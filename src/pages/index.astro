@@ -3,22 +3,25 @@ import Base from '../layouts/Base.astro';
 import ProjectGrid from '../components/ProjectGrid.astro';
 import CtaBanner from '../components/CtaBanner.astro';
 import HeroCards from '../components/HeroCards.astro';
-import { projectBanners, projectLandings, visibleProjects } from '../lib/portfolio';
+import { projectBanners, projectLandings, projectVideos, visibleProjects } from '../lib/portfolio';
 import { url } from '../lib/site';
 
 // Proof numbers, computed from the asset tree at build time so they stay
 // current as new work is uploaded — no hand-maintained stats. Counts cover the
 // projects actually shown on the grid, so the numbers always match the page.
+// The portfolio holds only a fraction of the studio's output, so produced-work
+// counters carry a "+" (real totals are ~5x); markets is a known 10+.
 const shown = visibleProjects();
 const totalLandings = shown.reduce((n, p) => n + projectLandings(p.slug).length, 0);
 const totalBanners = shown.reduce((n, p) => n + projectBanners(p.slug).length, 0);
-const totalMarkets = new Set(shown.map((p) => p.geo?.code).filter(Boolean)).size;
+const totalVideos = shown.reduce((n, p) => n + projectVideos(p.slug).length, 0);
 const stats = [
-  { n: shown.length, label: 'brands' },
-  { n: totalLandings, label: 'promo landings' },
-  { n: totalBanners, label: 'banner sets' },
-  { n: totalMarkets, label: 'markets' },
-].filter((s) => s.n > 0);
+  { n: `${shown.length}`, label: 'brands', count: shown.length },
+  { n: `${totalLandings}+`, label: 'promo landings', count: totalLandings },
+  { n: `${totalBanners}+`, label: 'banner sets', count: totalBanners },
+  { n: `${totalVideos}+`, label: 'videos', count: totalVideos },
+  { n: '10+', label: 'markets', count: 1 },
+].filter((s) => s.count > 0);
 ---
 
 <Base
@@ -52,6 +55,60 @@ const stats = [
     </div>
     </div>
   </section>
+
+  <script>
+    // Slot-machine counters: when the stats row scrolls into view, every digit
+    // becomes a reel (0-9 stacked twice) that spins a full loop and settles on
+    // its target, staggered left→right like slot reels stopping. Symbols (+)
+    // stay static. Skipped entirely under prefers-reduced-motion.
+    const statsEl = document.querySelector('.stats');
+    if (statsEl && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      const spin = () => {
+        statsEl.querySelectorAll<HTMLElement>('.stat-n').forEach((el, si) => {
+          const text = el.textContent?.trim() ?? '';
+          el.textContent = '';
+          [...text].forEach((ch, i) => {
+            if (!/\d/.test(ch)) {
+              const s = document.createElement('span');
+              s.className = 'sym';
+              s.textContent = ch;
+              el.appendChild(s);
+              return;
+            }
+            const target = Number(ch);
+            const digit = document.createElement('span');
+            digit.className = 'digit';
+            const reel = document.createElement('span');
+            reel.className = 'reel';
+            for (let loop = 0; loop < 2; loop++)
+              for (let n = 0; n <= 9; n++) {
+                const c = document.createElement('span');
+                c.textContent = String(n);
+                reel.appendChild(c);
+              }
+            digit.appendChild(reel);
+            el.appendChild(digit);
+            requestAnimationFrame(() =>
+              requestAnimationFrame(() => {
+                reel.style.transitionDelay = `${si * 90 + i * 150}ms`;
+                reel.style.transform = `translateY(${-(10 + target) * 1.1}em)`;
+              }),
+            );
+          });
+        });
+      };
+      const io = new IntersectionObserver(
+        (entries) => {
+          if (entries.some((e) => e.isIntersecting)) {
+            io.disconnect();
+            spin();
+          }
+        },
+        { threshold: 0.4 },
+      );
+      io.observe(statsEl);
+    }
+  </script>
 
   <section class="container" id="projects">
     <div class="section-head reveal">
@@ -160,15 +217,45 @@ const stats = [
     gap: 2px;
     min-width: 88px;
   }
+  @media (max-width: 700px) {
+    .stats {
+      gap: 12px 26px;
+    }
+    .stat {
+      min-width: 68px;
+    }
+  }
   .stat-n {
     font-family: var(--font-display);
     font-weight: 800;
     font-size: clamp(1.6rem, 4vw, 2.1rem);
     line-height: 1.1;
+    font-variant-numeric: tabular-nums;
     background: var(--brand-gradient);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+  }
+  /* slot-reel digits (built by JS; background-clip:text on .stat-n covers them) */
+  .stat-n :global(.digit) {
+    display: inline-block;
+    height: 1.1em;
+    overflow: hidden;
+    vertical-align: top;
+  }
+  .stat-n :global(.sym) {
+    display: inline-block;
+    vertical-align: top;
+  }
+  .stat-n :global(.reel) {
+    display: block;
+    transition: transform 1.7s var(--ease-expo);
+    will-change: transform;
+  }
+  .stat-n :global(.reel span) {
+    display: block;
+    height: 1.1em;
+    line-height: 1.1;
   }
   .stat-l {
     font-size: 0.82rem;
@@ -259,4 +346,27 @@ const stats = [
   .count {
     font-size: 0.9rem;
   }
+
+  /* periodic gold glint across the primary CTA — one quick sweep every ~8s */
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-cta .btn-primary {
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-cta .btn-primary::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(115deg, transparent 38%, rgba(255, 236, 180, 0.35) 50%, transparent 62%);
+      transform: translateX(-130%);
+      animation: cta-glint 8s ease-in-out 2.5s infinite;
+      pointer-events: none;
+    }
+  }
+  @keyframes cta-glint {
+    0% { transform: translateX(-130%); }
+    9% { transform: translateX(130%); }
+    100% { transform: translateX(130%); }
+  }
+
 </style>

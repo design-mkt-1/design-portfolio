@@ -186,6 +186,7 @@ const payload = items.map((v) => ({
   .play {
     position: absolute;
     inset: 0;
+    z-index: 2;
     display: grid;
     place-items: center;
     color: #fff;
@@ -384,4 +385,26 @@ const payload = items.map((v) => ({
       right: 14px;
     }
   }
+
+  /* casino "win flash": a gold light sweep crosses the tile on hover */
+  @media (prefers-reduced-motion: no-preference) {
+    .poster::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      background: linear-gradient(115deg, transparent 35%, rgba(255, 214, 130, 0.26) 50%, transparent 65%);
+      transform: translateX(-130%);
+      pointer-events: none;
+    }
+    .vtile:hover .poster::after {
+      animation: winflash 0.65s ease forwards;
+    }
+  }
+  @keyframes winflash {
+    to {
+      transform: translateX(130%);
+    }
+  }
+
 </style>

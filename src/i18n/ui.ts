@@ -40,7 +40,8 @@ export const STRINGS: Record<string, [string, string, string]> = {
   'stat.brands': ['brands', 'branduri', 'брендов'],
   'stat.landings': ['promo landings', 'landing-uri promo', 'промо-лендингов'],
   'stat.banners': ['banner sets', 'seturi de bannere', 'серий баннеров'],
-  'stat.markets': ['markets', 'piețe', 'рынка'],
+  'stat.videos': ['videos', 'videouri', 'видео'],
+  'stat.markets': ['markets', 'piețe', 'рынков'],
 
   // Conversion CTAs
   'cta.start': ['Start a project', 'Începe un proiect', 'Начать проект'],

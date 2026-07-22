@@ -222,9 +222,14 @@ const faviconHref = url(squareFavicon(favicon && assetExists(favicon) ? favicon 
         document.documentElement.lang = lang;
         (window as any).__lang = lang;
         (window as any).__tk = trKey;
-        document.querySelectorAll<HTMLElement>('.lang-btn').forEach((b) =>
-          b.classList.toggle('active', b.dataset.lang === lang),
-        );
+        document.querySelectorAll<HTMLElement>('.lang-btn').forEach((b) => {
+          const on = b.dataset.lang === lang;
+          if (on && !b.classList.contains('active') && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            b.classList.add('rolling');
+            b.addEventListener('animationend', () => b.classList.remove('rolling'), { once: true });
+          }
+          b.classList.toggle('active', on);
+        });
       }
       function setLang(lang: string) {
         if (!(LOCALES as readonly string[]).includes(lang)) lang = 'en';
@@ -307,6 +312,18 @@ const faviconHref = url(squareFavicon(favicon && assetExists(favicon) ? favicon 
       .lang-btn.active {
         color: var(--accent-fg);
         background: color-mix(in srgb, var(--accent) 55%, transparent);
+      }
+      /* roulette roll: the freshly picked language does one full spin */
+      .lang-btn.rolling {
+        animation: lang-roll 0.5s var(--ease-back);
+      }
+      @keyframes lang-roll {
+        from {
+          transform: rotate(0);
+        }
+        to {
+          transform: rotate(360deg);
+        }
       }
       .header-cta {
         flex: none;
