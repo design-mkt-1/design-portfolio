@@ -119,10 +119,12 @@ const tiles = items.map((item) => {
     img.alt = `${item.title} (${found.label})`;
     lb.setAttribute('data-device', device);
     scroll.scrollTop = 0;
-    // toggle button states: enable only available devices, mark active
+    // toggle buttons: devices without a version are hidden entirely, the rest
+    // mark the active one
     devBtns.forEach((b) => {
       const has = item.devices.some((d) => d.key === b.dataset.device);
       b.disabled = !has;
+      b.hidden = !has;
       b.classList.toggle('active', b.dataset.device === device);
       b.setAttribute('aria-selected', b.dataset.device === device ? 'true' : 'false');
     });
@@ -351,6 +353,10 @@ const tiles = items.map((item) => {
   .dev:disabled {
     opacity: 0.32;
     cursor: not-allowed;
+  }
+  /* display:inline-flex would override the [hidden] attribute — enforce it */
+  .dev[hidden] {
+    display: none;
   }
 
   .lgb-close,
