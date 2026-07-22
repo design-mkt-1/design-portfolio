@@ -105,9 +105,17 @@ const imgCards = unique.length
   if (layer && poolEl && !reduce) {
     const pool: string[] = [...new Set(JSON.parse(poolEl.textContent || '[]') as string[])];
     const cards = Array.from(layer.querySelectorAll<HTMLElement>('.hc-card:not(.hc-video)'));
+    const showing = cards.map((c) => c.querySelector<HTMLImageElement>('img.a')!.getAttribute('src') || '');
+    let cursor = 0;
+    // next artwork = first pool entry not currently on ANY card
+    const pickNext = (): string => {
+      for (let k = 0; k < pool.length; k++) {
+        const cand = pool[cursor++ % pool.length];
+        if (!showing.includes(cand)) return cand;
+      }
+      return '';
+    };
     if (cards.length && pool.length > cards.length) {
-      const showing = cards.map((c) => c.querySelector<HTMLImageElement>('img.a')!.getAttribute('src') || '');
-      let cursor = 0;
       let last = -1;
       setInterval(() => {
         let i = Math.floor(Math.random() * cards.length);
@@ -116,15 +124,7 @@ const imgCards = unique.length
         const card = cards[i];
         const a = card.querySelector<HTMLImageElement>('img.a')!;
         const b = card.querySelector<HTMLImageElement>('img.b')!;
-        // next artwork = first pool entry not currently on ANY card
-        let next = '';
-        for (let k = 0; k < pool.length; k++) {
-          const cand = pool[cursor++ % pool.length];
-          if (!showing.includes(cand)) {
-            next = cand;
-            break;
-          }
-        }
+        const next = pickNext();
         if (!next) return;
         showing[i] = next; // reserve immediately so parallel swaps can't collide
         b.onload = () => {
@@ -136,6 +136,56 @@ const imgCards = unique.length
         };
         b.src = next;
       }, 7000);
+    }
+
+    // Easter egg: clicking the hero logo re-spins the whole wall — image cards
+    // blur-spin vertically like reels and land on fresh artwork, video cards
+    // jump to their next clip.
+    const logo = document.querySelector<HTMLElement>('.hero-logo img');
+    if (logo && cards.length) {
+      logo.style.cursor = 'pointer';
+      logo.title = 'Spin the showcase';
+      logo.tabIndex = 0;
+      let busy = false;
+      const respin = () => {
+        if (busy) return;
+        busy = true;
+        cards.forEach((card, i) => {
+          const a = card.querySelector<HTMLImageElement>('img.a')!;
+          const next = pickNext();
+          if (!next) return;
+          showing[i] = next;
+          const out = a.animate(
+            [
+              { transform: 'translateY(0)', filter: 'blur(0)' },
+              { transform: 'translateY(-115%)', filter: 'blur(3px)' },
+            ],
+            { duration: 220, delay: i * 70, easing: 'ease-in', fill: 'forwards' },
+          );
+          out.onfinish = () => {
+            a.src = next;
+            const back = a.animate(
+              [
+                { transform: 'translateY(115%)', filter: 'blur(3px)' },
+                { transform: 'translateY(0)', filter: 'blur(0)' },
+              ],
+              { duration: 300, easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)' },
+            );
+            back.onfinish = () => out.cancel();
+          };
+        });
+        layer.querySelectorAll<HTMLVideoElement>('.hc-video video').forEach((v, vi) =>
+          setTimeout(() => v.dispatchEvent(new Event('ended')), vi * 110),
+        );
+        setTimeout(() => (busy = false), 1200);
+      };
+      logo.addEventListener('click', respin);
+      logo.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          respin();
+        }
+      });
     }
   }
 </script>

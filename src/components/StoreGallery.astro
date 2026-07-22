@@ -258,6 +258,8 @@ const flat = rendered.flatMap((g) => g.items.map((it) => ({ src: it.src, label: 
     cursor: inherit;
     line-height: 0;
     border-radius: 20px;
+    position: relative;
+    overflow: hidden;
   }
   .shot img {
     height: clamp(360px, 56vh, 560px);
@@ -383,4 +385,26 @@ const flat = rendered.flatMap((g) => g.items.map((it) => ({ src: it.src, label: 
       right: 28%;
     }
   }
+
+  /* casino "win flash": a gold light sweep crosses the tile on hover */
+  @media (prefers-reduced-motion: no-preference) {
+    .shot::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      background: linear-gradient(115deg, transparent 35%, rgba(255, 214, 130, 0.26) 50%, transparent 65%);
+      transform: translateX(-130%);
+      pointer-events: none;
+    }
+    .shot:hover::after {
+      animation: winflash 0.65s ease forwards;
+    }
+  }
+  @keyframes winflash {
+    to {
+      transform: translateX(130%);
+    }
+  }
+
 </style>

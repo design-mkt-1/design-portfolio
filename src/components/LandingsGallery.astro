@@ -198,6 +198,7 @@ const tiles = items.map((item) => {
   }
   .zoom {
     position: absolute;
+    z-index: 2;
     top: 12px;
     right: 12px;
     display: grid;
@@ -398,20 +399,82 @@ const tiles = items.map((item) => {
   .lgb-next {
     right: 18px;
   }
+  /* Phones: controls live in a solid bottom dock (device toggle centered,
+     arrows at its sides) so nothing collides with the close button and the
+     arrows never float invisibly over artwork. Tablet & desktop versions fit
+     the whole page on screen so the layout reads as its device instead of a
+     zoomed column. */
   @media (max-width: 640px) {
     .lgb-title {
       display: none;
     }
+    .lgb-bar {
+      top: auto;
+      bottom: 0;
+      height: calc(64px + env(safe-area-inset-bottom, 0px));
+      padding: 0 68px env(safe-area-inset-bottom, 0px);
+      border-bottom: 0;
+      border-top: 1px solid var(--border);
+      background: rgba(11, 11, 18, 0.94);
+    }
+    .lgb-toggle {
+      padding: 4px;
+    }
+    .dev {
+      padding: 7px 11px;
+      font-size: 0.8rem;
+      gap: 5px;
+    }
+    .dev svg {
+      width: 14px;
+      height: 14px;
+    }
+    .lgb-scroll {
+      inset: 0 0 calc(64px + env(safe-area-inset-bottom, 0px));
+      padding: 14px 12px 22px;
+    }
     .lgb-nav {
       top: auto;
-      bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+      bottom: calc(10px + env(safe-area-inset-bottom, 0px));
       transform: none;
     }
     .lgb-prev {
-      left: 28%;
+      left: 12px;
     }
     .lgb-next {
-      right: 28%;
+      right: 12px;
+    }
+    .lgb[data-device='tablet'] .lgb-scroll,
+    .lgb[data-device='desktop'] .lgb-scroll {
+      align-items: center;
+    }
+    .lgb[data-device='tablet'] .lgb-scroll img,
+    .lgb[data-device='desktop'] .lgb-scroll img {
+      max-height: calc(100vh - 120px);
+      max-height: calc(100dvh - 120px);
+      width: auto;
     }
   }
+
+  /* casino "win flash": a gold light sweep crosses the tile on hover */
+  @media (prefers-reduced-motion: no-preference) {
+    .phone::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      background: linear-gradient(115deg, transparent 35%, rgba(255, 214, 130, 0.26) 50%, transparent 65%);
+      transform: translateX(-130%);
+      pointer-events: none;
+    }
+    .lg-item:hover .phone::after {
+      animation: winflash 0.65s ease forwards;
+    }
+  }
+  @keyframes winflash {
+    to {
+      transform: translateX(130%);
+    }
+  }
+
 </style>

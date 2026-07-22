@@ -346,4 +346,27 @@ const stats = [
   .count {
     font-size: 0.9rem;
   }
+
+  /* periodic gold glint across the primary CTA — one quick sweep every ~8s */
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-cta .btn-primary {
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-cta .btn-primary::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(115deg, transparent 38%, rgba(255, 236, 180, 0.35) 50%, transparent 62%);
+      transform: translateX(-130%);
+      animation: cta-glint 8s ease-in-out 2.5s infinite;
+      pointer-events: none;
+    }
+  }
+  @keyframes cta-glint {
+    0% { transform: translateX(-130%); }
+    9% { transform: translateX(130%); }
+    100% { transform: translateX(130%); }
+  }
+
 </style>

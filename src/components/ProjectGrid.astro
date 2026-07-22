@@ -15,7 +15,7 @@ function tags(p: Project): string[] {
 <div class="grid">
   {
     visibleProjects().map((p) => (
-      <a class="card reveal" href={url(projectEntry(p))} style={`--card-accent:${p.accent ?? 'var(--accent)'}`}>
+      <a class="card" href={url(projectEntry(p))} style={`--card-accent:${p.accent ?? 'var(--accent)'}`}>
         <span class="glow" aria-hidden="true" />
         <span class="logo-wrap">
           {assetExists(p.logo) ? (
