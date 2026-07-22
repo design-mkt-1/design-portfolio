@@ -5,7 +5,7 @@ import VideoGallery from '../../../components/VideoGallery.astro';
 import { url } from '../../../lib/site';
 import { projects, getProject } from '../../../data/projects';
 import { readyVideos } from '../../../lib/videos';
-import { projectCrumb, projectOg } from '../../../lib/portfolio';
+import { projectCrumb, formatBack, portfolioCrumb, projectOg } from '../../../lib/portfolio';
 
 export function getStaticPaths() {
   return projects.filter((p) => readyVideos(p.videos).length > 0).map((p) => ({ params: { project: p.slug } }));
@@ -25,12 +25,12 @@ const videos = readyVideos(p.videos);
   crumbs={[
     { label: 'Projects', href: '/' },
     projectCrumb(p),
-    { label: 'Portfolio', href: `/${p.slug}/portfolio` },
+    portfolioCrumb(p),
     { label: 'Videos' },
   ]}
 >
   <section class="container head">
-    <a class="backlink reveal" href={url(`/${p.slug}/portfolio`)}>← Portfolio</a>
+    <a class="backlink reveal" href={url(formatBack(p).href)}>← {formatBack(p).label}</a>
     <h1 class="reveal">{p.name} <span class="muted">Videos</span></h1>
     <p class="lede muted reveal">Tap a video to play it.</p>
   </section>

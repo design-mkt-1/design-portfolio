@@ -75,9 +75,30 @@ if (storeImages.length > 0) {
     preview: { type: 'carousel', images: storeImages.map((s) => thumbFor(s)!) },
   });
 }
+
+// One format only → skip this chooser and open it directly (static redirect:
+// instant via JS, meta-refresh fallback for no-JS; same pattern as /<slug>).
+const only = choices.length === 1 ? choices[0] : null;
+const redirectTo = only ? url(only.href) : null;
 ---
 
-<Base
+{
+  redirectTo ? (
+    <html lang="en">
+      <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="refresh" content={`0; url=${redirectTo}`} />
+        <link rel="canonical" href={redirectTo} />
+        <meta name="robots" content="noindex" />
+        <title>{p.name} Portfolio — Marketing Solutions</title>
+        <script is:inline set:html={`location.replace(${JSON.stringify(redirectTo)})`} />
+      </head>
+      <body>
+        <a href={redirectTo}>Continue to {p.name} →</a>
+      </body>
+    </html>
+  ) : (
+    <Base
   title={`${p.name} Portfolio — Marketing Solutions`}
   description={`${p.name} creative portfolio — banners, landing pages, and video.`}
   favicon={p.favicon}
@@ -95,7 +116,9 @@ if (storeImages.length > 0) {
     <ChoiceCards choices={choices} />
   </section>
   <CtaBanner />
-</Base>
+    </Base>
+  )
+}
 
 <style>
   .head {

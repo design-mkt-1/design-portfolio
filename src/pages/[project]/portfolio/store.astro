@@ -5,7 +5,7 @@ import StoreGallery from '../../../components/StoreGallery.astro';
 import { url } from '../../../lib/site';
 import { projects, getProject } from '../../../data/projects';
 import { storeGroups, hasStore, storeTitle } from '../../../lib/store';
-import { projectCrumb, projectOg } from '../../../lib/portfolio';
+import { projectCrumb, formatBack, portfolioCrumb, projectOg } from '../../../lib/portfolio';
 
 export function getStaticPaths() {
   return projects.filter((p) => hasStore(p.slug)).map((p) => ({ params: { project: p.slug } }));
@@ -26,12 +26,12 @@ const title = storeTitle(p.slug);
   crumbs={[
     { label: 'Projects', href: '/' },
     projectCrumb(p),
-    { label: 'Portfolio', href: `/${p.slug}/portfolio` },
+    portfolioCrumb(p),
     { label: title },
   ]}
 >
   <section class="container head">
-    <a class="backlink reveal" href={url(`/${p.slug}/portfolio`)}>← Portfolio</a>
+    <a class="backlink reveal" href={url(formatBack(p).href)}>← {formatBack(p).label}</a>
     <h1 class="reveal">{p.name} <span class="muted">{title}</span></h1>
     <p class="lede muted reveal">Store listing creative. Tap a screenshot to view it full-size.</p>
   </section>

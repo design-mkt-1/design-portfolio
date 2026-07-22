@@ -4,7 +4,7 @@ import CtaBanner from '../../../components/CtaBanner.astro';
 import MediaGallery from '../../../components/MediaGallery.astro';
 import { url } from '../../../lib/site';
 import { projects, getProject } from '../../../data/projects';
-import { projectBanners, projectCrumb, projectOg } from '../../../lib/portfolio';
+import { projectBanners, projectCrumb, formatBack, portfolioCrumb, projectOg } from '../../../lib/portfolio';
 
 export function getStaticPaths() {
   return projects.filter((p) => projectBanners(p.slug).length > 0).map((p) => ({ params: { project: p.slug } }));
@@ -24,12 +24,12 @@ const banners = projectBanners(p.slug);
   crumbs={[
     { label: 'Projects', href: '/' },
     projectCrumb(p),
-    { label: 'Portfolio', href: `/${p.slug}/portfolio` },
+    portfolioCrumb(p),
     { label: 'Banners' },
   ]}
 >
   <section class="container head">
-    <a class="backlink reveal" href={url(`/${p.slug}/portfolio`)}>← Portfolio</a>
+    <a class="backlink reveal" href={url(formatBack(p).href)}>← {formatBack(p).label}</a>
     <h1 class="reveal">{p.name} <span class="muted">Banners</span></h1>
     <p class="lede muted reveal">Each tile is the 1080×1080. Open one to see every size.</p>
   </section>

@@ -139,3 +139,34 @@ export function projectCrumb(p: Project): { label: string; href?: string } {
 export function sectionBack(p: Project): { label: string; href: string } {
   return skipsChooser(p) ? { label: 'All projects', href: '/' } : { label: p.name, href: `/${p.slug}` };
 }
+
+// ---- portfolio format routing -----------------------------------------------
+// Same skip pattern one level down: when a project has exactly one portfolio
+// format, /<slug>/portfolio redirects straight to it instead of showing a
+// one-card chooser.
+
+export type PortfolioFormat = 'banners' | 'landings' | 'videos' | 'store';
+
+export function portfolioFormats(p: Project): PortfolioFormat[] {
+  const f: PortfolioFormat[] = [];
+  if (projectBanners(p.slug).length > 0) f.push('banners');
+  if (projectLandings(p.slug).length > 0) f.push('landings');
+  if (readyVideos(p.videos).length > 0) f.push('videos');
+  if (hasStore(p.slug)) f.push('store');
+  return f;
+}
+
+export function skipsFormatChooser(p: Project): boolean {
+  return portfolioFormats(p).length === 1;
+}
+
+/** Back-link for a format page: past the skipped chooser when there is one. */
+export function formatBack(p: Project): { label: string; href: string } {
+  return skipsFormatChooser(p) ? sectionBack(p) : { label: 'Portfolio', href: `/${p.slug}/portfolio` };
+}
+
+/** Breadcrumb for the Portfolio level on format pages: a plain label when the
+ *  chooser is skipped (it would just bounce back), a link otherwise. */
+export function portfolioCrumb(p: Project): { label: string; href?: string } {
+  return skipsFormatChooser(p) ? { label: 'Portfolio' } : { label: 'Portfolio', href: `/${p.slug}/portfolio` };
+}
