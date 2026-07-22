@@ -3,9 +3,10 @@
 // wire themselves — no edits to projects.ts needed.
 //   banners:  public/assets/<slug>/banners/<Set>/{1x1,9x16,16x9,4x5}.webp
 //   landings: public/assets/<slug>/landings/<Name>/*mobile*, *desktop*
-import { readdirSync, existsSync } from 'node:fs';
+import { readdirSync, existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { SIZE_ORDER, projects, type MediaItem, type LandingItem, type SizeKey, type Project } from '../data/projects';
+import { imageSize } from 'image-size';
+import { projects, type MediaItem, type LandingItem, type SizeKey, type Project } from '../data/projects';
 import { readyVideos } from './videos';
 import { hasStore } from './store';
 import { cleanTitle, isInProgress } from './titles';
@@ -26,18 +27,77 @@ function setFolders(slug: string, kind: 'banners' | 'landings'): string[] {
     .sort(natural);
 }
 
-/** Banners, natural (ID) order; only size-keys whose file exists are included. */
+/** Aspect buckets: real pixel dimensions are snapped to the nearest ratio, so
+ *  uploads keep their original filenames (`1080х1080_уз.jpg`, `1_Pragmatic_…`)
+ *  and still land in the right size tab. */
+const RATIO_BUCKETS: [SizeKey, number][] = [
+  ['1x1', 1],
+  ['9x16', 9 / 16],
+  ['16x9', 16 / 9],
+  ['4x5', 4 / 5],
+  ['2x1', 2],
+];
+function bucketFor(w: number, h: number): SizeKey {
+  const r = w / h;
+  let best: SizeKey = '1x1';
+  let bestDiff = Infinity;
+  for (const [key, br] of RATIO_BUCKETS) {
+    const diff = Math.abs(Math.log(r / br));
+    if (diff < bestDiff) {
+      bestDiff = diff;
+      best = key;
+    }
+  }
+  return best;
+}
+
+/** Banners, natural (ID) order. Every image in a set folder is measured and
+ *  bucketed by aspect ratio. One file per ratio → a classic multi-size item;
+ *  several files sharing a ratio (step banners, slider series) → the folder
+ *  splits into numbered items. Results are cached — probing reads files. */
+const bannerCache = new Map<string, MediaItem[]>();
 export function projectBanners(slug: string): MediaItem[] {
-  return setFolders(slug, 'banners')
-    .map((folder) => {
-      const files = readdirSync(join(kindDir(slug, 'banners'), folder));
-      const sizes: Partial<Record<SizeKey, string>> = {};
-      for (const k of SIZE_ORDER) {
-        if (files.includes(`${k}.webp`)) sizes[k] = `assets/${slug}/banners/${folder}/${k}.webp`;
+  const hit = bannerCache.get(slug);
+  if (hit) return hit;
+  const out: MediaItem[] = [];
+  for (const folder of setFolders(slug, 'banners')) {
+    const dir = join(kindDir(slug, 'banners'), folder);
+    const files = readdirSync(dir).filter((f) => IMG.test(f)).sort(natural);
+    type Probe = { file: string; key: SizeKey; w: number; h: number };
+    const probes: Probe[] = [];
+    for (const f of files) {
+      try {
+        const { width, height } = imageSize(readFileSync(join(dir, f)));
+        if (width && height) probes.push({ file: f, key: bucketFor(width, height), w: width, h: height });
+      } catch {
+        /* not a measurable image — skip the file */
       }
-      return { title: cleanTitle(folder), sizes } as MediaItem;
-    })
-    .filter((m) => Object.keys(m.sizes).length > 0);
+    }
+    if (!probes.length) continue;
+    const rel = (f: string) => `assets/${slug}/banners/${folder}/${f}`;
+    const perKey = new Map<SizeKey, Probe[]>();
+    for (const p of probes) perKey.set(p.key, [...(perKey.get(p.key) ?? []), p]);
+    const title = cleanTitle(folder);
+    if (Math.max(...[...perKey.values()].map((a) => a.length)) === 1) {
+      const sizes: MediaItem['sizes'] = {};
+      const labels: MediaItem['labels'] = {};
+      for (const [key, [p]] of perKey) {
+        sizes[key] = rel(p.file);
+        labels[key] = `${p.w} × ${p.h}`;
+      }
+      out.push({ title, sizes, labels });
+    } else {
+      probes.forEach((p, i) =>
+        out.push({
+          title: `${title} ${i + 1}`,
+          sizes: { [p.key]: rel(p.file) },
+          labels: { [p.key]: `${p.w} × ${p.h}` },
+        }),
+      );
+    }
+  }
+  bannerCache.set(slug, out);
+  return out;
 }
 
 /** Landings, natural order; a *mobile*, *tablet*, and/or *desktop* image per folder. */
@@ -46,8 +106,11 @@ export function projectLandings(slug: string): LandingItem[] {
     .map((folder) => {
       const files = readdirSync(join(kindDir(slug, 'landings'), folder)).filter((f) => IMG.test(f));
       const item: LandingItem = { title: cleanTitle(folder) };
+      // "dekstop" tolerated — a real-world upload typo that would otherwise
+      // silently drop the desktop version.
+      const patterns = { mobile: /mobile/i, tablet: /tablet/i, desktop: /desktop|dekstop/i } as const;
       for (const device of ['mobile', 'tablet', 'desktop'] as const) {
-        const file = files.find((f) => new RegExp(device, 'i').test(f));
+        const file = files.find((f) => patterns[device].test(f));
         if (file) item[device] = `assets/${slug}/landings/${folder}/${file}`;
       }
       return item;

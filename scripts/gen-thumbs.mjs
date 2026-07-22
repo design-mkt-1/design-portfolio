@@ -48,9 +48,8 @@ function collectJobs() {
       for (const f of readdirSync(set)) if (IMG.test(f)) jobs.push([join(set, f), 'landing']);
     });
     eachSet('banners', (set) => {
-      // tiles only ever show the 1×1 master
-      const f = join(set, '1x1.webp');
-      if (existsSync(f)) jobs.push([f, 'banner']);
+      // any image can be a tile thumb now that sizes are ratio-probed
+      for (const f of readdirSync(set)) if (IMG.test(f)) jobs.push([join(set, f), 'banner']);
     });
     eachSet('store', (set) => {
       for (const f of readdirSync(set)) if (IMG.test(f)) jobs.push([join(set, f), 'store']);

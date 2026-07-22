@@ -9,15 +9,16 @@
 // site renders end-to-end. Replace with real uploads (same filenames work).
 // =============================================================================
 
-export type SizeKey = '1x1' | '9x16' | '16x9' | '4x5';
+export type SizeKey = '1x1' | '9x16' | '16x9' | '4x5' | '2x1';
 
-export const SIZE_ORDER: SizeKey[] = ['1x1', '9x16', '16x9', '4x5'];
+export const SIZE_ORDER: SizeKey[] = ['1x1', '9x16', '16x9', '4x5', '2x1'];
 
 export const SIZE_LABEL: Record<SizeKey, string> = {
   '1x1': '1080 × 1080',
   '9x16': '1080 × 1920',
   '16x9': '1920 × 1080',
   '4x5': '1080 × 1350',
+  '2x1': '600 × 300',
 };
 
 export const SIZE_RATIO: Record<SizeKey, string> = {
@@ -25,12 +26,15 @@ export const SIZE_RATIO: Record<SizeKey, string> = {
   '9x16': '9 / 16',
   '16x9': '16 / 9',
   '4x5': '4 / 5',
+  '2x1': '2 / 1',
 };
 
 export interface MediaItem {
   title: string;
   /** aspect-ratio key -> file path under /public. Include only sizes that exist. */
   sizes: Partial<Record<SizeKey, string>>;
+  /** optional per-size label with the file's real pixel dimensions */
+  labels?: Partial<Record<SizeKey, string>>;
 }
 
 export interface Brandbook {
