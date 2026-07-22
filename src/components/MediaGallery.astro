@@ -371,10 +371,35 @@ const payload = items.map((item) => ({
   .lb-next {
     right: 18px;
   }
+  /* Mobile: size everything against the dynamic viewport (dvh) so the browser
+     bar never clips the tabs, and reserve a bottom strip for the nav arrows so
+     they don't overlap the title/size row. */
   @media (max-width: 640px) {
+    .lb {
+      padding: 12px;
+    }
+    .lb-inner {
+      width: 100%;
+      gap: 12px;
+      margin-bottom: 74px;
+    }
+    .lb-stage {
+      width: 100%;
+      height: auto;
+      max-height: calc(100vh - 220px);
+      max-height: calc(100dvh - 220px);
+    }
+    .lb-stage :global(img),
+    .lb-stage :global(video) {
+      max-height: calc(100vh - 220px);
+      max-height: calc(100dvh - 220px);
+    }
+    .lb-title {
+      font-size: 1rem;
+    }
     .lb-nav {
       top: auto;
-      bottom: 20px;
+      bottom: calc(14px + env(safe-area-inset-bottom, 0px));
       transform: none;
     }
     .lb-prev {
@@ -382,6 +407,10 @@ const payload = items.map((item) => ({
     }
     .lb-next {
       right: 30%;
+    }
+    .lb-close {
+      top: 14px;
+      right: 14px;
     }
   }
 </style>

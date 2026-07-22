@@ -350,10 +350,26 @@ const payload = items.map((v) => ({
   .vlb-next {
     right: 18px;
   }
+  /* Mobile: dvh-based sizing so the browser bar never clips the format tabs;
+     bottom strip reserved for the nav arrows. */
   @media (max-width: 640px) {
+    .vlb {
+      padding: 12px;
+    }
+    .vlb-inner {
+      gap: 12px;
+      margin-bottom: 74px;
+    }
+    .vlb-stage {
+      max-height: calc(100vh - 220px);
+      max-height: calc(100dvh - 220px);
+    }
+    .vlb-title {
+      font-size: 1rem;
+    }
     .vlb-nav {
       top: auto;
-      bottom: 20px;
+      bottom: calc(14px + env(safe-area-inset-bottom, 0px));
       transform: none;
     }
     .vlb-prev {
@@ -361,6 +377,10 @@ const payload = items.map((v) => ({
     }
     .vlb-next {
       right: 30%;
+    }
+    .vlb-close {
+      top: 14px;
+      right: 14px;
     }
   }
 </style>
