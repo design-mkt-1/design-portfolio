@@ -1,0 +1,30 @@
+---
+// Astro emits this as dist/404.html, which GitHub Pages serves for unknown URLs.
+import Base from '../layouts/Base.astro';
+import { url } from '../lib/site';
+---
+
+<Base title="Page not found — Marketing Solutions" description="This page doesn't exist. Browse the Marketing Solutions design portfolio instead.">
+  <section class="container nf">
+    <p class="eyebrow reveal">404</p>
+    <h1 class="reveal">Page not found</h1>
+    <p class="lede muted reveal">The page you're looking for doesn't exist or has moved.</p>
+    <a class="btn btn-primary reveal" href={url('/')}>Back to projects</a>
+  </section>
+</Base>
+
+<style>
+  .nf {
+    text-align: center;
+    padding: 110px 24px 90px;
+    max-width: 560px;
+  }
+  h1 {
+    font-size: clamp(2rem, 6vw, 3rem);
+    margin: 12px 0 0;
+  }
+  .lede {
+    font-size: 1.05rem;
+    margin: 16px auto 28px;
+  }
+</style>

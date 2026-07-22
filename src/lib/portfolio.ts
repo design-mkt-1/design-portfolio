@@ -5,9 +5,10 @@
 //   landings: public/assets/<slug>/landings/<Name>/*mobile*, *desktop*
 import { readdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { SIZE_ORDER, type MediaItem, type LandingItem, type SizeKey, type Project } from '../data/projects';
+import { SIZE_ORDER, projects, type MediaItem, type LandingItem, type SizeKey, type Project } from '../data/projects';
 import { readyVideos } from './videos';
 import { hasStore } from './store';
+import { cleanTitle, isInProgress } from './titles';
 
 const natural = (a: string, b: string) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
 const IMG = /\.(webp|png|jpe?g)$/i;
@@ -21,6 +22,7 @@ function setFolders(slug: string, kind: 'banners' | 'landings'): string[] {
   return readdirSync(d, { withFileTypes: true })
     .filter((x) => x.isDirectory())
     .map((x) => x.name)
+    .filter((n) => !isInProgress(n))
     .sort(natural);
 }
 
@@ -33,7 +35,7 @@ export function projectBanners(slug: string): MediaItem[] {
       for (const k of SIZE_ORDER) {
         if (files.includes(`${k}.webp`)) sizes[k] = `assets/${slug}/banners/${folder}/${k}.webp`;
       }
-      return { title: folder, sizes } as MediaItem;
+      return { title: cleanTitle(folder), sizes } as MediaItem;
     })
     .filter((m) => Object.keys(m.sizes).length > 0);
 }
@@ -43,7 +45,7 @@ export function projectLandings(slug: string): LandingItem[] {
   return setFolders(slug, 'landings')
     .map((folder) => {
       const files = readdirSync(join(kindDir(slug, 'landings'), folder)).filter((f) => IMG.test(f));
-      const item: LandingItem = { title: folder };
+      const item: LandingItem = { title: cleanTitle(folder) };
       for (const device of ['mobile', 'tablet', 'desktop'] as const) {
         const file = files.find((f) => new RegExp(device, 'i').test(f));
         if (file) item[device] = `assets/${slug}/landings/${folder}/${file}`;
@@ -66,6 +68,13 @@ export function hasPortfolio(p: Project): boolean {
     readyVideos(p.videos).length > 0 ||
     hasStore(p.slug)
   );
+}
+
+/** Projects worth showing on the home grid — at least one real section.
+ *  Empty scaffolds (e.g. a rebrand with no uploads yet) read as unfinished
+ *  on a partner-facing site, so they stay hidden until content lands. */
+export function visibleProjects(): Project[] {
+  return projects.filter((p) => projectSections(p).length > 0);
 }
 
 // ---- section routing --------------------------------------------------------

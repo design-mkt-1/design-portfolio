@@ -66,7 +66,7 @@ export const STRINGS: Record<string, [string, string, string]> = {
   'proj.portfolio': ['Portfolio', 'Portofoliu', 'Портфолио'],
   'proj.portfolio.desc': [
     'Banners, landing pages, and video creative.',
-    'Bannere, pagini de destinație și creative video.',
+    'Bannere, landing-uri și creative video.',
     'Баннеры, лендинги и видео.',
   ],
   'tag.brandbook': ['Brandbook', 'Brand Book', 'Брендбук'],
@@ -111,8 +111,8 @@ export const STRINGS: Record<string, [string, string, string]> = {
     'Creative statice în fiecare dimensiune.',
     'Статичные креативы во всех размерах.',
   ],
-  'fmt.landings': ['Landings', 'Pagini de destinație', 'Лендинги'],
-  'fmt.landings.desc': ['Landing page designs.', 'Design de pagini de destinație.', 'Дизайн лендингов.'],
+  'fmt.landings': ['Landings', 'Landings', 'Лендинги'],
+  'fmt.landings.desc': ['Landing page designs.', 'Design de landings.', 'Дизайн лендингов.'],
   'fmt.videos': ['Videos', 'Video', 'Видео'],
   'fmt.videos.desc': ['Motion and video creative.', 'Creative video și motion.', 'Видео и моушн-креативы.'],
   'fmt.store': ['Store listing creative.', 'Creative pentru magazinul de aplicații.', 'Креативы для магазина приложений.'],
@@ -143,6 +143,29 @@ export const STRINGS: Record<string, [string, string, string]> = {
     'Креативы для магазина приложений. Нажмите на скриншот, чтобы открыть в полном размере.',
   ],
   'g.viewAll': ['View all sizes', 'Vezi toate dimensiunile', 'Все размеры'],
+
+  // Device labels (tile chips + lightbox toggle). Matched by English text.
+  'dev.mobile': ['Mobile', 'Mobil', 'Мобильный'],
+  'dev.tablet': ['Tablet', 'Tabletă', 'Планшет'],
+  'dev.desktop': ['Desktop', 'Desktop', 'Десктоп'],
+
+  // Count words — rendered as their own text node next to a numeric span so the
+  // English-text matcher can translate them (counts stay language-neutral).
+  'cnt.projects': ['projects', 'proiecte', 'проектов'],
+  'cnt.sizes': ['sizes', 'dimensiuni', 'размера'],
+  'cnt.size': ['size', 'dimensiune', 'размер'],
+  'cnt.formats': ['formats', 'formate', 'формата'],
+  'cnt.format': ['format', 'format', 'формат'],
+  'cnt.pages': ['pages', 'pagini', 'страниц'],
+
+  // 404
+  'nf.h': ['Page not found', 'Pagina nu a fost găsită', 'Страница не найдена'],
+  'nf.p': [
+    "The page you're looking for doesn't exist or has moved.",
+    'Pagina pe care o cauți nu există sau a fost mutată.',
+    'Страница, которую вы ищете, не существует или была перемещена.',
+  ],
+  'nf.btn': ['Back to projects', 'Înapoi la proiecte', 'К проектам'],
 
   'contact.h1': ['Contact us', 'Contactează-ne', 'Свяжитесь с нами'],
   'contact.eyebrow': ['Get in touch', 'Ia legătura', 'Свяжитесь с нами'],

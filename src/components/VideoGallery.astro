@@ -2,6 +2,7 @@
 import { statSync } from 'node:fs';
 import { join } from 'node:path';
 import { url } from '../lib/site';
+import { cleanTitle } from '../lib/titles';
 import { SIZE_LABEL, SIZE_RATIO, availableVideoSizes, type VideoItem } from '../data/projects';
 
 interface Props {
@@ -25,7 +26,7 @@ function bust(path: string): string {
   return url(path) + (v ? `?v=${v}` : '');
 }
 const payload = items.map((v) => ({
-  title: v.title,
+  title: cleanTitle(v.title),
   poster: bust(v.poster),
   sizes: availableVideoSizes(v).map((k) => ({
     key: k,
@@ -43,14 +44,14 @@ const payload = items.map((v) => ({
       return (
         <button class="vtile reveal" data-index={i} aria-haspopup="dialog">
           <span class="poster">
-            <img src={url(v.poster)} alt={v.title} loading="lazy" />
+            <img src={bust(v.poster)} alt={cleanTitle(v.title)} loading="lazy" />
             <span class="play" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
             </span>
           </span>
           <span class="vmeta">
-            <span class="vtitle">{v.title}</span>
-            <span class="vcount">{count} {count === 1 ? 'format' : 'formats'}</span>
+            <span class="vtitle">{cleanTitle(v.title)}</span>
+            <span class="vcount"><span>{count}</span> {count === 1 ? 'format' : 'formats'}</span>
           </span>
         </button>
       );

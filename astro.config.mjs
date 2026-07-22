@@ -1,5 +1,6 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
+import sitemap from '@astrojs/sitemap';
 
 // GitHub Pages project site → https://design-mkt-1.github.io/design-portfolio/
 // If you move to a custom domain or a <user>.github.io repo, set base to '/'.
@@ -12,4 +13,5 @@ export default defineConfig({
   output: 'static',
   trailingSlash: 'ignore',
   build: { format: 'directory' },
+  integrations: [sitemap()],
 });

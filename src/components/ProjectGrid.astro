@@ -1,7 +1,7 @@
 ---
 import { url } from '../lib/site';
-import { projects, type Project } from '../data/projects';
-import { hasPortfolio, hasBrandbook, assetExists, projectEntry } from '../lib/portfolio';
+import { type Project } from '../data/projects';
+import { hasPortfolio, hasBrandbook, assetExists, projectEntry, visibleProjects } from '../lib/portfolio';
 import Flag from './Flag.astro';
 
 function tags(p: Project): string[] {
@@ -14,7 +14,7 @@ function tags(p: Project): string[] {
 
 <div class="grid">
   {
-    projects.map((p) => (
+    visibleProjects().map((p) => (
       <a class="card reveal" href={url(projectEntry(p))} style={`--card-accent:${p.accent ?? 'var(--accent)'}`}>
         <span class="glow" aria-hidden="true" />
         <span class="logo-wrap">
@@ -25,15 +25,13 @@ function tags(p: Project): string[] {
           )}
         </span>
         <span class="meta">
-          <span class="meta-main">
-            <span class="name">{p.name}</span>
-            {p.geo && (
-              <span class="geo">
-                <Flag code={p.geo.code} />
-                <span class="geo-label">{p.geo.label}</span>
-              </span>
-            )}
-          </span>
+          <span class="name">{p.name}</span>
+          {p.geo && (
+            <span class="geo">
+              <Flag code={p.geo.code} />
+              <span class="geo-label">{p.geo.label}</span>
+            </span>
+          )}
           <span class="tags">
             {tags(p).map((t) => (
               <span class="tag">{t}</span>
@@ -101,18 +99,14 @@ function tags(p: Project): string[] {
     text-align: center;
     color: color-mix(in srgb, var(--card-accent) 70%, var(--fg));
   }
+  /* Stacked meta: name / market / tags each on their own line — nothing
+     competes for width, so long geo labels and tag pills never wrap mid-word. */
   .meta {
     display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 12px;
-    position: relative;
-  }
-  .meta-main {
-    display: flex;
     flex-direction: column;
-    gap: 7px;
-    min-width: 0;
+    align-items: flex-start;
+    gap: 8px;
+    position: relative;
   }
   .name {
     font-family: var(--font-display);
@@ -129,14 +123,16 @@ function tags(p: Project): string[] {
     font-size: 0.76rem;
     letter-spacing: 0.02em;
     line-height: 1.2;
+    white-space: nowrap;
   }
   .tags {
     display: flex;
     gap: 6px;
     flex-wrap: wrap;
-    justify-content: flex-end;
+    margin-top: 2px;
   }
   .tag {
+    white-space: nowrap;
     font-size: 0.7rem;
     font-weight: 500;
     letter-spacing: 0.04em;

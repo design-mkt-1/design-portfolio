@@ -1,9 +1,14 @@
 ---
 import Base from '../layouts/Base.astro';
+import { url } from '../lib/site';
 
 const EMAIL = 'design1@marketing-solutions.ro';
-// FormSubmit alias — routes to EMAIL but keeps the address out of the page source.
+// FormSubmit alias for EMAIL — keeps the form action itself scraper-unfriendly
+// (the address is still shown below the form as a mailto fallback by choice).
 const ENDPOINT = '4c0dc0b2ba05e3a72ae2255ff32031c0';
+// No-JS fallback: FormSubmit redirects here after a plain POST instead of
+// stranding the visitor on its own thank-you page. ?sent=1 shows the success note.
+const nextUrl = Astro.site ? new URL(`${url('/contact/')}?sent=1`, Astro.site).href : '';
 ---
 
 <Base
@@ -30,6 +35,7 @@ const ENDPOINT = '4c0dc0b2ba05e3a72ae2255ff32031c0';
       <input type="hidden" name="_subject" value="New enquiry — Marketing Solutions portfolio" />
       <input type="hidden" name="_template" value="table" />
       <input type="hidden" name="_captcha" value="false" />
+      {nextUrl && <input type="hidden" name="_next" value={nextUrl} />}
       {/* honeypot: bots fill this, humans don't */}
       <input type="text" name="_honey" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true" />
 
@@ -66,6 +72,15 @@ const ENDPOINT = '4c0dc0b2ba05e3a72ae2255ff32031c0';
     const w = window as any;
     return w.__tk ? w.__tk(key, w.__lang || 'en') : fallback;
   };
+
+  // Returning from a no-JS submit (FormSubmit redirected to ?sent=1).
+  if (statusEl && new URLSearchParams(location.search).get('sent') === '1') {
+    statusEl.textContent = tk('contact.ok', 'Thanks! Your message has been sent.');
+    statusEl.classList.add('ok');
+    const u = new URL(location.href);
+    u.searchParams.delete('sent');
+    history.replaceState(null, '', u);
+  }
 
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();

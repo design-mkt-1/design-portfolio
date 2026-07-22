@@ -6,8 +6,9 @@ export function url(path = ''): string {
   const b = BASE.endsWith('/') ? BASE.slice(0, -1) : BASE;
   const p = path.startsWith('/') ? path : `/${path}`;
   // encodeURI so asset folders with spaces (e.g. "27735 - AlbaNeagra") resolve
-  // to %20. Internal links are space-free, so this is a no-op for them.
-  return encodeURI(`${b}${p}` || '/');
+  // to %20. It leaves # and ? alone (they'd truncate the path if a free-form
+  // folder name ever contains them), so escape those explicitly.
+  return encodeURI(`${b}${p}` || '/').replace(/#/g, '%23').replace(/\?/g, '%3F');
 }
 
 export function isVideoFile(src: string): boolean {

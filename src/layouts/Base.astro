@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import { url } from '../lib/site';
+import { assetExists } from '../lib/portfolio';
 
 interface Crumb {
   label: string;
@@ -13,7 +14,7 @@ interface Props {
   accent?: string;
   /** per-project brand icon → browser-tab favicon (falls back to the MS mark) */
   favicon?: string;
-  /** social-preview image (path under /public); defaults to the MS logo */
+  /** social-preview image (path under /public); defaults to the 1200×630 share card */
   ogImage?: string;
 }
 const {
@@ -22,12 +23,15 @@ const {
   crumbs = [],
   accent,
   favicon,
-  ogImage = 'assets/marketing-solutions-logo.webp',
+  ogImage = 'assets/og-card.png',
 } = Astro.props;
 
 // Absolute URLs for social/canonical tags (Astro.site is configured in astro.config.mjs).
 const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined;
 const ogImageAbs = Astro.site ? new URL(url(ogImage), Astro.site).href : url(ogImage);
+
+// Per-project favicon when the file is actually on disk; MS mark otherwise.
+const faviconHref = url(favicon && assetExists(favicon) ? favicon : 'assets/favicon_ms.webp');
 ---
 
 <!doctype html>
@@ -37,7 +41,7 @@ const ogImageAbs = Astro.site ? new URL(url(ogImage), Astro.site).href : url(ogI
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <title>{title}</title>
-    <link rel="icon" href={url('assets/favicon_ms.webp')} />
+    <link rel="icon" href={faviconHref} />
     {canonical && <link rel="canonical" href={canonical} />}
 
     {/* Open Graph / Twitter — rich previews when links are shared */}
@@ -90,7 +94,8 @@ const ogImageAbs = Astro.site ? new URL(url(ogImage), Astro.site).href : url(ogI
           <button type="button" class="lang-btn" data-lang="ro">RO</button>
           <button type="button" class="lang-btn" data-lang="ru">RU</button>
         </div>
-        <a class="header-cta" href={url('/contact')}>Contact us</a>
+        {/* keyed (data-i18n) so it never collides with the contact page's identical English heading */}
+        <a class="header-cta" href={url('/contact')} data-i18n="nav.contact">Contact us</a>
       </div>
     </header>
 

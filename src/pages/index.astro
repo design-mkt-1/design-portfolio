@@ -2,17 +2,18 @@
 import Base from '../layouts/Base.astro';
 import ProjectGrid from '../components/ProjectGrid.astro';
 import CtaBanner from '../components/CtaBanner.astro';
-import { projects } from '../data/projects';
-import { projectBanners, projectLandings } from '../lib/portfolio';
+import { projectBanners, projectLandings, visibleProjects } from '../lib/portfolio';
 import { url } from '../lib/site';
 
 // Proof numbers, computed from the asset tree at build time so they stay
-// current as new work is uploaded — no hand-maintained stats.
-const totalLandings = projects.reduce((n, p) => n + projectLandings(p.slug).length, 0);
-const totalBanners = projects.reduce((n, p) => n + projectBanners(p.slug).length, 0);
-const totalMarkets = new Set(projects.map((p) => p.geo?.code).filter(Boolean)).size;
+// current as new work is uploaded — no hand-maintained stats. Counts cover the
+// projects actually shown on the grid, so the numbers always match the page.
+const shown = visibleProjects();
+const totalLandings = shown.reduce((n, p) => n + projectLandings(p.slug).length, 0);
+const totalBanners = shown.reduce((n, p) => n + projectBanners(p.slug).length, 0);
+const totalMarkets = new Set(shown.map((p) => p.geo?.code).filter(Boolean)).size;
 const stats = [
-  { n: projects.length, label: 'brands' },
+  { n: shown.length, label: 'brands' },
   { n: totalLandings, label: 'promo landings' },
   { n: totalBanners, label: 'banner sets' },
   { n: totalMarkets, label: 'markets' },
@@ -51,7 +52,7 @@ const stats = [
   <section class="container" id="projects">
     <div class="section-head reveal">
       <h2>Projects</h2>
-      <span class="count muted">{projects.length} projects</span>
+      <span class="count muted"><span>{shown.length}</span> projects</span>
     </div>
     <ProjectGrid />
   </section>

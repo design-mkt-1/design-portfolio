@@ -5,6 +5,7 @@
 // screenshots and it appears; no data edits needed.
 import { readdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { cleanTitle, isInProgress } from './titles';
 
 const IMG = /\.(webp|png|jpe?g)$/i;
 const natural = (a: string, b: string) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
@@ -26,13 +27,14 @@ export function storeGroups(slug: string): StoreGroup[] {
   return readdirSync(base, { withFileTypes: true })
     .filter((d) => d.isDirectory())
     .map((d) => d.name)
+    .filter((n) => !isInProgress(n))
     .sort(natural)
     .map((name) => {
       const images = readdirSync(join(base, name))
         .filter((f) => IMG.test(f))
         .sort(natural)
         .map((f) => `assets/${slug}/store/${name}/${f}`);
-      return { key: name, label: name, images };
+      return { key: name, label: cleanTitle(name), images };
     })
     .filter((g) => g.images.length > 0);
 }
