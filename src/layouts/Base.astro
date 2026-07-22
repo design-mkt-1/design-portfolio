@@ -89,7 +89,8 @@ const faviconHref = url(squareFavicon(favicon && assetExists(favicon) ? favicon 
     <header class="site-header">
       <div class="container header-inner">
         <a class="brand" href={url('/')} aria-label="Marketing Solutions — home">
-          <img src={url('assets/marketing-solutions-logo.webp')} alt="Marketing Solutions" height="34" />
+          <img class="brand-full" src={url('assets/marketing-solutions-logo.webp')} alt="Marketing Solutions" height="34" />
+          <img class="brand-mark" src={url(squareFavicon('assets/favicon_ms.webp'))} alt="Marketing Solutions" height="36" width="36" />
         </a>
         {
           crumbs.length > 0 && (
@@ -344,6 +345,19 @@ const faviconHref = url(squareFavicon(favicon && assetExists(favicon) ? favicon 
         display: inline-flex;
         align-items: center;
         transition: opacity 0.2s;
+      }
+      /* phones: the full wordmark is unreadable at header size — show the
+         square MS mark instead */
+      .brand-mark {
+        display: none;
+      }
+      @media (max-width: 768px) {
+        .brand-full {
+          display: none;
+        }
+        .brand-mark {
+          display: block;
+        }
       }
       .brand:hover {
         opacity: 0.85;
