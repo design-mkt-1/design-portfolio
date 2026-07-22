@@ -2,6 +2,7 @@
 import { statSync } from 'node:fs';
 import { join } from 'node:path';
 import { url } from '../lib/site';
+import { thumbFor, thumbDims } from '../lib/thumbs';
 import type { StoreGroup } from '../lib/store';
 
 interface Props {
@@ -27,7 +28,11 @@ function bust(path: string): string {
 // copies so the forward loop stays filled on wide screens.
 let counter = 0;
 const rendered = groups.map((g) => {
-  const items = g.images.map((src) => ({ src: bust(src), index: counter++ }));
+  // marquee frames use generated thumbnails; the lightbox opens the original
+  const items = g.images.map((src) => {
+    const thumb = thumbFor(src)!;
+    return { src: bust(src), thumb: url(thumb), dims: thumbDims(thumb), index: counter++ };
+  });
   const copies = Math.max(6, Math.ceil(36 / (items.length + 1)));
   return { key: g.key, label: g.label, items, copies };
 });
@@ -50,7 +55,7 @@ const flat = rendered.flatMap((g) => g.items.map((it) => ({ src: it.src, label: 
               <>
                 {g.items.map((it) => (
                   <button class="shot" data-index={it.index} aria-label={`${alt} — ${g.label}`} aria-haspopup="dialog">
-                    <img src={it.src} alt="" loading="lazy" draggable="false" />
+                    <img src={it.thumb} alt="" width={it.dims?.w} height={it.dims?.h} loading="lazy" decoding="async" draggable="false" />
                   </button>
                 ))}
                 <span class="delim" aria-hidden="true" />

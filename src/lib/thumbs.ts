@@ -1,0 +1,36 @@
+// Build-only helper (uses node:fs) — import from .astro frontmatter only.
+// Resolves an asset path to its generated thumbnail (see scripts/gen-thumbs.mjs,
+// run automatically before every build). Falls back to the original path when no
+// thumbnail exists, so the site keeps working even if the pipeline hasn't run
+// (e.g. a bare `astro dev` before the first prebuild).
+import { existsSync, readFileSync } from 'node:fs';
+import { join, parse } from 'node:path';
+
+const PUB = join(process.cwd(), 'public');
+const MANIFEST_PATH = join(PUB, 'assets', '_thumbs', 'manifest.json');
+
+let manifest: Record<string, { w: number; h: number }> | null = null;
+function loadManifest() {
+  if (manifest) return manifest;
+  try {
+    manifest = JSON.parse(readFileSync(MANIFEST_PATH, 'utf8'));
+  } catch {
+    manifest = {};
+  }
+  return manifest!;
+}
+
+/** assets/<slug>/… -> assets/_thumbs/<slug>/….webp when the thumb exists. */
+export function thumbFor(relPath: string | undefined): string | undefined {
+  if (!relPath) return relPath;
+  if (!relPath.startsWith('assets/')) return relPath;
+  const { dir, name } = parse(relPath.slice('assets/'.length));
+  const thumb = `assets/_thumbs/${dir ? dir + '/' : ''}${name}.webp`;
+  return existsSync(join(PUB, thumb)) ? thumb : relPath;
+}
+
+/** Pixel dimensions of a thumb (for width/height attributes); undefined for originals. */
+export function thumbDims(relPath: string | undefined): { w: number; h: number } | undefined {
+  if (!relPath) return undefined;
+  return loadManifest()[relPath];
+}

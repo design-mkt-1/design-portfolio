@@ -8,11 +8,13 @@
     "start": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "prebuild": "node scripts/gen-thumbs.mjs"
   },
   "devDependencies": {
     "@astrojs/sitemap": "^3.7.3",
     "astro": "^5.7.0",
-    "playwright": "^1.61.1"
+    "playwright": "^1.61.1",
+    "sharp": "^0.35.3"
   }
 }

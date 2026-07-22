@@ -1,5 +1,6 @@
 ---
 import { url } from '../lib/site';
+import { thumbFor, thumbDims } from '../lib/thumbs';
 import { DEVICE_ORDER, DEVICE_LABEL, type LandingItem } from '../data/projects';
 
 interface Props {
@@ -9,6 +10,7 @@ interface Props {
 const { items, alt } = Astro.props;
 
 // Resolve to final URLs so the client script is base-safe. Mobile first.
+// The lightbox always gets originals; tiles get the generated thumbnails.
 const payload = items.map((item) => ({
   title: item.title,
   devices: DEVICE_ORDER.filter((d) => item[d]).map((d) => ({
@@ -17,16 +19,28 @@ const payload = items.map((item) => ({
     src: url(item[d]!),
   })),
 }));
+const tiles = items.map((item) => {
+  const original = item.mobile ?? item.tablet ?? item.desktop;
+  const thumb = thumbFor(original);
+  return { src: url(thumb!), dims: thumbDims(thumb) };
+});
 ---
 
 <div class="lg-grid">
   {
     payload.map((item, i) => {
-      const thumb = item.devices[0]; // mobile first
+      const thumb = tiles[i];
       return (
         <button class="lg-item reveal" data-index={i} aria-haspopup="dialog">
           <span class="phone">
-            <img src={thumb.src} alt={`${alt} ${item.title} (${thumb.label})`} loading="lazy" />
+            <img
+              src={thumb.src}
+              alt={`${alt} ${item.title} (${item.devices[0].label})`}
+              width={thumb.dims?.w}
+              height={thumb.dims?.h}
+              loading="lazy"
+              decoding="async"
+            />
             <span class="zoom" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3M11 8v6M8 11h6" /></svg>
             </span>

@@ -3,7 +3,7 @@ import Base from '../../layouts/Base.astro';
 import CtaBanner from '../../components/CtaBanner.astro';
 import { url } from '../../lib/site';
 import { projects, getProject } from '../../data/projects';
-import { projectCrumb, sectionBack, hasBrandbook, brandbookFrames } from '../../lib/portfolio';
+import { projectCrumb, sectionBack, hasBrandbook, brandbookFrames, projectOg } from '../../lib/portfolio';
 
 export function getStaticPaths() {
   // Only projects with real brand-book content (frames, PDF, or Figma) — a
@@ -36,6 +36,7 @@ const figmaLogo = `
   title={`${p.name} Brand Book — Marketing Solutions`}
   description={`${p.name} brand book — logo, colors, typography, and usage guidelines.`}
   favicon={p.favicon}
+  ogImage={projectOg(p)}
   accent={p.accent}
   crumbs={[{ label: 'Projects', href: '/' }, projectCrumb(p), { label: 'Brand Book' }]}
 >

@@ -5,7 +5,7 @@ import StoreGallery from '../../../components/StoreGallery.astro';
 import { url } from '../../../lib/site';
 import { projects, getProject } from '../../../data/projects';
 import { storeGroups, hasStore, storeTitle } from '../../../lib/store';
-import { projectCrumb } from '../../../lib/portfolio';
+import { projectCrumb, projectOg } from '../../../lib/portfolio';
 
 export function getStaticPaths() {
   return projects.filter((p) => hasStore(p.slug)).map((p) => ({ params: { project: p.slug } }));
@@ -21,6 +21,7 @@ const title = storeTitle(p.slug);
   title={`${p.name} ${title} — Marketing Solutions`}
   description={`${p.name} ${title} store creative.`}
   favicon={p.favicon}
+  ogImage={projectOg(p)}
   accent={p.accent}
   crumbs={[
     { label: 'Projects', href: '/' },

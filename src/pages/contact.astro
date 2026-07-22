@@ -35,7 +35,9 @@ const nextUrl = Astro.site ? new URL(`${url('/contact/')}?sent=1`, Astro.site).h
       {/* FormSubmit options */}
       <input type="hidden" name="_subject" value="New enquiry — Marketing Solutions portfolio" />
       <input type="hidden" name="_template" value="table" />
-      <input type="hidden" name="_captcha" value="false" />
+      {/* No _captcha=false in the markup: plain POSTs (bots scraping the action
+          URL, no-JS browsers) hit FormSubmit's captcha. The AJAX path appends
+          _captcha=false itself and is protected by the honeypot + time gate. */}
       {nextUrl && <input type="hidden" name="_next" value={nextUrl} />}
       {/* honeypot: bots fill this, humans don't */}
       <input type="text" name="_honey" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true" />
@@ -90,19 +92,23 @@ const nextUrl = Astro.site ? new URL(`${url('/contact/')}?sent=1`, Astro.site).h
     history.replaceState(null, '', u);
   }
 
+  const loadedAt = Date.now();
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!statusEl) return;
     const btn = form.querySelector<HTMLButtonElement>('button[type="submit"]');
     if ((form.querySelector<HTMLInputElement>('input[name="_honey"]')?.value || '') !== '') return; // bot
+    if (Date.now() - loadedAt < 3000) return; // bots submit instantly; humans don't
     statusEl.textContent = tk('contact.sending', 'Sending…');
     statusEl.className = 'form-status';
     if (btn) btn.disabled = true;
     try {
+      const body = new FormData(form);
+      body.set('_captcha', 'false'); // AJAX path only — plain POSTs keep the captcha
       const res = await fetch(`https://formsubmit.co/ajax/${ENDPOINT}`, {
         method: 'POST',
         headers: { Accept: 'application/json' },
-        body: new FormData(form),
+        body,
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok && String(data.success) === 'true') {

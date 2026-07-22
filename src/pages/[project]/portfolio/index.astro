@@ -4,9 +4,10 @@ import CtaBanner from '../../../components/CtaBanner.astro';
 import ChoiceCards, { type Choice } from '../../../components/ChoiceCards.astro';
 import { url } from '../../../lib/site';
 import { projects, getProject, firstSize } from '../../../data/projects';
-import { projectBanners, projectLandings, hasPortfolio, projectCrumb, sectionBack } from '../../../lib/portfolio';
+import { projectBanners, projectLandings, hasPortfolio, projectCrumb, sectionBack, projectOg } from '../../../lib/portfolio';
 import { readyVideos } from '../../../lib/videos';
 import { storeCount, allStoreImages, storeTitle } from '../../../lib/store';
+import { thumbFor } from '../../../lib/thumbs';
 
 export function getStaticPaths() {
   return projects.filter(hasPortfolio).map((p) => ({ params: { project: p.slug } }));
@@ -20,9 +21,9 @@ const videos = readyVideos(p.videos);
 const storeImages = allStoreImages(p.slug);
 
 // Real thumbnails per format for the card previews.
-const bannerThumbs = banners.map(firstSize).filter((s): s is string => !!s); // 1:1 squares
-const landingThumbs = landings.map((l) => l.desktop ?? l.mobile).filter((s): s is string => !!s);
-const videoThumbs = videos.map((v) => v.poster).filter((s): s is string => !!s);
+const bannerThumbs = banners.map(firstSize).filter((s): s is string => !!s).map((s) => thumbFor(s)!); // 1:1 squares
+const landingThumbs = landings.map((l) => l.desktop ?? l.mobile).filter((s): s is string => !!s).map((s) => thumbFor(s)!);
+const videoThumbs = videos.map((v) => v.poster).filter((s): s is string => !!s).map((s) => thumbFor(s)!);
 
 // 6+ thumbnails → 3×2 mosaic; 1–5 → single cover; none → fall back to the icon.
 function preview(thumbs: string[]): Choice['preview'] {
@@ -69,7 +70,7 @@ if (storeImages.length > 0) {
     href: `/${p.slug}/portfolio/store`,
     icon: 'store',
     meta: `${storeCount(p.slug)}`,
-    preview: { type: 'carousel', images: storeImages },
+    preview: { type: 'carousel', images: storeImages.map((s) => thumbFor(s)!) },
   });
 }
 ---
@@ -78,6 +79,7 @@ if (storeImages.length > 0) {
   title={`${p.name} Portfolio — Marketing Solutions`}
   description={`${p.name} creative portfolio — banners, landing pages, and video.`}
   favicon={p.favicon}
+  ogImage={projectOg(p)}
   accent={p.accent}
   crumbs={[{ label: 'Projects', href: '/' }, projectCrumb(p), { label: 'Portfolio' }]}
 >

@@ -5,7 +5,7 @@ import VideoGallery from '../../../components/VideoGallery.astro';
 import { url } from '../../../lib/site';
 import { projects, getProject } from '../../../data/projects';
 import { readyVideos } from '../../../lib/videos';
-import { projectCrumb } from '../../../lib/portfolio';
+import { projectCrumb, projectOg } from '../../../lib/portfolio';
 
 export function getStaticPaths() {
   return projects.filter((p) => readyVideos(p.videos).length > 0).map((p) => ({ params: { project: p.slug } }));
@@ -20,6 +20,7 @@ const videos = readyVideos(p.videos);
   title={`${p.name} Videos — Marketing Solutions`}
   description={`${p.name} video and motion creative.`}
   favicon={p.favicon}
+  ogImage={projectOg(p)}
   accent={p.accent}
   crumbs={[
     { label: 'Projects', href: '/' },

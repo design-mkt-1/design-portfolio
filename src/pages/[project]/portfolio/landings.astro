@@ -4,7 +4,7 @@ import CtaBanner from '../../../components/CtaBanner.astro';
 import LandingsGallery from '../../../components/LandingsGallery.astro';
 import { url } from '../../../lib/site';
 import { projects, getProject } from '../../../data/projects';
-import { projectLandings, projectCrumb } from '../../../lib/portfolio';
+import { projectLandings, projectCrumb, projectOg } from '../../../lib/portfolio';
 
 export function getStaticPaths() {
   return projects.filter((p) => projectLandings(p.slug).length > 0).map((p) => ({ params: { project: p.slug } }));
@@ -19,6 +19,7 @@ const landings = projectLandings(p.slug);
   title={`${p.name} Landings — Marketing Solutions`}
   description={`${p.name} landing page designs — mobile and desktop.`}
   favicon={p.favicon}
+  ogImage={projectOg(p)}
   accent={p.accent}
   crumbs={[
     { label: 'Projects', href: '/' },

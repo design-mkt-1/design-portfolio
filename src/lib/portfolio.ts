@@ -77,6 +77,12 @@ export function visibleProjects(): Project[] {
   return projects.filter((p) => projectSections(p).length > 0);
 }
 
+/** Per-project social share card (committed via scripts/gen-og-cards.mjs). */
+export function projectOg(p: Project): string | undefined {
+  const path = `assets/${p.slug}/og-card.png`;
+  return assetExists(path) ? path : undefined;
+}
+
 // ---- section routing --------------------------------------------------------
 // A project offers up to two top-level sections: a Brand Book and a Portfolio.
 // When only one exists we skip the chooser at /<slug> and open it directly.

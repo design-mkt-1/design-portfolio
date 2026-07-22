@@ -56,6 +56,47 @@ export const STRINGS: Record<string, [string, string, string]> = {
     'Мы создаём бренд-системы, лендинги, баннеры и видео для iGaming-операторов — на EN, RO и RU.',
   ],
 
+  // Services section (home)
+  'svc.head': ['What we do', 'Ce facem', 'Что мы делаем'],
+  'svc.sub': [
+    'Everything a gambling brand needs to launch and promote — delivered in EN, RO and RU.',
+    'Tot ce are nevoie un brand de gambling pentru lansare și promovare — livrat în EN, RO și RU.',
+    'Всё, что нужно гемблинг-бренду для запуска и продвижения — на EN, RO и RU.',
+  ],
+  'svc.brand': ['Brand systems', 'Sisteme de brand', 'Бренд-системы'],
+  'svc.brand.desc': [
+    'Logo, colors, typography and full usage guidelines, ready for every channel.',
+    'Logo, culori, tipografie și ghid complet de utilizare, pregătite pentru orice canal.',
+    'Логотип, цвета, типографика и полный гайдлайн — для всех каналов.',
+  ],
+  'svc.landings': ['Promo landings', 'Landing-uri promo', 'Промо-лендинги'],
+  'svc.landings.desc': [
+    'Campaign landing pages designed mobile-first, with tablet and desktop versions.',
+    'Landing-uri de campanie proiectate mobile-first, cu versiuni pentru tabletă și desktop.',
+    'Лендинги кампаний — сначала мобильные, с версиями для планшета и десктопа.',
+  ],
+  'svc.banners': ['Banner sets', 'Seturi de bannere', 'Серии баннеров'],
+  'svc.banners.desc': [
+    'Static creative in every placement size: 1:1, 9:16, 16:9 and 4:5.',
+    'Creative statice în fiecare dimensiune de plasare: 1:1, 9:16, 16:9 și 4:5.',
+    'Статичные креативы во всех размерах: 1:1, 9:16, 16:9 и 4:5.',
+  ],
+  'svc.video': ['Video & motion', 'Video & motion', 'Видео и моушн'],
+  'svc.video.desc': [
+    'Promo videos and motion creative, plus app-store listing assets.',
+    'Videouri promo și creative motion, plus materiale pentru magazinele de aplicații.',
+    'Промо-видео и моушн-креативы, а также материалы для сторов приложений.',
+  ],
+  'svc.point.mobile': ['Mobile-first design', 'Design mobile-first', 'Mobile-first дизайн'],
+  'svc.point.speed': ['Campaign-speed turnaround', 'Livrare în ritmul campaniilor', 'Скорость под график кампаний'],
+  'svc.point.langs': ['Creative in EN, RO and RU', 'Creative în EN, RO și RU', 'Креативы на EN, RO и RU'],
+
+  'footer.age': [
+    '18+ · Responsible, compliance-aware creative for licensed iGaming operators.',
+    '18+ · Creative responsabile și conforme pentru operatori iGaming licențiați.',
+    '18+ · Ответственные креативы с учётом требований — для лицензированных iGaming-операторов.',
+  ],
+
   'proj.all': ['← All projects', '← Toate proiectele', '← Все проекты'],
   'proj.brandbook': ['Brand Book', 'Brand Book', 'Брендбук'],
   'proj.brandbook.desc': [

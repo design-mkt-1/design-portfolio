@@ -16,3 +16,6 @@ yarn-error.log*
 
 # macOS
 .DS_Store
+
+# generated thumbnails (rebuilt by scripts/gen-thumbs.mjs on every build)
+public/assets/_thumbs/

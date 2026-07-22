@@ -3,6 +3,7 @@ import { statSync } from 'node:fs';
 import { join } from 'node:path';
 import { url } from '../lib/site';
 import { cleanTitle } from '../lib/titles';
+import { thumbFor } from '../lib/thumbs';
 import { SIZE_LABEL, SIZE_RATIO, availableVideoSizes, type VideoItem } from '../data/projects';
 
 interface Props {
@@ -44,7 +45,7 @@ const payload = items.map((v) => ({
       return (
         <button class="vtile reveal" data-index={i} aria-haspopup="dialog">
           <span class="poster">
-            <img src={bust(v.poster)} alt={cleanTitle(v.title)} loading="lazy" />
+            <img src={url(thumbFor(v.poster)!)} alt={cleanTitle(v.title)} loading="lazy" decoding="async" />
             <span class="play" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
             </span>

@@ -4,7 +4,7 @@ import CtaBanner from '../../../components/CtaBanner.astro';
 import MediaGallery from '../../../components/MediaGallery.astro';
 import { url } from '../../../lib/site';
 import { projects, getProject } from '../../../data/projects';
-import { projectBanners, projectCrumb } from '../../../lib/portfolio';
+import { projectBanners, projectCrumb, projectOg } from '../../../lib/portfolio';
 
 export function getStaticPaths() {
   return projects.filter((p) => projectBanners(p.slug).length > 0).map((p) => ({ params: { project: p.slug } }));
@@ -19,6 +19,7 @@ const banners = projectBanners(p.slug);
   title={`${p.name} Banners — Marketing Solutions`}
   description={`${p.name} banner creative in every placement size.`}
   favicon={p.favicon}
+  ogImage={projectOg(p)}
   accent={p.accent}
   crumbs={[
     { label: 'Projects', href: '/' },

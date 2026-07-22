@@ -1,5 +1,6 @@
 ---
 import { url, isVideoFile } from '../lib/site';
+import { thumbFor, thumbDims } from '../lib/thumbs';
 import { SIZE_ORDER, SIZE_LABEL, SIZE_RATIO, availableSizes, firstSize, type MediaItem } from '../data/projects';
 
 interface Props {
@@ -24,7 +25,9 @@ const payload = items.map((item) => ({
 <div class="gallery" data-kind={kind}>
   {
     items.map((item, i) => {
-      const thumb = firstSize(item)!;
+      const original = firstSize(item)!;
+      const thumb = isVideoFile(original) ? original : thumbFor(original)!;
+      const dims = thumbDims(thumb);
       const count = availableSizes(item).length;
       return (
         <button class="tile reveal" data-index={i} aria-haspopup="dialog">
@@ -32,7 +35,7 @@ const payload = items.map((item) => ({
             {isVideoFile(thumb) ? (
               <video src={url(thumb)} muted playsinline preload="metadata" />
             ) : (
-              <img src={url(thumb)} alt={item.title} loading="lazy" />
+              <img src={url(thumb)} alt={item.title} width={dims?.w} height={dims?.h} loading="lazy" decoding="async" />
             )}
             {kind === 'video' && (
               <span class="play" aria-hidden="true">

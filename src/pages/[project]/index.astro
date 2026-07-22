@@ -5,7 +5,8 @@ import Base from '../../layouts/Base.astro';
 import ChoiceCards, { type Choice } from '../../components/ChoiceCards.astro';
 import { url } from '../../lib/site';
 import { projects, getProject, firstSize, landingThumb } from '../../data/projects';
-import { projectBanners, projectLandings, hasPortfolio, hasBrandbook, assetExists, projectSections } from '../../lib/portfolio';
+import { projectBanners, projectLandings, hasPortfolio, hasBrandbook, assetExists, projectSections, projectOg } from '../../lib/portfolio';
+import { thumbFor } from '../../lib/thumbs';
 import { readyVideos } from '../../lib/videos';
 
 export function getStaticPaths() {
@@ -20,7 +21,9 @@ const portfolioThumbs = [
   ...projectBanners(p.slug).map(firstSize),
   ...projectLandings(p.slug).map(landingThumb),
   ...readyVideos(p.videos).map((v) => v.poster),
-].filter((s): s is string => Boolean(s));
+]
+  .filter((s): s is string => Boolean(s))
+  .map((s) => thumbFor(s)!);
 
 // Brand Book cover: auto-detected from disk. Prefers the first page frame
 // (1.webp) so we don't keep a duplicate cover image; falls back to an explicit
@@ -50,7 +53,7 @@ if (hasBrandbook(p)) {
   // Fall back to the brand panel only when a logo exists; otherwise leave the
   // preview off so the card shows its book-icon placeholder (no broken image).
   const preview = cover
-    ? ({ type: 'cover', image: cover } as const)
+    ? ({ type: 'cover', image: thumbFor(cover)! } as const)
     : assetExists(p.logo)
       ? ({ type: 'brand', logo: p.logo } as const)
       : undefined;
@@ -99,6 +102,7 @@ const redirectTo = only ? url(`/${p.slug}/${only}`) : null;
       title={`${p.name} — Marketing Solutions`}
       description={p.tagline ? `${p.name} — ${p.tagline}` : `${p.name} on the Marketing Solutions design portfolio.`}
       favicon={p.favicon}
+  ogImage={projectOg(p)}
       accent={p.accent}
       crumbs={[{ label: 'Projects', href: '/' }, { label: p.name }]}
     >
