@@ -227,14 +227,22 @@ const tiles = items.map((item) => {
     gap: 7px;
     padding: 0 4px;
   }
+  /* Titles always occupy exactly two lines (short ones reserve the space,
+     long ones clamp with an ellipsis), so the device chips line up in one
+     row across every tile. */
   .lg-title {
     font-weight: 600;
     font-size: 0.98rem;
     line-height: 1.35;
+    min-height: 2.7em;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
   .lg-devices {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 5px;
   }
   .chip {
