@@ -225,8 +225,19 @@ const flat = rendered.flatMap((g) => g.items.map((it) => ({ src: it.src, label: 
     cursor: grab;
     scrollbar-width: none;
     overscroll-behavior-x: contain;
-    -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
-    mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+    /* soft edge fade on desktop only — kept subtle so frames don't feel cropped */
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 2%, #000 98%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 2%, #000 98%, transparent);
+  }
+  /* Mobile: full-bleed — the strip escapes the page padding and runs edge to
+     edge with no fade, so frames read as flowing off the screen instead of
+     being squeezed into a masked box. */
+  @media (max-width: 640px) {
+    .marquee {
+      margin-inline: -24px;
+      -webkit-mask-image: none;
+      mask-image: none;
+    }
   }
   .marquee::-webkit-scrollbar {
     display: none;
@@ -362,7 +373,7 @@ const flat = rendered.flatMap((g) => g.items.map((it) => ({ src: it.src, label: 
   @media (max-width: 640px) {
     .slb-nav {
       top: auto;
-      bottom: 18px;
+      bottom: calc(16px + env(safe-area-inset-bottom, 0px));
       transform: none;
     }
     .slb-prev {

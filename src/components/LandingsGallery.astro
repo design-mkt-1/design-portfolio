@@ -403,7 +403,7 @@ const tiles = items.map((item) => {
     }
     .lgb-nav {
       top: auto;
-      bottom: 18px;
+      bottom: calc(16px + env(safe-area-inset-bottom, 0px));
       transform: none;
     }
     .lgb-prev {
