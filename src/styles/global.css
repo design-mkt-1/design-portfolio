@@ -159,7 +159,9 @@ button {
 .h1-sep {
   color: var(--fg-dim);
   font-weight: 300;
-  margin: 0 0.05em;
+  /* the gap lives entirely in these margins — no literal spaces in the markup,
+     so every section page spaces identically regardless of JSX whitespace */
+  margin: 0 0.32em;
 }
 
 /* ---- Back link ---- */
