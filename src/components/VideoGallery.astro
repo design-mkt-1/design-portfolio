@@ -31,7 +31,7 @@ const payload = items.map((v) => ({
   poster: bust(v.poster),
   sizes: availableVideoSizes(v).map((k) => ({
     key: k,
-    label: SIZE_LABEL[k],
+    label: v.labels?.[k] ?? SIZE_LABEL[k],
     ratio: SIZE_RATIO[k],
     src: bust(v.src[k]!),
   })),

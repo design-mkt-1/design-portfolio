@@ -62,16 +62,26 @@ tile opens the other sizes.
 
 ## Videos
 
-Same idea as banners — one subfolder per video inside `videos/`, size-named files.
+One subfolder per video inside `videos/`, MP4s named by their pixel dimensions.
+**Everything else is automatic** — no data-file edits, and no manual compression:
 
 ```
-public/assets/win2/videos/launch/1x1.mp4     1080×1080  (the grid thumbnail)
-public/assets/win2/videos/launch/9x16.mp4    1080×1920
-public/assets/win2/videos/launch/16x9.mp4    1920×1080
-public/assets/win2/videos/launch/4x5.mp4     1080×1350  (optional)
+public/assets/win2/videos/27170 - Launch/1080x1080.mp4
+public/assets/win2/videos/27170 - Launch/1080x1920.mp4
+public/assets/win2/videos/27170 - Launch/1920x1080.mp4
 ```
 
-`.mp4` (and `.webm`) work.
+After you push, a GitHub Action (usually within 1–2 minutes):
+
+- **compresses** every new MP4 (H.264, ~40–70% smaller) and commits the result back;
+- **generates the poster** (`cover.webp`) from the 1080x1080 version at the
+  4.5-second mark (drop your own `cover.jpg/webp` in the folder if you want a
+  specific frame — a manual cover always wins);
+- the video then appears on the site on the next deploy.
+
+Rules: keep each raw file **under 100 MB** (GitHub rejects bigger pushes), and put
+the dimensions in the filename (`1080x1080.mp4`, `1920-1080.mp4` — dashes and
+Cyrillic х are fine).
 
 ## Landings (images — mobile + desktop)
 

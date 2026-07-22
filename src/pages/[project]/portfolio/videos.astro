@@ -4,16 +4,15 @@ import CtaBanner from '../../../components/CtaBanner.astro';
 import VideoGallery from '../../../components/VideoGallery.astro';
 import { url } from '../../../lib/site';
 import { projects, getProject } from '../../../data/projects';
-import { readyVideos } from '../../../lib/videos';
-import { projectCrumb, formatBack, portfolioCrumb, projectOg } from '../../../lib/portfolio';
+import { projectVideos, projectCrumb, formatBack, portfolioCrumb, projectOg } from '../../../lib/portfolio';
 
 export function getStaticPaths() {
-  return projects.filter((p) => readyVideos(p.videos).length > 0).map((p) => ({ params: { project: p.slug } }));
+  return projects.filter((p) => projectVideos(p.slug).length > 0).map((p) => ({ params: { project: p.slug } }));
 }
 
 const { project } = Astro.params;
 const p = getProject(project!)!;
-const videos = readyVideos(p.videos);
+const videos = projectVideos(p.slug);
 ---
 
 <Base
