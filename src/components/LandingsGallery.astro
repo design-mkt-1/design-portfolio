@@ -401,9 +401,8 @@ const tiles = items.map((item) => {
   }
   /* Phones: controls live in a solid bottom dock (device toggle centered,
      arrows at its sides) so nothing collides with the close button and the
-     arrows never float invisibly over artwork. Tablet & desktop versions fit
-     the whole page on screen so the layout reads as its device instead of a
-     zoomed column. */
+     arrows never float invisibly over artwork. All device versions render
+     full-width with vertical scroll, aspect ratio always preserved. */
   @media (max-width: 640px) {
     .lgb-title {
       display: none;
@@ -443,16 +442,6 @@ const tiles = items.map((item) => {
     }
     .lgb-next {
       right: 12px;
-    }
-    .lgb[data-device='tablet'] .lgb-scroll,
-    .lgb[data-device='desktop'] .lgb-scroll {
-      align-items: center;
-    }
-    .lgb[data-device='tablet'] .lgb-scroll img,
-    .lgb[data-device='desktop'] .lgb-scroll img {
-      max-height: calc(100vh - 120px);
-      max-height: calc(100dvh - 120px);
-      width: auto;
     }
   }
 
