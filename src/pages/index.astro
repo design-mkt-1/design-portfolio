@@ -56,6 +56,60 @@ const stats = [
     </div>
   </section>
 
+  <script>
+    // Slot-machine counters: when the stats row scrolls into view, every digit
+    // becomes a reel (0-9 stacked twice) that spins a full loop and settles on
+    // its target, staggered left→right like slot reels stopping. Symbols (+)
+    // stay static. Skipped entirely under prefers-reduced-motion.
+    const statsEl = document.querySelector('.stats');
+    if (statsEl && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      const spin = () => {
+        statsEl.querySelectorAll<HTMLElement>('.stat-n').forEach((el, si) => {
+          const text = el.textContent?.trim() ?? '';
+          el.textContent = '';
+          [...text].forEach((ch, i) => {
+            if (!/\d/.test(ch)) {
+              const s = document.createElement('span');
+              s.className = 'sym';
+              s.textContent = ch;
+              el.appendChild(s);
+              return;
+            }
+            const target = Number(ch);
+            const digit = document.createElement('span');
+            digit.className = 'digit';
+            const reel = document.createElement('span');
+            reel.className = 'reel';
+            for (let loop = 0; loop < 2; loop++)
+              for (let n = 0; n <= 9; n++) {
+                const c = document.createElement('span');
+                c.textContent = String(n);
+                reel.appendChild(c);
+              }
+            digit.appendChild(reel);
+            el.appendChild(digit);
+            requestAnimationFrame(() =>
+              requestAnimationFrame(() => {
+                reel.style.transitionDelay = `${si * 90 + i * 150}ms`;
+                reel.style.transform = `translateY(${-(10 + target) * 1.1}em)`;
+              }),
+            );
+          });
+        });
+      };
+      const io = new IntersectionObserver(
+        (entries) => {
+          if (entries.some((e) => e.isIntersecting)) {
+            io.disconnect();
+            spin();
+          }
+        },
+        { threshold: 0.4 },
+      );
+      io.observe(statsEl);
+    }
+  </script>
+
   <section class="container" id="projects">
     <div class="section-head reveal">
       <h2>Projects</h2>
@@ -176,10 +230,32 @@ const stats = [
     font-weight: 800;
     font-size: clamp(1.6rem, 4vw, 2.1rem);
     line-height: 1.1;
+    font-variant-numeric: tabular-nums;
     background: var(--brand-gradient);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+  }
+  /* slot-reel digits (built by JS; background-clip:text on .stat-n covers them) */
+  .stat-n :global(.digit) {
+    display: inline-block;
+    height: 1.1em;
+    overflow: hidden;
+    vertical-align: top;
+  }
+  .stat-n :global(.sym) {
+    display: inline-block;
+    vertical-align: top;
+  }
+  .stat-n :global(.reel) {
+    display: block;
+    transition: transform 1.7s var(--ease-expo);
+    will-change: transform;
+  }
+  .stat-n :global(.reel span) {
+    display: block;
+    height: 1.1em;
+    line-height: 1.1;
   }
   .stat-l {
     font-size: 0.82rem;
