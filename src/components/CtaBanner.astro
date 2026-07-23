@@ -2,17 +2,107 @@
 // Closing conversion block for gallery / brand-book pages, so browsing never
 // dead-ends: pitch line + "Start a project" → contact. Copy translates via the
 // standard English-text i18n matching (strings in src/i18n/ui.ts).
+// A mini version of the hero's floating creative wall lives at the edges —
+// small real banners (+ one looping clip) with mouse parallax, so the block
+// shows what "Start a project" buys at first glance.
 import { url } from '../lib/site';
+import { thumbFor } from '../lib/thumbs';
+import { projectBanners, projectVideos } from '../lib/portfolio';
+
+const SLUGS = ['winboss', 'win2', 'jackpot', 'max-win'];
+// true-square banners only (crops of wide banners can land on a text half),
+// round-robin across brands, offset so the picks differ from the hero wall
+const byBrand = SLUGS.map((slug) =>
+  projectBanners(slug)
+    .map((i) => i.sizes['1x1'])
+    .filter((s): s is string => !!s)
+    .map((s) => thumbFor(s)!)
+    .map((s) => url(s)),
+);
+const picks: string[] = [];
+for (let i = 2; picks.length < 6 && i < 12; i++) {
+  for (const b of byBrand) if (b[i] && picks.length < 6 && !picks.includes(b[i])) picks.push(b[i]);
+}
+const vid = SLUGS.flatMap((s) => projectVideos(s)).filter((v) => v.src['1x1'])[2];
+const video = vid ? { poster: url(thumbFor(vid.poster)!), src: url(vid.src['1x1']!) } : undefined;
 ---
 
 <section class="container ctab-wrap">
   <div class="ctab reveal">
     <div class="ctab-glow" aria-hidden="true"></div>
+    {
+      picks.length > 0 && (
+        <div class="ctab-cards" aria-hidden="true">
+          {video && (
+            <div class="cc cc-video">
+              <img src={video.poster} alt="" loading="lazy" decoding="async" />
+              <video muted playsinline loop preload="none" data-src={video.src} />
+            </div>
+          )}
+          {picks.map((s) => (
+            <div class="cc">
+              <img src={s} alt="" loading="lazy" decoding="async" />
+            </div>
+          ))}
+        </div>
+      )
+    }
     <h2>Need creative like this for your brand?</h2>
     <p class="muted">We ship brand systems, landings, banners and video for iGaming operators — in EN, RO and RU.</p>
     <a class="btn btn-spin" href={url('/contact')}>Start a project</a>
   </div>
 </section>
+
+<script>
+  const ctab = document.querySelector<HTMLElement>('.ctab');
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // start the mini clip only when the block approaches the viewport
+  const v = ctab?.querySelector<HTMLVideoElement>('.cc-video video');
+  if (ctab && v && !reduce && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver(
+      (es) => {
+        if (es.some((e) => e.isIntersecting)) {
+          io.disconnect();
+          v.src = v.dataset.src || '';
+          v.play().catch(() => {});
+        }
+      },
+      { rootMargin: '200px' },
+    );
+    io.observe(ctab);
+  }
+
+  // same subtle mouse parallax as the hero wall (mouse-only, composes with
+  // the float animation via the separate `translate` property)
+  if (ctab && !reduce && matchMedia('(hover: hover)').matches) {
+    const cards = Array.from(ctab.querySelectorAll<HTMLElement>('.cc'));
+    if (cards.length) {
+      const factors = cards.map((c) => (c.offsetWidth || 70) / 6);
+      let nx = 0, ny = 0, cx = 0, cy = 0, raf = 0;
+      const tick = () => {
+        cx += (nx - cx) * 0.08;
+        cy += (ny - cy) * 0.08;
+        cards.forEach((c, i) => {
+          c.style.translate = `${(-cx * factors[i]).toFixed(1)}px ${(-cy * factors[i] * 0.7).toFixed(1)}px`;
+        });
+        raf = Math.abs(nx - cx) > 0.001 || Math.abs(ny - cy) > 0.001 ? requestAnimationFrame(tick) : 0;
+      };
+      ctab.addEventListener('pointermove', (e) => {
+        if (e.pointerType !== 'mouse') return;
+        const r = ctab.getBoundingClientRect();
+        nx = (e.clientX - r.left) / r.width - 0.5;
+        ny = (e.clientY - r.top) / r.height - 0.5;
+        if (!raf) raf = requestAnimationFrame(tick);
+      });
+      ctab.addEventListener('pointerleave', () => {
+        nx = 0;
+        ny = 0;
+        if (!raf) raf = requestAnimationFrame(tick);
+      });
+    }
+  }
+</script>
 
 <style>
   .ctab-wrap {
@@ -47,5 +137,61 @@ import { url } from '../lib/site';
     position: relative;
   }
 
+  /* mini floating creative wall: small scattered cards at the edges, the
+     center column stays clear for the copy */
+  .ctab-cards {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .cc {
+    position: absolute;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+    opacity: 0.34;
+    aspect-ratio: 1;
+    animation: cc-float var(--d, 20s) ease-in-out var(--dl, 0s) infinite alternate;
+    will-change: transform;
+  }
+  .cc img,
+  .cc video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .cc video {
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+  .cc video[src] {
+    opacity: 1;
+  }
+  @keyframes cc-float {
+    from { transform: rotate(var(--r, 0deg)) translateY(0); }
+    to { transform: rotate(calc(var(--r, 0deg) * -1)) translateY(-9px); }
+  }
+  /* scattered slots: video card first in DOM gets the biggest one */
+  .cc:nth-child(1) { right: 4%;  top: 12%;    width: 104px; --r: -3deg; --d: 24s; }
+  .cc:nth-child(2) { left: 3%;   top: 9%;     width: 88px;  --r: 3deg;  --d: 21s; --dl: -7s; }
+  .cc:nth-child(3) { left: 11%;  bottom: 9%;  width: 66px;  --r: -4deg; --d: 18s; --dl: -3s; }
+  .cc:nth-child(4) { left: 21%;  top: 30%;    width: 52px;  --r: 5deg;  --d: 26s; --dl: -11s; }
+  .cc:nth-child(5) { right: 13%; bottom: 8%;  width: 72px;  --r: 4deg;  --d: 22s; --dl: -14s; }
+  .cc:nth-child(6) { right: 23%; top: 24%;    width: 54px;  --r: -5deg; --d: 19s; --dl: -5s; }
+  .cc:nth-child(7) { left: 30%;  bottom: -4%; width: 46px;  --r: 3deg;  --d: 25s; --dl: -9s; }
 
+  @media (max-width: 760px) {
+    .cc { opacity: 0.22; }
+    .cc:nth-child(4),
+    .cc:nth-child(6),
+    .cc:nth-child(7) { display: none; }
+    .cc:nth-child(1) { width: 74px; }
+    .cc:nth-child(2) { width: 64px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cc { animation: none; }
+  }
 </style>

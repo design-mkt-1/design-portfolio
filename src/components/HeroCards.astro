@@ -12,15 +12,16 @@ import { firstSize } from '../data/projects';
 
 const SLUGS = ['winboss', 'win2', 'jackpot', 'max-win'];
 
-// image pool: square-friendly banner thumbs, interleaved brand-by-brand so
-// consecutive picks (and therefore the visible wall) mix different projects.
-// Wide-only banners use their content-aware square crop.
+// image pool: interleaved brand-by-brand so consecutive picks (and therefore
+// the visible wall) mix different projects. Only banners with a TRUE square
+// version qualify — square masters always show the full design, whereas crops
+// of wide banners can land on a text-only half (bad hero material).
 const byBrand = SLUGS.map((slug) =>
   projectBanners(slug)
-    .slice(0, 8)
+    .slice(0, 10)
     .map((item) => {
       const square = item.sizes['1x1'];
-      const t = square ? thumbFor(square) : squareThumbFor(firstSize(item));
+      const t = square ? thumbFor(square) : undefined;
       return t ? { s: url(t), p: slug } : null;
     })
     .filter((e): e is { s: string; p: string } => !!e),
@@ -73,6 +74,36 @@ const imgCards = unique.slice(0, imgCount).map((e) => e.s);
   const layer = document.querySelector<HTMLElement>('.hc');
   const poolEl = document.getElementById('hc-pool');
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // mouse parallax: the wall drifts subtly against the cursor, bigger (closer)
+  // cards moving more. Uses the CSS `translate` property so it composes with
+  // the float animation's `transform`. Mouse-only; skipped for reduced motion.
+  if (layer && !reduce && matchMedia('(hover: hover)').matches) {
+    const cards = Array.from(layer.querySelectorAll<HTMLElement>('.hc-card'));
+    const factors = cards.map((c) => (c.offsetWidth || 120) / 9);
+    let nx = 0, ny = 0, cx = 0, cy = 0, raf = 0;
+    const tick = () => {
+      cx += (nx - cx) * 0.08;
+      cy += (ny - cy) * 0.08;
+      cards.forEach((c, i) => {
+        c.style.translate = `${(-cx * factors[i]).toFixed(1)}px ${(-cy * factors[i] * 0.7).toFixed(1)}px`;
+      });
+      raf = Math.abs(nx - cx) > 0.001 || Math.abs(ny - cy) > 0.001 ? requestAnimationFrame(tick) : 0;
+    };
+    const wrap = layer.parentElement ?? layer;
+    wrap.addEventListener('pointermove', (e) => {
+      if (e.pointerType !== 'mouse') return;
+      const r = wrap.getBoundingClientRect();
+      nx = (e.clientX - r.left) / r.width - 0.5;
+      ny = (e.clientY - r.top) / r.height - 0.5;
+      if (!raf) raf = requestAnimationFrame(tick);
+    });
+    wrap.addEventListener('pointerleave', () => {
+      nx = 0;
+      ny = 0;
+      if (!raf) raf = requestAnimationFrame(tick);
+    });
+  }
 
   // lazy-start the video cards after page load; when a clip ends, advance to a
   // random pool entry not already playing on the other card (replay only when

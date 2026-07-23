@@ -112,6 +112,14 @@ export const STRINGS: Record<string, [string, string, string]> = {
     'AI встроен в наш процесс — концепты, апскейлинг, моушн и озвучка — при этом каждый материал контролируют наши дизайнеры. Лучше качество, быстрее результат.',
   ],
 
+  // Service card deliverable chips ('Logo' and the ratio chips are universal;
+  // Mobile/Tablet/Desktop reuse the dev.* rows via the same EN text)
+  'svc.chip.colors': ['Colors', 'Culori', 'Цвета'],
+  'svc.chip.guides': ['Guidelines', 'Ghid', 'Гайдлайны'],
+  'svc.chip.promo': ['Promo', 'Promo', 'Промо'],
+  'svc.chip.motion': ['Motion', 'Motion', 'Моушн'],
+  'svc.chip.social': ['Social', 'Social', 'Соцсети'],
+
   'svc.point.mobile': ['Mobile-first design', 'Design mobile-first', 'Mobile-first дизайн'],
   'svc.point.speed': ['Campaign-speed turnaround', 'Livrare în ritmul campaniilor', 'Скорость под график кампаний'],
   'svc.point.langs': ['Creative in RO, EN and Worldwide', 'Creative în RO, EN și Worldwide', 'Креативы — RO, EN и Worldwide'],

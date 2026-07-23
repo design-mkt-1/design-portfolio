@@ -10,11 +10,16 @@ function tags(p: Project): string[] {
   if (hasPortfolio(p)) t.push('Portfolio');
   return t;
 }
+
+// Column count adapts to how the cards divide: 9 brands read better as 3×3
+// than 4-4-1 with an orphan. Leftover rows always center (e.g. 10 → 4-4-2).
+const projects = visibleProjects();
+const cols = projects.length % 4 === 1 && projects.length % 3 !== 1 ? 3 : 4;
 ---
 
-<div class="grid">
+<div class="grid" style={`--cols:${cols}`}>
   {
-    visibleProjects().map((p) => (
+    projects.map((p) => (
       <a class="card" href={url(projectEntry(p))} style={`--card-accent:${p.accent ?? 'var(--accent)'}`}>
         <span class="glow" aria-hidden="true" />
         <span class="logo-wrap">
@@ -45,9 +50,14 @@ function tags(p: Project): string[] {
 
 <style>
   .grid {
-    display: grid;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 20px;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
+  .grid > :global(.card) {
+    flex: 0 1 calc((100% - (var(--cols, 4) - 1) * 20px) / var(--cols, 4));
+    min-width: 250px;
   }
   /* fixed height so every brand card matches regardless of logo aspect ratio
      or tag count — the logo centers in the flexible area, meta sits at the
