@@ -9,9 +9,9 @@
 // site renders end-to-end. Replace with real uploads (same filenames work).
 // =============================================================================
 
-export type SizeKey = '1x1' | '9x16' | '16x9' | '4x5' | '2x1';
+export type SizeKey = '1x1' | '9x16' | '16x9' | '4x5' | '2x1' | '3x1' | '4x1';
 
-export const SIZE_ORDER: SizeKey[] = ['1x1', '9x16', '16x9', '4x5', '2x1'];
+export const SIZE_ORDER: SizeKey[] = ['1x1', '9x16', '16x9', '4x5', '2x1', '3x1', '4x1'];
 
 export const SIZE_LABEL: Record<SizeKey, string> = {
   '1x1': '1080 × 1080',
@@ -19,6 +19,8 @@ export const SIZE_LABEL: Record<SizeKey, string> = {
   '16x9': '1920 × 1080',
   '4x5': '1080 × 1350',
   '2x1': '600 × 300',
+  '3x1': '1800 × 600',
+  '4x1': '2066 × 570',
 };
 
 export const SIZE_RATIO: Record<SizeKey, string> = {
@@ -27,6 +29,8 @@ export const SIZE_RATIO: Record<SizeKey, string> = {
   '16x9': '16 / 9',
   '4x5': '4 / 5',
   '2x1': '2 / 1',
+  '3x1': '3 / 1',
+  '4x1': '4 / 1',
 };
 
 export interface MediaItem {

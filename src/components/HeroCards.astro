@@ -6,18 +6,28 @@
 // Decorative only: aria-hidden, pointer-events none, two quiet cards on phones,
 // static images (no videos, no cycling) under prefers-reduced-motion.
 import { url } from '../lib/site';
-import { thumbFor } from '../lib/thumbs';
+import { thumbFor, squareThumbFor } from '../lib/thumbs';
 import { projectBanners, projectVideos } from '../lib/portfolio';
 import { firstSize } from '../data/projects';
 
-const SLUGS = ['winboss', 'win2'];
+const SLUGS = ['winboss', 'win2', 'jackpot', 'max-win'];
 
-// image pool: square banner thumbs from the featured brands
-const pool: string[] = [];
-for (const slug of SLUGS) {
-  for (const t of projectBanners(slug).map(firstSize).filter((s): s is string => !!s).slice(0, 8)) {
-    pool.push(url(thumbFor(t)!));
-  }
+// image pool: square-friendly banner thumbs, interleaved brand-by-brand so
+// consecutive picks (and therefore the visible wall) mix different projects.
+// Wide-only banners use their content-aware square crop.
+const byBrand = SLUGS.map((slug) =>
+  projectBanners(slug)
+    .slice(0, 8)
+    .map((item) => {
+      const square = item.sizes['1x1'];
+      const t = square ? thumbFor(square) : squareThumbFor(firstSize(item));
+      return t ? { s: url(t), p: slug } : null;
+    })
+    .filter((e): e is { s: string; p: string } => !!e),
+);
+const pool: { s: string; p: string }[] = [];
+for (let i = 0; byBrand.some((b) => i < b.length); i++) {
+  for (const b of byBrand) if (b[i]) pool.push(b[i]);
 }
 
 // video pool: every Winboss/Win2 video with a 1×1 version. Two cards play them
@@ -30,13 +40,12 @@ const vStart = Array.from({ length: nVideoCards }, (_, i) => Math.floor((i * vPo
 const videoPayload = vStart.map((idx) => ({ idx, poster: vPool[idx].poster }));
 
 // 5 cards total: video cards take the two biggest slots, banners fill the rest.
-// Starting picks are evenly spaced over the DISTINCT pool so no two cards open
-// with the same artwork.
-const unique = [...new Set(pool)];
+// The interleaved pool means the first N distinct entries already come from N
+// different brands, so no two cards open with the same artwork or project.
+const seenSrc = new Set<string>();
+const unique = pool.filter((e) => !seenSrc.has(e.s) && !!seenSrc.add(e.s));
 const imgCount = 5 - videoPayload.length;
-const imgCards = unique.length
-  ? Array.from({ length: imgCount }, (_, i) => unique[Math.floor((i * unique.length) / imgCount) % unique.length])
-  : [];
+const imgCards = unique.slice(0, imgCount).map((e) => e.s);
 ---
 
 {
@@ -101,17 +110,26 @@ const imgCards = unique.length
   }
 
   // crossfade a random image card to the next artwork every few seconds —
-  // never to something already visible on another card
+  // never to something already visible on another card, and preferring a brand
+  // that isn't on the wall yet so the mix always spans different projects
   if (layer && poolEl && !reduce) {
-    const pool: string[] = [...new Set(JSON.parse(poolEl.textContent || '[]') as string[])];
+    const raw: { s: string; p: string }[] = JSON.parse(poolEl.textContent || '[]');
+    const dedup = new Set<string>();
+    const pool = raw.filter((e) => !dedup.has(e.s) && !!dedup.add(e.s));
+    const brandOf = new Map(pool.map((e) => [e.s, e.p]));
     const cards = Array.from(layer.querySelectorAll<HTMLElement>('.hc-card:not(.hc-video)'));
     const showing = cards.map((c) => c.querySelector<HTMLImageElement>('img.a')!.getAttribute('src') || '');
     let cursor = 0;
-    // next artwork = first pool entry not currently on ANY card
     const pickNext = (): string => {
-      for (let k = 0; k < pool.length; k++) {
-        const cand = pool[cursor++ % pool.length];
-        if (!showing.includes(cand)) return cand;
+      const visibleBrands = new Set(showing.map((s) => brandOf.get(s)));
+      // pass 1: fresh artwork from a brand not currently visible; pass 2: any fresh artwork
+      for (const needNewBrand of [true, false]) {
+        for (let k = 0; k < pool.length; k++) {
+          const cand = pool[cursor++ % pool.length];
+          if (showing.includes(cand.s)) continue;
+          if (needNewBrand && visibleBrands.has(cand.p)) continue;
+          return cand.s;
+        }
       }
       return '';
     };

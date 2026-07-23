@@ -51,8 +51,40 @@ function projectHtml(logoUri, accent) {
   </body></html>`;
 }
 
+// site default card: big MS logo + main headline, nothing else
+function siteHtml(logoUri) {
+  return `<!doctype html><html><head><meta charset="utf-8"><style>
+    * { margin: 0; box-sizing: border-box; }
+    body {
+      width: 1200px; height: 630px; overflow: hidden;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 64px;
+      background:
+        radial-gradient(760px 460px at 50% 28%, rgba(35,198,170,0.16), transparent 65%),
+        radial-gradient(700px 420px at 78% 80%, rgba(123,108,224,0.14), transparent 60%),
+        #0b0b12;
+      font-family: 'Segoe UI', 'DejaVu Sans', system-ui, sans-serif; color: #f5f6fa; text-align: center;
+    }
+    img { max-height: 230px; max-width: 760px; filter: drop-shadow(0 14px 60px rgba(0,0,0,.55)); }
+    h1 { font-size: 84px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.05; padding: 0 60px; }
+    h1 .g {
+      background: linear-gradient(115deg, #23c6aa 0%, #4a92e0 50%, #7b6ce0 100%);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+  </style></head><body>
+    <img src="${logoUri}" alt="" />
+    <h1>Creative that <span class="g">converts players.</span></h1>
+  </body></html>`;
+}
+
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium' });
 const page = await browser.newPage({ viewport: { width: 1200, height: 630 } });
+
+const siteLogo = dataUri('assets/marketing-solutions-logo.webp');
+if (siteLogo) {
+  await page.setContent(siteHtml(siteLogo), { waitUntil: 'networkidle' });
+  await page.screenshot({ path: join(ROOT, 'public', 'assets', 'og-card.png') });
+  console.log('[og] wrote assets/og-card.png');
+}
 
 for (const [slug, { logo, accent }] of Object.entries(PROJECTS)) {
   const uri = dataUri(logo);

@@ -45,6 +45,7 @@ const faviconHref = url(squareFavicon(favicon && assetExists(favicon) ? favicon 
     <meta name="description" content={description} />
     <title>{title}</title>
     <link rel="icon" href={faviconHref} />
+    <link rel="apple-touch-icon" sizes="180x180" href={url('assets/_thumbs/favicons/apple-touch-icon.png')} />
     {canonical && <link rel="canonical" href={canonical} />}
 
     {/* Locale variants: RO/RU render via ?lang=… (client i18n; Googlebot executes

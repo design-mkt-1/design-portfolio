@@ -10,7 +10,7 @@ import { url } from '../lib/site';
     <div class="ctab-glow" aria-hidden="true"></div>
     <h2>Need creative like this for your brand?</h2>
     <p class="muted">We ship brand systems, landings, banners and video for iGaming operators — in EN, RO and RU.</p>
-    <a class="btn btn-primary" href={url('/contact')}>Start a project</a>
+    <a class="btn btn-spin" href={url('/contact')}>Start a project</a>
   </div>
 </section>
 
@@ -47,26 +47,5 @@ import { url } from '../lib/site';
     position: relative;
   }
 
-  /* periodic gold glint across the primary CTA — one quick sweep every ~8s */
-  @media (prefers-reduced-motion: no-preference) {
-    .ctab .btn-primary {
-      position: relative;
-      overflow: hidden;
-    }
-    .ctab .btn-primary::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(115deg, transparent 38%, rgba(255, 236, 180, 0.35) 50%, transparent 62%);
-      transform: translateX(-130%);
-      animation: cta-glint 8s ease-in-out 2.5s infinite;
-      pointer-events: none;
-    }
-  }
-  @keyframes cta-glint {
-    0% { transform: translateX(-130%); }
-    9% { transform: translateX(130%); }
-    100% { transform: translateX(130%); }
-  }
 
 </style>
