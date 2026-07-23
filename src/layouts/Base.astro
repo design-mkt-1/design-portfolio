@@ -288,6 +288,23 @@ const msMark = assetExists('assets/_thumbs/favicons/ms-mark.png')
         .site-header.revealed {
           transform: translateY(0);
         }
+        /* crumbs leave the bar so the logo never gets squeezed: they become a
+           slim low-opacity path strip hanging under the navbar (secondary info,
+           deliberately quiet). Travels with the fixed header's slide in/out. */
+        .header-inner {
+          position: relative;
+        }
+        .crumbs {
+          position: absolute;
+          top: 68px;
+          left: 0;
+          right: 0;
+          padding: 8px 24px;
+          font-size: 0.8rem;
+          opacity: 0.6;
+          background: linear-gradient(to bottom, rgba(11, 11, 18, 0.75), rgba(11, 11, 18, 0.35));
+          backdrop-filter: blur(10px);
+        }
       }
       .header-inner {
         display: flex;

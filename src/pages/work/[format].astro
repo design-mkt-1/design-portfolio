@@ -14,7 +14,7 @@ import {
   brandbookFrames,
   hasBrandbook,
 } from '../../lib/portfolio';
-import { firstSize, availableSizes, landingThumb, type Project } from '../../data/projects';
+import { firstSize, landingThumb, type Project } from '../../data/projects';
 
 export function getStaticPaths() {
   return ['brandbooks', 'landings', 'banners', 'videos'].map((format) => ({ params: { format } }));
@@ -60,10 +60,11 @@ const sections: Section[] = visibleProjects()
     }
     if (format === 'banners') {
       const tiles = projectBanners(p.slug).map((item) => {
-        const original = firstSize(item);
-        const wide = !item.sizes['1x1'] && ['2x1', '3x1', '4x1'].includes(availableSizes(item)[0]);
-        const img = thumbFor(original);
-        return { img, dims: thumbDims(img), label: item.title, wide };
+        const img = thumbFor(firstSize(item));
+        const dims = thumbDims(img);
+        // non-square by real pixel ratio (not bucket) → blur-letterbox tile
+        const wide = !!dims && Math.abs(dims.w / dims.h - 1) > 0.02;
+        return { img, dims, label: item.title, wide };
       });
       return tiles.length ? { project: p, href: `/${p.slug}/portfolio/banners`, tiles } : null;
     }
