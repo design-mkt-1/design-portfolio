@@ -101,7 +101,10 @@ const tiles = items.map((item) => {
     </div>
   </div>
 
-  <div class="lgb-scroll"><img id="lgb-img" src="" alt="Landing preview" /></div>
+  <div class="lgb-scroll">
+    <img id="lgb-img" src="" alt="Landing preview" />
+    <span class="lgb-spin" id="lgb-spin" hidden aria-hidden="true"></span>
+  </div>
 </div>
 
 <script>
@@ -122,11 +125,34 @@ const tiles = items.map((item) => {
   // version is missing. Opening from the grid always starts on mobile.
   let device: DeviceKey = 'mobile';
 
+  // The <img> keeps painting the PREVIOUS landing until a newly-assigned src
+  // finishes downloading (seconds on mobile networks) — blank it immediately,
+  // spin while the new file loads, and only swap in the decoded image.
+  // The token guards against fast swipes racing each other.
+  const spin = document.getElementById('lgb-spin')!;
+  const BLANK = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+  let loadToken = 0;
+  function loadInto(src: string) {
+    const token = ++loadToken;
+    img.src = BLANK;
+    spin.hidden = false;
+    const pre = new Image();
+    pre.onload = () => {
+      if (token !== loadToken) return;
+      img.src = src;
+      spin.hidden = true;
+    };
+    pre.onerror = () => {
+      if (token === loadToken) spin.hidden = true;
+    };
+    pre.src = src;
+  }
+
   function pick(dev: DeviceKey) {
     const item = data[idx];
     const found = item.devices.find((d) => d.key === dev) || item.devices[0];
     device = found.key;
-    img.src = found.src;
+    loadInto(found.src);
     img.alt = `${item.title} (${found.label})`;
     lb.setAttribute('data-device', device);
     scroll.scrollTop = 0;
@@ -305,6 +331,34 @@ const tiles = items.map((item) => {
     display: flex;
     justify-content: center;
     padding: 30px 20px 50px;
+  }
+  /* loading spinner while the next landing downloads (the image itself is
+     blanked instantly so the previous one never lingers) */
+  .lgb-spin {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 40px;
+    height: 40px;
+    margin: -20px 0 0 -20px;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.16);
+    border-top-color: var(--accent);
+    animation: lgb-spin 0.8s linear infinite;
+    pointer-events: none;
+  }
+  .lgb-spin[hidden] {
+    display: none;
+  }
+  @keyframes lgb-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .lgb-spin {
+      animation-duration: 1.6s;
+    }
   }
   .lgb-scroll img {
     width: auto;

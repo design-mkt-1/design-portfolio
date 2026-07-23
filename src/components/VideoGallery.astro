@@ -115,6 +115,11 @@ const payload = items.map((v) => ({
     v.playsInline = true;
     v.preload = 'metadata';
     stage.innerHTML = '';
+    // spinner until the new clip has frames — the old player is already gone
+    stage.classList.add('loading');
+    const done = () => stage.classList.remove('loading');
+    v.addEventListener('loadeddata', done, { once: true });
+    v.addEventListener('error', done, { once: true });
     stage.appendChild(v);
   }
   function renderSizes() {
@@ -268,6 +273,7 @@ const payload = items.map((v) => ({
     width: min(94vw, 1100px);
   }
   .vlb-stage {
+    position: relative;
     width: 100%;
     max-width: min(94vw, 1100px);
     max-height: 74vh;
@@ -281,6 +287,26 @@ const payload = items.map((v) => ({
   /* portrait/square players stay centered and height-capped */
   .vlb-stage:not([style*='16 / 9']) {
     width: auto;
+  }
+  .vlb-stage.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 40px;
+    height: 40px;
+    margin: -20px 0 0 -20px;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.16);
+    border-top-color: var(--accent);
+    animation: vlb-spin 0.8s linear infinite;
+    pointer-events: none;
+    z-index: 2;
+  }
+  @keyframes vlb-spin {
+    to {
+      transform: rotate(360deg);
+    }
   }
   .vlb-stage :global(video) {
     width: 100%;
