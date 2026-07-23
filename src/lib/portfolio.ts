@@ -118,17 +118,42 @@ export function projectBanners(slug: string): MediaItem[] {
 /** Landings, natural order; a *mobile*, *tablet*, and/or *desktop* image per folder. */
 export function projectLandings(slug: string): LandingItem[] {
   return setFolders(slug, 'landings')
-    .map((folder) => {
+    .flatMap((folder) => {
       const files = readdirSync(join(kindDir(slug, 'landings'), folder)).filter((f) => IMG.test(f));
-      const item: LandingItem = { title: cleanTitle(folder) };
-      // "dekstop" tolerated — a real-world upload typo that would otherwise
-      // silently drop the desktop version.
-      const patterns = { mobile: /mobile/i, tablet: /tablet/i, desktop: /desktop|dekstop/i } as const;
-      for (const device of ['mobile', 'tablet', 'desktop'] as const) {
-        const file = files.find((f) => patterns[device].test(f));
-        if (file) item[device] = `assets/${slug}/landings/${folder}/${file}`;
+      // "mob"/"dekstop" tolerated — real-world upload spellings that would
+      // otherwise silently drop a version.
+      const patterns = { mobile: /mob/i, tablet: /tablet/i, desktop: /desktop|dekstop/i } as const;
+      const byDevice = {
+        mobile: files.filter((f) => patterns.mobile.test(f)),
+        tablet: files.filter((f) => patterns.tablet.test(f)),
+        desktop: files.filter((f) => patterns.desktop.test(f)),
+      };
+      const devices = ['mobile', 'tablet', 'desktop'] as const;
+      // Common case: at most one file per device → one landing, stray numbers
+      // in names ("430px (Mobile 2).jpg") are just designer naming noise.
+      if (devices.every((d) => byDevice[d].length <= 1)) {
+        const item: LandingItem = { title: cleanTitle(folder) };
+        for (const d of devices) if (byDevice[d][0]) item[d] = `assets/${slug}/landings/${folder}/${byDevice[d][0]}`;
+        return [item];
       }
-      return item;
+      // A device has several files → the folder holds numbered variants of one
+      // landing ("desktop - 1.jpg" + "mobile 1.jpg", "desktop - 2.jpg" + …).
+      // Pair files by the LAST small number in the name (dimension tokens like
+      // "375-728" stripped first; no number → variant 1) into numbered items.
+      const variants = new Map<number, LandingItem>();
+      for (const device of devices) {
+        for (const file of byDevice[device]) {
+          const stem = file.replace(/\.[^.]+$/, '').replace(/\d{3,4}\s*[-xх×]\s*\d{3,4}/gi, '');
+          const n = Number(stem.match(/(\d+)(?!.*\d)/)?.[1] ?? 1);
+          const v = n >= 1 && n < 100 ? n : 1;
+          if (!variants.has(v)) variants.set(v, { title: cleanTitle(folder) });
+          const item = variants.get(v)!;
+          if (!item[device]) item[device] = `assets/${slug}/landings/${folder}/${file}`;
+        }
+      }
+      const items = [...variants.entries()].sort((a, b) => a[0] - b[0]).map(([, item]) => item);
+      if (items.length > 1) items.forEach((item, i) => (item.title = `${cleanTitle(folder)} ${i + 1}`));
+      return items;
     })
     .filter((l) => l.mobile || l.tablet || l.desktop);
 }
