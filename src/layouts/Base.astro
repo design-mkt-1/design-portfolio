@@ -38,6 +38,10 @@ const ogImageAbs = Astro.site ? new URL(url(ogImage), Astro.site).href : url(ogI
 // squareFavicon() serves the letterboxed square PNG so non-square brand marks
 // aren't stretched by the browser's square tab slot.
 const faviconHref = url(squareFavicon(favicon && assetExists(favicon) ? favicon : 'assets/favicon_ms.webp'));
+// header mark: trimmed, natural aspect ratio — never the letterboxed tab icon
+const msMark = assetExists('assets/_thumbs/favicons/ms-mark.png')
+  ? 'assets/_thumbs/favicons/ms-mark.png'
+  : 'assets/favicon_ms.webp';
 ---
 
 <!doctype html>
@@ -94,7 +98,7 @@ const faviconHref = url(squareFavicon(favicon && assetExists(favicon) ? favicon 
       <div class="container header-inner">
         <a class="brand" href={url('/')} aria-label="Marketing Solutions — home">
           <img class="brand-full" src={url('assets/marketing-solutions-logo.webp')} alt="Marketing Solutions" height="34" />
-          <img class="brand-mark" src={url(squareFavicon('assets/favicon_ms.webp'))} alt="Marketing Solutions" height="36" width="36" />
+          <img class="brand-mark" src={url(msMark)} alt="Marketing Solutions" height="36" />
         </a>
         {
           crumbs.length > 0 && (
@@ -124,7 +128,7 @@ const faviconHref = url(squareFavicon(favicon && assetExists(favicon) ? favicon 
 
     <footer class="site-footer" hidden={noFooter}>
       <div class="container footer-inner">
-        <span class="muted">© Marketing Solutions — Design Portfolio</span>
+        <span class="muted">© Marketing Solutions — Design Portfolio 2026</span>
         <a
           class="footer-li"
           href="https://www.linkedin.com/company/marketing-solutions-romania/"

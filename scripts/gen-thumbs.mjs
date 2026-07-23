@@ -82,6 +82,15 @@ async function makeFavicons() {
     const f = readdirSync(join(ASSETS, p.name)).find((n) => /^favicon.*\.(svg|webp|png|jpe?g)$/i.test(n));
     if (f) jobs.push([p.name, join(ASSETS, p.name, f)]);
   }
+  // header brand mark: trimmed to the ink, kept at its NATURAL aspect ratio
+  // (no square letterbox) so the mark fills its header slot edge-to-edge
+  if (existsSync(ms)) {
+    const dest = join(OUT, 'favicons', 'ms-mark.png');
+    if (!existsSync(dest) || statSync(dest).mtimeMs < statSync(ms).mtimeMs) {
+      mkdirSync(dirname(dest), { recursive: true });
+      await sharp(ms, { density: 300 }).trim({ threshold: 12 }).resize({ height: 96 }).png().toFile(dest);
+    }
+  }
   // iOS home-screen icon: the MS mark on the site's dark background (iOS
   // replaces transparency with white, so the plain favicon looks broken there)
   if (existsSync(ms)) {

@@ -21,9 +21,9 @@ export const LOCALE_NAME: Record<Locale, string> = {
 export const STRINGS: Record<string, [string, string, string]> = {
   'nav.contact': ['Contact us', 'Contactează-ne', 'Связаться'],
   'footer.copy': [
-    '© Marketing Solutions — Design Portfolio',
-    '© Marketing Solutions — Portofoliu de Design',
-    '© Marketing Solutions — Портфолио Дизайна',
+    '© Marketing Solutions — Design Portfolio 2026',
+    '© Marketing Solutions — Portofoliu de Design 2026',
+    '© Marketing Solutions — Портфолио Дизайна 2026',
   ],
 
   'home.eyebrow': ['iGaming Creative Studio', 'Studio de Creație iGaming', 'Креативная студия iGaming'],
@@ -93,9 +93,9 @@ export const STRINGS: Record<string, [string, string, string]> = {
   // Team section (home)
   'team.head': ['Our team', 'Echipa noastră', 'Наша команда'],
   'team.sub': [
-    'Young, fast-moving and focused — 15+ creatives working as one team.',
-    'Tineri, rapizi și concentrați — 15+ creativi care lucrează ca o singură echipă.',
-    'Молодая, быстрая и сфокусированная команда — 15+ специалистов, работающих как одно целое.',
+    'Young, fast-moving and focused — 15 design wizards and growing.',
+    'Tineri, rapizi și concentrați — 15 magicieni ai designului, și creștem.',
+    'Молодая, быстрая и сфокусированная команда — 15 волшебников дизайна, и нас становится больше.',
   ],
   'team.geo.ro': ['Romania', 'România', 'Румыния'],
   'team.geo.ua': ['Ukraine', 'Ucraina', 'Украина'],
@@ -111,6 +111,12 @@ export const STRINGS: Record<string, [string, string, string]> = {
     'AI-ul este integrat în procesul nostru — concepte, upscaling, motion și voce — iar fiecare livrabil este coordonat artistic de designerii noștri. Calitate mai bună, livrată mai repede.',
     'AI встроен в наш процесс — концепты, апскейлинг, моушн и озвучка — при этом каждый материал контролируют наши дизайнеры. Лучше качество, быстрее результат.',
   ],
+
+  // Cross-brand work overview pages (/work/*)
+  'work.items': ['items across', 'lucrări în', 'работ в'],
+  'work.brands': ['brands', 'branduri', 'брендах'],
+  'work.open': ['Open gallery', 'Deschide galeria', 'Открыть галерею'],
+  'svc.more': ['See all', 'Vezi tot', 'Смотреть все'],
 
   // Service card deliverable chips ('Logo' and the ratio chips are universal;
   // Mobile/Tablet/Desktop reuse the dev.* rows via the same EN text)

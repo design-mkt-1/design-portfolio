@@ -1,0 +1,194 @@
+---
+// Cross-brand overview pages behind the "What we do" cards: /work/brandbooks,
+// /work/landings, /work/banners, /work/videos. Pure static tile grids grouped
+// by brand — no lightbox here; every tile (and the section header) links into
+// that brand's real gallery page where the full viewer lives.
+import Base from '../../layouts/Base.astro';
+import { url } from '../../lib/site';
+import { thumbFor, squareThumbFor, thumbDims } from '../../lib/thumbs';
+import {
+  visibleProjects,
+  projectLandings,
+  projectBanners,
+  projectVideos,
+  brandbookFrames,
+  hasBrandbook,
+} from '../../lib/portfolio';
+import { firstSize, availableSizes, landingThumb, type Project } from '../../data/projects';
+
+export function getStaticPaths() {
+  return ['brandbooks', 'landings', 'banners', 'videos'].map((format) => ({ params: { format } }));
+}
+
+const { format } = Astro.params;
+
+const META: Record<string, { title: string; ratio: string }> = {
+  brandbooks: { title: 'Brand systems', ratio: '3 / 2' },
+  landings: { title: 'Promo landings', ratio: '3 / 4' },
+  banners: { title: 'Banner sets', ratio: '1 / 1' },
+  videos: { title: 'Video & motion', ratio: '1 / 1' },
+};
+const meta = META[format!];
+
+interface Tile {
+  img?: string;
+  dims?: { w: number; h: number };
+  label: string;
+}
+interface Section {
+  project: Project;
+  href: string;
+  tiles: Tile[];
+}
+
+const sections: Section[] = visibleProjects()
+  .map((p): Section | null => {
+    if (format === 'brandbooks') {
+      if (!hasBrandbook(p)) return null;
+      const frame = brandbookFrames(p.slug)[0];
+      const img = frame ? thumbFor(frame) : undefined;
+      return { project: p, href: `/${p.slug}/brandbook`, tiles: [{ img, dims: thumbDims(img), label: 'Brandbook' }] };
+    }
+    if (format === 'landings') {
+      const tiles = projectLandings(p.slug).map((l) => {
+        const img = thumbFor(landingThumb(l));
+        return { img, dims: thumbDims(img), label: l.title };
+      });
+      return tiles.length ? { project: p, href: `/${p.slug}/portfolio/landings`, tiles } : null;
+    }
+    if (format === 'banners') {
+      const tiles = projectBanners(p.slug).map((item) => {
+        const original = firstSize(item);
+        const wide = !item.sizes['1x1'] && ['2x1', '3x1', '4x1'].includes(availableSizes(item)[0]);
+        const img = wide ? squareThumbFor(original) : thumbFor(original);
+        return { img, dims: thumbDims(img), label: item.title };
+      });
+      return tiles.length ? { project: p, href: `/${p.slug}/portfolio/banners`, tiles } : null;
+    }
+    const tiles = projectVideos(p.slug).map((v) => {
+      const img = thumbFor(v.poster);
+      return { img, dims: thumbDims(img), label: v.title };
+    });
+    return tiles.length ? { project: p, href: `/${p.slug}/portfolio/videos`, tiles } : null;
+  })
+  .filter((s): s is Section => !!s && s.tiles.some((t) => t.img));
+
+const total = sections.reduce((n, s) => n + s.tiles.length, 0);
+---
+
+<Base
+  title={`${meta.title} — Marketing Solutions`}
+  description={`All ${meta.title.toLowerCase()} from the Marketing Solutions portfolio, across ${sections.length} iGaming brands.`}
+  crumbs={[{ label: 'Projects', href: '/' }, { label: meta.title }]}
+>
+  <section class="container work">
+    <div class="work-head reveal">
+      <h1>{meta.title}</h1>
+      <p class="muted">
+        <span class="work-count">{total}</span>
+        <span data-i18n="work.items">items across</span>
+        <span class="work-count">{sections.length}</span>
+        <span data-i18n="work.brands">brands</span>
+      </p>
+    </div>
+    {
+      sections.map((s) => (
+        <div class="work-section reveal">
+          <div class="work-brand">
+            <h2>{s.project.name}</h2>
+            <a class="work-open" href={url(s.href)}>
+              <span>Open gallery</span> →
+            </a>
+          </div>
+          <div class="work-grid" style={`--ratio:${meta.ratio}`}>
+            {s.tiles.filter((t) => t.img).map((t) => (
+              <a class="work-tile" href={url(s.href)} title={t.label}>
+                <img
+                  src={url(t.img!)}
+                  alt={t.label}
+                  width={t.dims?.w}
+                  height={t.dims?.h}
+                  loading="lazy"
+                  decoding="async"
+                />
+              </a>
+            ))}
+          </div>
+        </div>
+      ))
+    }
+  </section>
+</Base>
+
+<style>
+  .work {
+    padding-top: 34px;
+    padding-bottom: 40px;
+  }
+  .work-head {
+    text-align: center;
+    margin-bottom: 34px;
+  }
+  .work-head h1 {
+    font-size: clamp(1.8rem, 5vw, 2.6rem);
+  }
+  .work-head p {
+    margin: 10px 0 0;
+  }
+  .work-count {
+    color: var(--fg);
+    font-weight: 700;
+  }
+  .work-section {
+    margin-bottom: 42px;
+  }
+  .work-brand {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  .work-brand h2 {
+    font-size: 1.15rem;
+  }
+  .work-open {
+    font-size: 0.88rem;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+  .work-open:hover span {
+    text-decoration: underline;
+  }
+  .work-grid {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+  .work-tile {
+    display: block;
+    aspect-ratio: var(--ratio, 1);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
+    transition: transform 0.22s var(--ease-expo), border-color 0.22s, box-shadow 0.22s;
+  }
+  .work-tile img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top;
+  }
+  .work-tile:hover {
+    transform: translateY(-3px);
+    border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.4);
+  }
+  @media (max-width: 700px) {
+    .work-grid {
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 9px;
+    }
+  }
+</style>
