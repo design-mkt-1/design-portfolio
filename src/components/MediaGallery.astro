@@ -170,6 +170,14 @@ const payload = items.map((item) => ({
   document.querySelectorAll<HTMLElement>('.tile').forEach((tile) => {
     tile.addEventListener('click', () => ctrl.open(Number(tile.dataset.index)));
   });
+
+  // deep link from the /work overviews: #open-<n> opens that item directly
+  const deep = location.hash.match(/^#open-(\d+)$/);
+  if (deep && items.length) {
+    const i = Math.min(items.length - 1, Math.max(0, Number(deep[1])));
+    document.querySelector<HTMLElement>(`.tile[data-index="${i}"]`)?.scrollIntoView({ block: 'center' });
+    requestAnimationFrame(() => ctrl.open(i));
+  }
 </script>
 
 <style>

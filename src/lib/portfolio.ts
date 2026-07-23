@@ -165,6 +165,16 @@ export function projectLandings(slug: string): LandingItem[] {
  *  folder shows up within a minute of uploading the MP4s. */
 const VIDEO_DIM = /(\d{3,4})\s*[xх×\-]\s*(\d{3,4})/i;
 const videoCache = new Map<string, VideoItem[]>();
+// Video delivery: GitHub Pages serves the repo directly, but jsDelivr fronts
+// the same files with a global CDN — much faster playback start in far markets
+// (GE/UZ). CI builds pin the exact commit (instant freshness + immutable
+// caching); local builds keep repo-relative paths. Every video is ≤ ~12MB,
+// safely under jsDelivr's 20MB per-file limit.
+const VIDEO_CDN = process.env.GITHUB_SHA
+  ? `https://cdn.jsdelivr.net/gh/design-mkt-1/design-portfolio@${process.env.GITHUB_SHA}/public/`
+  : null;
+const videoSrc = (path: string) => (VIDEO_CDN ? VIDEO_CDN + encodeURI(path) : path);
+
 export function projectVideos(slug: string): VideoItem[] {
   const hit = videoCache.get(slug);
   if (hit) return hit;
@@ -182,7 +192,7 @@ export function projectVideos(slug: string): VideoItem[] {
       const [w, h] = [parseInt(m[1], 10), parseInt(m[2], 10)];
       const key = bucketFor(w, h);
       if (!src[key]) {
-        src[key] = `assets/${slug}/videos/${folder}/${f}`;
+        src[key] = videoSrc(`assets/${slug}/videos/${folder}/${f}`);
         labels[key] = `${w} × ${h}`;
       }
     }

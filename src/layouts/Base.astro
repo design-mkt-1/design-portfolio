@@ -65,6 +65,9 @@ const siteSection = pagePath.includes('/contact')
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    {/* mark JS as available before any CSS applies — reveal animations only
+        hide content under html.js, so no-JS/slow-JS visitors see everything */}
+    <script is:inline>document.documentElement.classList.add('js');</script>
     <AnalyticsHead />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
@@ -369,6 +372,7 @@ const siteSection = pagePath.includes('/contact')
         background: var(--bg-elev);
       }
       .lang-btn {
+        position: relative;
         padding: 5px 10px;
         border: 0;
         border-radius: 999px;
@@ -378,6 +382,26 @@ const siteSection = pagePath.includes('/contact')
         font-weight: 600;
         letter-spacing: 0.02em;
         transition: color 0.2s, background 0.2s;
+      }
+      /* invisible hit-area expansion to the ~44px touch comfort zone — the
+         visual size of the small header controls doesn't change */
+      .lang-btn::after,
+      .brand::after {
+        content: '';
+        position: absolute;
+        inset: -10px -3px;
+      }
+      .brand {
+        position: relative;
+      }
+      .brand::after {
+        inset: -8px;
+      }
+      /* crumbs scroll horizontally (overflow clips pseudo-elements), so grow
+         the real box instead: padding + negative margin nets zero layout */
+      .crumbs a {
+        padding: 10px 5px;
+        margin: -10px -5px;
       }
       .lang-btn:hover {
         color: var(--fg);

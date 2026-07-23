@@ -28,6 +28,9 @@ const RULES = {
   store: { height: 1120 },
   poster: { width: 640 },
   brandbookCover: { width: 960 },
+  // full-page reader frames: viewer-width webp so raw multi-MB page exports
+  // (e.g. 2.5MB JPGs) never ship to the browser
+  brandbookFrame: { width: 1600 },
 };
 
 /** Collect [absSrc, kind] jobs from the conventional asset tree. */
@@ -57,12 +60,13 @@ function collectJobs() {
     eachSet('videos', (set) => {
       for (const f of readdirSync(set)) if (IMG.test(f) && /^cover/i.test(f)) jobs.push([join(set, f), 'poster']);
     });
-    // brand-book chooser cover: first numbered frame and/or explicit cover.*
+    // brand-book reader frames (all numbered pages) + explicit cover.*
     const bb = join(base, 'brandbook');
     if (existsSync(bb)) {
-      const frames = readdirSync(bb).filter((f) => /^\d+\.(webp|png|jpe?g)$/i.test(f)).sort((a, b) => parseInt(a) - parseInt(b));
-      if (frames[0]) jobs.push([join(bb, frames[0]), 'brandbookCover']);
-      for (const f of readdirSync(bb)) if (/^cover\.(webp|png|jpe?g)$/i.test(f)) jobs.push([join(bb, f), 'brandbookCover']);
+      for (const f of readdirSync(bb)) {
+        if (/^\d+\.(webp|png|jpe?g)$/i.test(f)) jobs.push([join(bb, f), 'brandbookFrame']);
+        else if (/^cover\.(webp|png|jpe?g)$/i.test(f)) jobs.push([join(bb, f), 'brandbookCover']);
+      }
     }
   }
   return jobs;

@@ -397,7 +397,10 @@ button {
 }
 
 /* ---- Scroll-reveal (staggered, expo) ---- */
-.reveal {
+/* Reveal animations hide content only once JS is confirmed running (the .js
+   class is set by an inline head script) — with JS disabled, blocked, or still
+   downloading on a slow connection, everything is simply visible. */
+.js .reveal {
   opacity: 0;
   transform: translateY(18px) scale(0.98);
   transition:
@@ -405,7 +408,7 @@ button {
     transform 0.5s var(--ease-expo);
   transition-delay: var(--reveal-delay, 0ms);
 }
-.reveal.is-visible {
+.js .reveal.is-visible {
   opacity: 1;
   transform: none;
 }
@@ -416,7 +419,8 @@ button {
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
-  .reveal {
+  .reveal,
+  .js .reveal {
     opacity: 1;
     transform: none;
   }

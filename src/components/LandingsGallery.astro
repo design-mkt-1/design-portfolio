@@ -166,6 +166,16 @@ const tiles = items.map((item) => {
     });
   });
   devBtns.forEach((b) => b.addEventListener('click', () => !b.disabled && pick(b.dataset.device as DeviceKey)));
+
+  // deep link from the /work overviews: #open-<n> opens that landing directly
+  const lgItems = document.querySelectorAll<HTMLElement>('.lg-item');
+  const deep = location.hash.match(/^#open-(\d+)$/);
+  if (deep && lgItems.length) {
+    const i = Math.min(lgItems.length - 1, Math.max(0, Number(deep[1])));
+    lgItems[i]?.scrollIntoView({ block: 'center' });
+    device = 'mobile';
+    requestAnimationFrame(() => ctrl.open(i));
+  }
 </script>
 
 <style>

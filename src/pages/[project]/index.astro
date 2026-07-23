@@ -81,6 +81,12 @@ if (portfolio) {
 const sections = projectSections(p);
 const only = sections.length === 1 ? sections[0] : null;
 const redirectTo = only ? url(`/${p.slug}/${only}`) : null;
+
+// Link-preview scrapers (Slack/Telegram/WhatsApp) read THIS stub and don't
+// follow the refresh — give them a full card so shared short URLs unfurl.
+const stubDescription = p.tagline ? `${p.name} — ${p.tagline}` : `${p.name} on the Marketing Solutions design portfolio.`;
+const stubOgImage = Astro.site ? new URL(url(projectOg(p)), Astro.site).href : url(projectOg(p));
+const stubUrl = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined;
 ---
 
 {
@@ -93,6 +99,16 @@ const redirectTo = only ? url(`/${p.slug}/${only}`) : null;
         <link rel="canonical" href={redirectTo} />
         <meta name="robots" content="noindex" />
         <title>{p.name} — Marketing Solutions</title>
+        <meta name="description" content={stubDescription} />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="Marketing Solutions" />
+        <meta property="og:title" content={`${p.name} — Marketing Solutions`} />
+        <meta property="og:description" content={stubDescription} />
+        <meta property="og:image" content={stubOgImage} />
+        {stubUrl && <meta property="og:url" content={stubUrl} />}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${p.name} — Marketing Solutions`} />
+        <meta name="twitter:image" content={stubOgImage} />
         <script is:inline set:html={`location.replace(${JSON.stringify(redirectTo)})`} />
       </head>
       <body data-site-section="project">

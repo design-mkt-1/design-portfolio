@@ -37,6 +37,8 @@ interface Tile {
   label: string;
   /** wide-only banner: render full-fit over a blurred copy instead of cropping */
   wide?: boolean;
+  /** item's index in the destination gallery — powers #open-<n> deep links */
+  idx?: number;
 }
 interface Section {
   project: Project;
@@ -53,25 +55,25 @@ const sections: Section[] = visibleProjects()
       return { project: p, href: `/${p.slug}/brandbook`, tiles: [{ img, dims: thumbDims(img), label: 'Brandbook' }] };
     }
     if (format === 'landings') {
-      const tiles = projectLandings(p.slug).map((l) => {
+      const tiles = projectLandings(p.slug).map((l, idx) => {
         const img = thumbFor(landingThumb(l));
-        return { img, dims: thumbDims(img), label: l.title };
+        return { img, dims: thumbDims(img), label: l.title, idx };
       });
       return tiles.length ? { project: p, href: `/${p.slug}/portfolio/landings`, tiles } : null;
     }
     if (format === 'banners') {
-      const tiles = projectBanners(p.slug).map((item) => {
+      const tiles = projectBanners(p.slug).map((item, idx) => {
         const img = thumbFor(firstSize(item));
         const dims = thumbDims(img);
         // non-square by real pixel ratio (not bucket) → blur-letterbox tile
         const wide = !!dims && Math.abs(dims.w / dims.h - 1) > 0.02;
-        return { img, dims, label: item.title, wide };
+        return { img, dims, label: item.title, wide, idx };
       });
       return tiles.length ? { project: p, href: `/${p.slug}/portfolio/banners`, tiles } : null;
     }
-    const tiles = projectVideos(p.slug).map((v) => {
+    const tiles = projectVideos(p.slug).map((v, idx) => {
       const img = thumbFor(v.poster);
-      return { img, dims: thumbDims(img), label: v.title };
+      return { img, dims: thumbDims(img), label: v.title, idx };
     });
     return tiles.length ? { project: p, href: `/${p.slug}/portfolio/videos`, tiles } : null;
   })
@@ -116,7 +118,7 @@ const total = sections.reduce((n, s) => n + s.tiles.length, 0);
             {s.tiles.filter((t) => t.img).map((t) => (
               <a
                 class="work-tile"
-                href={url(s.href)}
+                href={url(s.href) + (t.idx !== undefined ? `#open-${t.idx}` : '')}
                 title={t.label}
                 data-analytics-event="select_content"
                 data-analytics-id={stableAnalyticsId(`work_${format}`, t.img!)}

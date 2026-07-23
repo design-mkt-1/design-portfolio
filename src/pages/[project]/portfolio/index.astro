@@ -81,6 +81,12 @@ if (storeImages.length > 0) {
 // instant via JS, meta-refresh fallback for no-JS; same pattern as /<slug>).
 const only = choices.length === 1 ? choices[0] : null;
 const redirectTo = only ? url(only.href) : null;
+
+// Link-preview scrapers read this stub without following the refresh — give
+// shared URLs a full OG card.
+const stubDescription = `${p.name} portfolio — banners, landing pages, and video creative by Marketing Solutions.`;
+const stubOgImage = Astro.site ? new URL(url(projectOg(p)), Astro.site).href : url(projectOg(p));
+const stubUrl = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined;
 ---
 
 {
@@ -93,6 +99,16 @@ const redirectTo = only ? url(only.href) : null;
         <link rel="canonical" href={redirectTo} />
         <meta name="robots" content="noindex" />
         <title>{p.name} Portfolio — Marketing Solutions</title>
+        <meta name="description" content={stubDescription} />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="Marketing Solutions" />
+        <meta property="og:title" content={`${p.name} Portfolio — Marketing Solutions`} />
+        <meta property="og:description" content={stubDescription} />
+        <meta property="og:image" content={stubOgImage} />
+        {stubUrl && <meta property="og:url" content={stubUrl} />}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${p.name} Portfolio — Marketing Solutions`} />
+        <meta name="twitter:image" content={stubOgImage} />
         <script is:inline set:html={`location.replace(${JSON.stringify(redirectTo)})`} />
       </head>
       <body data-site-section="portfolio">
