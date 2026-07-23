@@ -163,42 +163,8 @@ for (const [src, kind] of collectJobs()) {
     } else {
       kept++;
     }
-    // wide banners also get a content-aware square tile crop (.sq.webp):
-    // sharp's attention strategy centers on the salient design, so
-    // text-left/art-right creatives crop right and centered ones stay centered.
-    // Freshness is tracked per-file so the crop appears even when the regular
-    // thumb predates this feature.
-    if (kind === 'banner' && meta.width && meta.height && meta.width / meta.height >= 1.6) {
-      const sqDest = dest.replace(/\.webp$/, '.sq.webp');
-      if (!existsSync(sqDest) || statSync(sqDest).mtimeMs < statSync(src).mtimeMs) {
-        const sq = Math.min(640, meta.height, meta.width);
-        // attention finds the salient area — but on text-left/design-right
-        // creatives loud headline text can win. These banners never have the
-        // design on the left, so an attention crop landing in the left 45%
-        // means it locked onto text: fall back to the right (design) side.
-        let out = await sharp(src)
-          .resize({ width: sq, height: sq, fit: 'cover', position: sharp.strategy.attention })
-          .webp({ quality: QUALITY })
-          .toBuffer({ resolveWithObject: true });
-        const scaledW = Math.round(meta.width * (sq / meta.height));
-        const centerFrac = ((out.info.cropOffsetLeft ?? 0) + sq / 2) / scaledW;
-        if (centerFrac < 0.45) {
-          out = await sharp(src)
-            .resize({ width: sq, height: sq, fit: 'cover', position: 'right' })
-            .webp({ quality: QUALITY })
-            .toBuffer({ resolveWithObject: true });
-        }
-        writeFileSync(sqDest, out.data);
-        made++;
-      }
-    }
     const out = await sharp(dest).metadata();
     manifest[relDest] = { w: out.width, h: out.height };
-    const sqDest = dest.replace(/\.webp$/, '.sq.webp');
-    if (existsSync(sqDest)) {
-      const sq = await sharp(sqDest).metadata();
-      manifest[relative(join(ROOT, 'public'), sqDest).split('\\').join('/')] = { w: sq.width, h: sq.height };
-    }
   } catch (e) {
     console.warn(`[thumbs] skip ${relative(ROOT, src)}: ${e.message}`);
   }

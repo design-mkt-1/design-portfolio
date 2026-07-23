@@ -35,15 +35,6 @@ export function thumbDims(relPath: string | undefined): { w: number; h: number }
   return loadManifest()[relPath];
 }
 
-/** Content-aware square tile crop for wide creatives (falls back to the
- *  regular thumb, then the original). */
-export function squareThumbFor(relPath: string | undefined): string | undefined {
-  if (!relPath || !relPath.startsWith('assets/')) return thumbFor(relPath);
-  const { dir, name } = parse(relPath.slice('assets/'.length));
-  const sq = `assets/_thumbs/${dir ? dir + '/' : ''}${name}.sq.webp`;
-  return existsSync(join(PUB, sq)) ? sq : thumbFor(relPath);
-}
-
 /** Square, letterboxed favicon for the browser tab (non-square brand marks get
  *  stretched by the tab slot otherwise). Falls back to the original file. */
 export function squareFavicon(relPath: string): string {

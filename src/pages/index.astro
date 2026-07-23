@@ -424,6 +424,14 @@ const stats = [
     .stat {
       min-width: 68px;
     }
+    /* team row is exactly 4 cells: a strict 2×2 keeps the columns aligned
+       (flex-wrap centers each row independently, so cells drift) */
+    .team-stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      justify-items: center;
+      row-gap: 18px;
+    }
   }
   .stat-n {
     font-family: var(--font-display);

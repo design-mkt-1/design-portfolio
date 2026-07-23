@@ -1,6 +1,6 @@
 ---
 import { url, isVideoFile } from '../lib/site';
-import { thumbFor, squareThumbFor, thumbDims } from '../lib/thumbs';
+import { thumbFor, thumbDims } from '../lib/thumbs';
 import { SIZE_ORDER, SIZE_LABEL, SIZE_RATIO, availableSizes, firstSize, type MediaItem } from '../data/projects';
 
 interface Props {
@@ -26,8 +26,10 @@ const payload = items.map((item) => ({
   {
     items.map((item, i) => {
       const original = firstSize(item)!;
+      // wide-only banners fit whole into the square tile over a blurred copy
+      // (never cropped — the full design stays visible, centered)
       const wide = !item.sizes['1x1'] && ['2x1', '3x1', '4x1'].includes(availableSizes(item)[0]);
-      const thumb = isVideoFile(original) ? original : (wide ? squareThumbFor(original) : thumbFor(original))!;
+      const thumb = isVideoFile(original) ? original : thumbFor(original)!;
       const dims = thumbDims(thumb);
       const count = availableSizes(item).length;
       return (
@@ -36,7 +38,10 @@ const payload = items.map((item) => ({
             {isVideoFile(thumb) ? (
               <video src={url(thumb)} muted playsinline preload="metadata" />
             ) : (
-              <img src={url(thumb)} alt={item.title} width={dims?.w} height={dims?.h} loading="lazy" decoding="async" />
+              <>
+                {wide && <img class="thumb-blur" src={url(thumb)} alt="" aria-hidden="true" loading="lazy" decoding="async" />}
+                <img class={wide ? 'thumb-fit' : undefined} src={url(thumb)} alt={item.title} width={dims?.w} height={dims?.h} loading="lazy" decoding="async" />
+              </>
             )}
             {kind === 'video' && (
               <span class="play" aria-hidden="true">
@@ -187,6 +192,18 @@ const payload = items.map((item) => ({
     width: 100%;
     height: 100%;
     object-fit: cover;
+  }
+  /* blurred-letterbox tile for wide-only banners: a blurred cover copy fills
+     the square, the full banner sits sharp and centered on top */
+  .thumb .thumb-blur {
+    position: absolute;
+    inset: 0;
+    filter: blur(16px) brightness(0.65);
+    transform: scale(1.15);
+  }
+  .thumb .thumb-fit {
+    position: relative;
+    object-fit: contain;
   }
   .tile:hover .thumb {
     transform: translateY(-4px);
