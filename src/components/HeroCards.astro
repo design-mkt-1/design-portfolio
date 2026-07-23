@@ -189,7 +189,21 @@ const imgCards = unique.slice(0, imgCount).map((e) => e.s);
 
     // Easter egg: clicking the hero logo re-spins the whole wall — image cards
     // blur-spin vertically like reels and land on fresh artwork, video cards
-    // jump to their next clip.
+    // jump to their next clip, and EVERY card drifts to a fresh random spot
+    // and scale so all five visibly change even mid-load.
+    const allCards = Array.from(layer.querySelectorAll<HTMLElement>('.hc-card'));
+    const baseWidths = allCards.map((c) => c.getBoundingClientRect().width);
+    const shuffleWall = () => {
+      const r = (a: number, b: number) => a + Math.random() * (b - a);
+      allCards.forEach((c, i) => {
+        c.style.width = `${Math.round(baseWidths[i] * r(0.82, 1.2))}px`;
+        // symmetric margins nudge the box the same visual direction whichever
+        // edge the slot is anchored to (left/right, top/bottom)
+        const jx = Math.round(r(-38, 38));
+        const jy = Math.round(r(-30, 30));
+        c.style.margin = `${jy}px ${-jx}px ${-jy}px ${jx}px`;
+      });
+    };
     const logo = document.querySelector<HTMLElement>('.hero-logo img');
     if (logo && cards.length) {
       logo.style.cursor = 'pointer';
@@ -199,6 +213,7 @@ const imgCards = unique.slice(0, imgCount).map((e) => e.s);
       const respin = () => {
         if (busy) return;
         busy = true;
+        shuffleWall();
         cards.forEach((card, i) => {
           const a = card.querySelector<HTMLImageElement>('img.a')!;
           const next = pickNext();
@@ -271,6 +286,9 @@ const imgCards = unique.slice(0, imgCount).map((e) => e.s);
     transform-style: preserve-3d;
     animation: hc-float var(--dur, 26s) ease-in-out var(--delay, 0s) infinite alternate;
     will-change: transform;
+    /* spin reshuffle: cards glide to their new random spot/size (width and
+       margins are only ever changed by the logo-spin easter egg) */
+    transition: width 0.8s var(--ease-expo), margin 0.8s var(--ease-expo);
   }
   .hc-card img,
   .hc-card video {
