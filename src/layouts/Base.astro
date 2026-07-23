@@ -45,6 +45,7 @@ const faviconHref = url(squareFavicon(favicon && assetExists(favicon) ? favicon 
     <meta name="description" content={description} />
     <title>{title}</title>
     <link rel="icon" href={faviconHref} />
+    <link rel="apple-touch-icon" sizes="180x180" href={url('assets/_thumbs/favicons/apple-touch-icon.png')} />
     {canonical && <link rel="canonical" href={canonical} />}
 
     {/* Locale variants: RO/RU render via ?lang=… (client i18n; Googlebot executes
@@ -89,7 +90,8 @@ const faviconHref = url(squareFavicon(favicon && assetExists(favicon) ? favicon 
     <header class="site-header">
       <div class="container header-inner">
         <a class="brand" href={url('/')} aria-label="Marketing Solutions — home">
-          <img src={url('assets/marketing-solutions-logo.webp')} alt="Marketing Solutions" height="34" />
+          <img class="brand-full" src={url('assets/marketing-solutions-logo.webp')} alt="Marketing Solutions" height="34" />
+          <img class="brand-mark" src={url(squareFavicon('assets/favicon_ms.webp'))} alt="Marketing Solutions" height="36" width="36" />
         </a>
         {
           crumbs.length > 0 && (
@@ -344,6 +346,10 @@ const faviconHref = url(squareFavicon(favicon && assetExists(favicon) ? favicon 
         display: inline-flex;
         align-items: center;
         transition: opacity 0.2s;
+      }
+      /* the compact square MS mark is the header brand on every screen */
+      .brand-full {
+        display: none;
       }
       .brand:hover {
         opacity: 0.85;

@@ -164,6 +164,68 @@ button {
   margin: 0 0.32em;
 }
 
+/* ---- Animated-stroke CTA (casino) ----
+   Idle: one light runs along the outline. Hover: gold fill sweeps in. */
+@property --spin-a {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+.btn-spin {
+  position: relative;
+  z-index: 0; /* stacking context: keeps the fill layer above the bg, below text */
+  overflow: hidden;
+  /* gradient-border: dark fill in the padding box, the conic ring (one bright
+     traveling segment over a faint base line) in the border box */
+  border: 2px solid transparent;
+  background:
+    linear-gradient(var(--bg-elev), var(--bg-elev)) padding-box,
+    conic-gradient(
+        from var(--spin-a),
+        rgba(255, 255, 255, 0.14) 0deg 280deg,
+        var(--brand-teal) 310deg,
+        #f5c452 338deg,
+        rgba(255, 255, 255, 0.14) 358deg
+      )
+      border-box;
+  color: var(--fg);
+  font-weight: 600;
+  animation: btn-stroke 3.4s linear infinite;
+  transition: color 0.25s, box-shadow 0.25s, transform 0.2s var(--ease-expo);
+}
+@keyframes btn-stroke {
+  to {
+    --spin-a: 360deg;
+  }
+}
+.btn-spin::after {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  border-radius: 999px;
+  background: linear-gradient(115deg, #ffe9a8, #f5b301 55%, #e08c00);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.38s var(--ease-expo);
+}
+.btn-spin:hover {
+  color: #1c1204;
+  box-shadow: 0 10px 34px rgba(245, 179, 1, 0.35);
+  transform: translateY(-2px);
+}
+.btn-spin:hover::after {
+  transform: scaleX(1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn-spin::before {
+    animation: none;
+  }
+  .btn-spin::after {
+    transition: none;
+  }
+}
+
 /* ---- Back link ---- */
 .backlink {
   display: inline-flex;

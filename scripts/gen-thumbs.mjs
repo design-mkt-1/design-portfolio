@@ -82,13 +82,32 @@ async function makeFavicons() {
     const f = readdirSync(join(ASSETS, p.name)).find((n) => /^favicon.*\.(svg|webp|png|jpe?g)$/i.test(n));
     if (f) jobs.push([p.name, join(ASSETS, p.name, f)]);
   }
+  // iOS home-screen icon: the MS mark on the site's dark background (iOS
+  // replaces transparency with white, so the plain favicon looks broken there)
+  if (existsSync(ms)) {
+    const dest = join(OUT, 'favicons', 'apple-touch-icon.png');
+    if (!existsSync(dest) || statSync(dest).mtimeMs < statSync(ms).mtimeMs) {
+      mkdirSync(dirname(dest), { recursive: true });
+      const msTrim = await sharp(ms, { density: 300 }).trim({ threshold: 12 }).png().toBuffer();
+      const mark = await sharp(msTrim)
+        .resize({ width: 128, height: 128, fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+        .png()
+        .toBuffer();
+      await sharp({ create: { width: 180, height: 180, channels: 4, background: { r: 11, g: 11, b: 18, alpha: 1 } } })
+        .composite([{ input: mark }])
+        .png()
+        .toFile(dest);
+    }
+  }
   let n = 0;
   for (const [slug, src] of jobs) {
     const dest = join(OUT, 'favicons', `${slug}.png`);
     try {
       if (existsSync(dest) && statSync(dest).mtimeMs >= statSync(src).mtimeMs) continue;
       mkdirSync(dirname(dest), { recursive: true });
-      await sharp(src, { density: 300 })
+      // trim any padding baked into the source so the mark fills the square
+      const trimmed = await sharp(src, { density: 300 }).trim({ threshold: 12 }).png().toBuffer();
+      await sharp(trimmed)
         .resize({ width: 128, height: 128, fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
         .png()
         .toFile(dest);
@@ -135,8 +154,29 @@ for (const [src, kind] of collectJobs()) {
     } else {
       kept++;
     }
+    // wide banners also get a content-aware square tile crop (.sq.webp):
+    // sharp's attention strategy centers on the salient design, so
+    // text-left/art-right creatives crop right and centered ones stay centered.
+    // Freshness is tracked per-file so the crop appears even when the regular
+    // thumb predates this feature.
+    if (kind === 'banner' && meta.width && meta.height && meta.width / meta.height >= 1.6) {
+      const sqDest = dest.replace(/\.webp$/, '.sq.webp');
+      if (!existsSync(sqDest) || statSync(sqDest).mtimeMs < statSync(src).mtimeMs) {
+        const sq = Math.min(640, meta.height, meta.width);
+        await sharp(src)
+          .resize({ width: sq, height: sq, fit: 'cover', position: sharp.strategy.attention })
+          .webp({ quality: QUALITY })
+          .toFile(sqDest);
+        made++;
+      }
+    }
     const out = await sharp(dest).metadata();
     manifest[relDest] = { w: out.width, h: out.height };
+    const sqDest = dest.replace(/\.webp$/, '.sq.webp');
+    if (existsSync(sqDest)) {
+      const sq = await sharp(sqDest).metadata();
+      manifest[relative(join(ROOT, 'public'), sqDest).split('\\').join('/')] = { w: sq.width, h: sq.height };
+    }
   } catch (e) {
     console.warn(`[thumbs] skip ${relative(ROOT, src)}: ${e.message}`);
   }

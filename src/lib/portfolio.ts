@@ -37,6 +37,8 @@ const RATIO_BUCKETS: [SizeKey, number][] = [
   ['16x9', 16 / 9],
   ['4x5', 4 / 5],
   ['2x1', 2],
+  ['3x1', 3],
+  ['4x1', 4],
 ];
 function bucketFor(w: number, h: number): SizeKey {
   const r = w / h;
@@ -76,18 +78,13 @@ export function projectBanners(slug: string): MediaItem[] {
     }
     if (!probes.length) continue;
     const rel = (f: string) => `assets/${slug}/banners/${folder}/${f}`;
-    const perKey = new Map<SizeKey, Probe[]>();
-    for (const p of probes) perKey.set(p.key, [...(perKey.get(p.key) ?? []), p]);
     const title = cleanTitle(folder);
-    if (Math.max(...[...perKey.values()].map((a) => a.length)) === 1) {
-      const sizes: MediaItem['sizes'] = {};
-      const labels: MediaItem['labels'] = {};
-      for (const [key, [p]] of perKey) {
-        sizes[key] = rel(p.file);
-        labels[key] = `${p.w} × ${p.h}`;
-      }
-      out.push({ title, sizes, labels });
-    } else {
+    // Files sharing EXACT dimensions are separate creatives (step banners,
+    // slider series) → the folder splits into numbered items. Distinct
+    // dimensions are placements of ONE creative → a single multi-size item.
+    const dimCounts = new Map<string, number>();
+    for (const p of probes) dimCounts.set(`${p.w}x${p.h}`, (dimCounts.get(`${p.w}x${p.h}`) ?? 0) + 1);
+    if (Math.max(...dimCounts.values()) > 1) {
       probes.forEach((p, i) =>
         out.push({
           title: `${title} ${i + 1}`,
@@ -95,6 +92,23 @@ export function projectBanners(slug: string): MediaItem[] {
           labels: { [p.key]: `${p.w} × ${p.h}` },
         }),
       );
+    } else {
+      const sizes: MediaItem['sizes'] = {};
+      const labels: MediaItem['labels'] = {};
+      for (const p of probes) {
+        // nearest free bucket if the ideal one is already taken
+        let key = p.key;
+        if (sizes[key]) {
+          const free = RATIO_BUCKETS
+            .filter(([k]) => !sizes[k])
+            .sort((a, b) => Math.abs(Math.log(p.w / p.h / a[1])) - Math.abs(Math.log(p.w / p.h / b[1])))[0];
+          if (!free) continue;
+          key = free[0];
+        }
+        sizes[key] = rel(p.file);
+        labels[key] = `${p.w} × ${p.h}`;
+      }
+      out.push({ title, sizes, labels });
     }
   }
   bannerCache.set(slug, out);
