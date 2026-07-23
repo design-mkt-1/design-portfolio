@@ -349,11 +349,21 @@ const siteSection = pagePath.includes('/contact')
           top: 68px;
           left: 0;
           right: 0;
-          padding: 8px 24px;
+          padding: 0 24px;
           font-size: 0.8rem;
           opacity: 0.6;
           background: linear-gradient(to bottom, rgba(11, 11, 18, 0.75), rgba(11, 11, 18, 0.35));
           backdrop-filter: blur(10px);
+        }
+        /* comfortable tap height comes from real link padding the strip
+           absorbs — the box grows inside the strip, so nothing overflows the
+           horizontal scroller (overflowing boxes paint scrollbars on Windows) */
+        .crumbs a {
+          padding: 12px 6px;
+          margin: 0 -6px;
+        }
+        .crumbs [aria-current='page'] {
+          padding: 12px 0;
         }
       }
       .header-inner {
@@ -396,12 +406,6 @@ const siteSection = pagePath.includes('/contact')
       }
       .brand::after {
         inset: -8px;
-      }
-      /* crumbs scroll horizontally (overflow clips pseudo-elements), so grow
-         the real box instead: padding + negative margin nets zero layout */
-      .crumbs a {
-        padding: 10px 5px;
-        margin: -10px -5px;
       }
       .lang-btn:hover {
         color: var(--fg);
