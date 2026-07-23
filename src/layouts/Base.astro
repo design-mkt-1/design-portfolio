@@ -17,6 +17,8 @@ interface Props {
   favicon?: string;
   /** social-preview image (path under /public); defaults to the 1200×630 share card */
   ogImage?: string;
+  /** single-screen pages (e.g. contact): drop the footer so nothing scrolls */
+  noFooter?: boolean;
 }
 const {
   title,
@@ -25,6 +27,7 @@ const {
   accent,
   favicon,
   ogImage = 'assets/og-card.png',
+  noFooter = false,
 } = Astro.props;
 
 // Absolute URLs for social/canonical tags (Astro.site is configured in astro.config.mjs).
@@ -119,7 +122,7 @@ const faviconHref = url(squareFavicon(favicon && assetExists(favicon) ? favicon 
       <slot />
     </main>
 
-    <footer class="site-footer">
+    <footer class="site-footer" hidden={noFooter}>
       <div class="container footer-inner">
         <span class="muted">© Marketing Solutions — Design Portfolio</span>
         <a

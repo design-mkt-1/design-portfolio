@@ -93,10 +93,14 @@ export const STRINGS: Record<string, [string, string, string]> = {
   // Team section (home)
   'team.head': ['Our team', 'Echipa noastră', 'Наша команда'],
   'team.sub': [
-    'Young, fast-moving and focused — creatives from Romania, Ukraine, Moldova and beyond.',
-    'Tineri, rapizi și concentrați — creativi din România, Ucraina, Moldova și nu numai.',
-    'Молодая, быстрая и сфокусированная команда — специалисты из Румынии, Украины, Молдовы и других стран.',
+    'Young, fast-moving and focused — 15+ creatives working as one team.',
+    'Tineri, rapizi și concentrați — 15+ creativi care lucrează ca o singură echipă.',
+    'Молодая, быстрая и сфокусированная команда — 15+ специалистов, работающих как одно целое.',
   ],
+  'team.geo.ro': ['Romania', 'România', 'Румыния'],
+  'team.geo.ua': ['Ukraine', 'Ucraina', 'Украина'],
+  'team.geo.md': ['Moldova', 'Moldova', 'Молдова'],
+  'team.geo.more': ['and beyond', 'și nu numai', 'и не только'],
   'team.members': ['team members', 'membri în echipă', 'человек в команде'],
   'team.graphic': ['graphic designers', 'graphic designeri', 'графических дизайнеров'],
   'team.motion': ['motion designers', 'motion designeri', 'моушн-дизайнеров'],
@@ -244,7 +248,6 @@ export const STRINGS: Record<string, [string, string, string]> = {
   'contact.message': ['Message', 'Mesaj', 'Сообщение'],
   'contact.send': ['Send message', 'Trimite mesajul', 'Отправить'],
   'contact.prefer': ['Prefer email?', 'Preferi emailul?', 'Предпочитаете email?'],
-  'contact.linkedin': ['Or connect with us on', 'Sau conectează-te cu noi pe', 'Или свяжитесь с нами в'],
   // placeholders / JS status (looked up by key)
   'contact.ph.name': ['Your name', 'Numele tău', 'Ваше имя'],
   'contact.ph.message': ['What can we help with?', 'Cu ce te putem ajuta?', 'Чем мы можем помочь?'],
