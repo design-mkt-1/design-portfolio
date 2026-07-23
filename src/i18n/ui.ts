@@ -86,10 +86,28 @@ export const STRINGS: Record<string, [string, string, string]> = {
   ],
   'svc.video': ['Video & motion', 'Video & motion', 'Видео и моушн'],
   'svc.video.desc': [
-    'Promo videos and motion creative, plus app-store listing assets.',
-    'Videouri promo și creative motion, plus materiale pentru magazinele de aplicații.',
-    'Промо-видео и моушн-креативы, а также материалы для сторов приложений.',
+    'Promo videos and motion creative for campaigns and social.',
+    'Videouri promo și creative motion pentru campanii și social media.',
+    'Промо-видео и моушн-креативы для кампаний и соцсетей.',
   ],
+  // Team section (home)
+  'team.head': ['Our team', 'Echipa noastră', 'Наша команда'],
+  'team.sub': [
+    'Young, fast-moving and focused — creatives from Romania, Ukraine, Moldova and beyond.',
+    'Tineri, rapizi și concentrați — creativi din România, Ucraina, Moldova și nu numai.',
+    'Молодая, быстрая и сфокусированная команда — специалисты из Румынии, Украины, Молдовы и других стран.',
+  ],
+  'team.members': ['team members', 'membri în echipă', 'человек в команде'],
+  'team.graphic': ['graphic designers', 'graphic designeri', 'графических дизайнеров'],
+  'team.motion': ['motion designers', 'motion designeri', 'моушн-дизайнеров'],
+  'team.uiux': ['UI/UX designers', 'UI/UX designeri', 'UI/UX-дизайнеров'],
+  'team.ai.head': ['AI-boosted workflow', 'Flux de lucru accelerat cu AI', 'AI в рабочем процессе'],
+  'team.ai.p': [
+    'AI is wired into our pipeline — concepting, upscaling, motion and voice — with every deliverable art-directed by our designers. Better quality, shipped faster.',
+    'AI-ul este integrat în procesul nostru — concepte, upscaling, motion și voce — iar fiecare livrabil este coordonat artistic de designerii noștri. Calitate mai bună, livrată mai repede.',
+    'AI встроен в наш процесс — концепты, апскейлинг, моушн и озвучка — при этом каждый материал контролируют наши дизайнеры. Лучше качество, быстрее результат.',
+  ],
+
   'svc.point.mobile': ['Mobile-first design', 'Design mobile-first', 'Mobile-first дизайн'],
   'svc.point.speed': ['Campaign-speed turnaround', 'Livrare în ritmul campaniilor', 'Скорость под график кампаний'],
   'svc.point.langs': ['Creative in RO, EN and Worldwide', 'Creative în RO, EN și Worldwide', 'Креативы — RO, EN и Worldwide'],

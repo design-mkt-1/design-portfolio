@@ -178,8 +178,16 @@ button {
   /* gradient-border: dark fill in the padding box, the conic ring (one bright
      traveling segment over a faint base line) in the border box */
   border: 2px solid transparent;
+  /* resting state reads "primary": a quiet brand-tinted fill + soft glow,
+     clearly richer than the flat secondary button next to it */
   background:
-    linear-gradient(var(--bg-elev), var(--bg-elev)) padding-box,
+    linear-gradient(
+        115deg,
+        color-mix(in srgb, var(--brand-teal) 22%, var(--bg-elev)),
+        color-mix(in srgb, var(--brand-blue) 18%, var(--bg-elev)) 50%,
+        color-mix(in srgb, var(--brand-violet) 24%, var(--bg-elev))
+      )
+      padding-box,
     conic-gradient(
         from var(--spin-a),
         rgba(255, 255, 255, 0.14) 0deg 280deg,
@@ -188,7 +196,8 @@ button {
         rgba(255, 255, 255, 0.14) 358deg
       )
       border-box;
-  color: var(--fg);
+  box-shadow: 0 8px 28px rgba(74, 146, 224, 0.2);
+  color: #fff;
   font-weight: 600;
   animation: btn-stroke 3.4s linear infinite;
   transition: color 0.25s, box-shadow 0.25s, transform 0.2s var(--ease-expo);

@@ -163,10 +163,23 @@ for (const [src, kind] of collectJobs()) {
       const sqDest = dest.replace(/\.webp$/, '.sq.webp');
       if (!existsSync(sqDest) || statSync(sqDest).mtimeMs < statSync(src).mtimeMs) {
         const sq = Math.min(640, meta.height, meta.width);
-        await sharp(src)
+        // attention finds the salient area — but on text-left/design-right
+        // creatives loud headline text can win. These banners never have the
+        // design on the left, so an attention crop landing in the left 45%
+        // means it locked onto text: fall back to the right (design) side.
+        let out = await sharp(src)
           .resize({ width: sq, height: sq, fit: 'cover', position: sharp.strategy.attention })
           .webp({ quality: QUALITY })
-          .toFile(sqDest);
+          .toBuffer({ resolveWithObject: true });
+        const scaledW = Math.round(meta.width * (sq / meta.height));
+        const centerFrac = ((out.info.cropOffsetLeft ?? 0) + sq / 2) / scaledW;
+        if (centerFrac < 0.45) {
+          out = await sharp(src)
+            .resize({ width: sq, height: sq, fit: 'cover', position: 'right' })
+            .webp({ quality: QUALITY })
+            .toBuffer({ resolveWithObject: true });
+        }
+        writeFileSync(sqDest, out.data);
         made++;
       }
     }
