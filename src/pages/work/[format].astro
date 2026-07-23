@@ -15,6 +15,7 @@ import {
   hasBrandbook,
 } from '../../lib/portfolio';
 import { firstSize, landingThumb, type Project } from '../../data/projects';
+import { stableAnalyticsId } from '../../lib/analytics.mjs';
 
 export function getStaticPaths() {
   return ['brandbooks', 'landings', 'banners', 'videos'].map((format) => ({ params: { format } }));
@@ -99,13 +100,30 @@ const total = sections.reduce((n, s) => n + s.tiles.length, 0);
         <div class="work-section reveal">
           <div class="work-brand">
             <h2>{s.project.name}</h2>
-            <a class="work-open" href={url(s.href)}>
+            <a
+              class="work-open"
+              href={url(s.href)}
+              data-analytics-event="select_content"
+              data-analytics-id={`work_gallery_${s.project.slug}_${format}`}
+              data-analytics-location="work_overview"
+              data-content-type="portfolio_gallery"
+              data-content-id={`${s.project.slug}_${format}`}
+            >
               <span>Open gallery</span> →
             </a>
           </div>
           <div class="work-grid" style={`--ratio:${meta.ratio}`}>
             {s.tiles.filter((t) => t.img).map((t) => (
-              <a class="work-tile" href={url(s.href)} title={t.label}>
+              <a
+                class="work-tile"
+                href={url(s.href)}
+                title={t.label}
+                data-analytics-event="select_content"
+                data-analytics-id={stableAnalyticsId(`work_${format}`, t.img!)}
+                data-analytics-location="work_overview"
+                data-content-type={format}
+                data-content-id={stableAnalyticsId(format!, t.img!)}
+              >
                 {t.wide && <img class="tile-blur" src={url(t.img!)} alt="" aria-hidden="true" loading="lazy" decoding="async" />}
                 <img
                   class={t.wide ? 'tile-fit' : undefined}

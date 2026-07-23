@@ -2,6 +2,7 @@
 import { url, isVideoFile } from '../lib/site';
 import { thumbFor, thumbDims } from '../lib/thumbs';
 import { SIZE_ORDER, SIZE_LABEL, SIZE_RATIO, availableSizes, firstSize, type MediaItem } from '../data/projects';
+import { stableAnalyticsId } from '../lib/analytics.mjs';
 
 interface Props {
   items: MediaItem[];
@@ -32,8 +33,18 @@ const payload = items.map((item) => ({
       // the square tile over a blurred copy — never cropped
       const wide = !!dims && Math.abs(dims.w / dims.h - 1) > 0.02;
       const count = availableSizes(item).length;
+      const analyticsId = stableAnalyticsId(kind, original);
       return (
-        <button class="tile reveal" data-index={i} aria-haspopup="dialog">
+        <button
+          class="tile reveal"
+          data-index={i}
+          aria-haspopup="dialog"
+          data-analytics-event="select_content"
+          data-analytics-id={analyticsId}
+          data-analytics-location={`${kind}_gallery`}
+          data-content-type={kind}
+          data-content-id={analyticsId}
+        >
           <span class="thumb">
             {isVideoFile(thumb) ? (
               <video src={url(thumb)} muted playsinline preload="metadata" />

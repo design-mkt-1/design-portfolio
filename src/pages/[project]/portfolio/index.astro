@@ -1,5 +1,7 @@
 ---
 import Base from '../../../layouts/Base.astro';
+import AnalyticsHead from '../../../components/AnalyticsHead.astro';
+import AnalyticsBody from '../../../components/AnalyticsBody.astro';
 import CtaBanner from '../../../components/CtaBanner.astro';
 import ChoiceCards, { type Choice } from '../../../components/ChoiceCards.astro';
 import { url } from '../../../lib/site';
@@ -86,13 +88,15 @@ const redirectTo = only ? url(only.href) : null;
     <html lang="en">
       <head>
         <meta charset="utf-8" />
+        <AnalyticsHead />
         <meta http-equiv="refresh" content={`0; url=${redirectTo}`} />
         <link rel="canonical" href={redirectTo} />
         <meta name="robots" content="noindex" />
         <title>{p.name} Portfolio — Marketing Solutions</title>
         <script is:inline set:html={`location.replace(${JSON.stringify(redirectTo)})`} />
       </head>
-      <body>
+      <body data-site-section="portfolio">
+        <AnalyticsBody />
         <a href={redirectTo}>Continue to {p.name} →</a>
       </body>
     </html>
@@ -106,7 +110,13 @@ const redirectTo = only ? url(only.href) : null;
   crumbs={[{ label: 'Projects', href: '/' }, projectCrumb(p), { label: 'Portfolio' }]}
 >
   <section class="container head">
-    <a class="backlink reveal" href={url(sectionBack(p).href)}>← {sectionBack(p).label}</a>
+    <a
+      class="backlink reveal"
+      href={url(sectionBack(p).href)}
+      data-analytics-event="navigation_click"
+      data-analytics-id="portfolio_back"
+      data-analytics-location="page_header"
+    >← {sectionBack(p).label}</a>
     <h1 class="reveal">{p.name}<span class="h1-sep" aria-hidden="true">/</span><span class="muted">Portfolio</span></h1>
     <p class="lede muted reveal">Choose a format to browse the creative.</p>
   </section>

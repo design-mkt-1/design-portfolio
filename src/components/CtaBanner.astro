@@ -49,7 +49,14 @@ const video = vid ? { poster: url(thumbFor(vid.poster)!), src: url(vid.src['1x1'
     }
     <h2>Need creative like this for your brand?</h2>
     <p class="muted">We ship brand systems, landings, banners and video for iGaming operators — in EN, RO and RU.</p>
-    <a class="btn btn-spin" href={url('/contact')}>Start a project</a>
+    <a
+      class="btn btn-spin"
+      href={url('/contact')}
+      data-analytics-event="cta_click"
+      data-analytics-id="closing_start_project"
+      data-analytics-type="link"
+      data-analytics-location="closing_banner"
+    >Start a project</a>
   </div>
 </section>
 

@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 1,
+  "container": {
+    "name": "Almeron Production",
+    "publicId": "GTM-5CRD484Z",
+    "usageContext": [
+      "WEB"
+    ]
+  },
+  "googleTag": {
+    "name": "Google Tag - Almeron GA4",
+    "measurementId": "G-48FWDR8WMC",
+    "sendPageView": true,
+    "trigger": "All Pages"
+  },
+  "dataLayerVariables": [
+    "site_section",
+    "site_language",
+    "element_id",
+    "element_type",
+    "element_location",
+    "form_id",
+    "form_location",
+    "error_type",
+    "field_name",
+    "previous_language",
+    "selected_language",
+    "method",
+    "link_url",
+    "content_type",
+    "content_id",
+    "consent_action",
+    "consent_analytics",
+    "consent_ads"
+  ],
+  "eventToTagMappings": [
+    {
+      "event": "cta_click",
+      "parameters": [
+        "site_section",
+        "site_language",
+        "element_id",
+        "element_type",
+        "element_location",
+        "link_url"
+      ]
+    },
+    {
+      "event": "navigation_click",
+      "parameters": [
+        "site_section",
+        "site_language",
+        "element_id",
+        "element_location",
+        "link_url"
+      ]
+    },
+    {
+      "event": "contact_click",
+      "parameters": [
+        "site_section",
+        "site_language",
+        "element_id",
+        "element_location",
+        "method",
+        "link_url"
+      ]
+    },
+    {
+      "event": "select_content",
+      "parameters": [
+        "site_section",
+        "site_language",
+        "element_location",
+        "content_type",
+        "content_id"
+      ]
+    },
+    {
+      "event": "faq_open",
+      "parameters": [
+        "site_section",
+        "site_language",
+        "element_location",
+        "content_type",
+        "content_id"
+      ]
+    },
+    {
+      "event": "contact_form_start",
+      "parameters": [
+        "site_section",
+        "site_language",
+        "form_id",
+        "form_location",
+        "method"
+      ]
+    },
+    {
+      "event": "contact_form_submit_attempt",
+      "parameters": [
+        "site_section",
+        "site_language",
+        "form_id",
+        "form_location"
+      ]
+    },
+    {
+      "event": "contact_form_error",
+      "parameters": [
+        "site_section",
+        "site_language",
+        "form_id",
+        "form_location",
+        "error_type",
+        "field_name"
+      ]
+    },
+    {
+      "event": "generate_lead",
+      "parameters": [
+        "site_section",
+        "site_language",
+        "form_id",
+        "form_location"
+      ]
+    },
+    {
+      "event": "language_change",
+      "parameters": [
+        "site_section",
+        "element_location",
+        "previous_language",
+        "selected_language"
+      ]
+    },
+    {
+      "event": "consent_update",
+      "parameters": [
+        "consent_action",
+        "consent_analytics",
+        "consent_ads"
+      ],
+      "triggerConditions": [
+        {
+          "variable": "consent_analytics",
+          "operator": "equals",
+          "value": "granted"
+        }
+      ]
+    }
+  ]
+}

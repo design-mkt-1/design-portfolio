@@ -1,0 +1,64 @@
+<section
+  class="consent-banner"
+  id="consent-banner"
+  role="dialog"
+  aria-labelledby="consent-title"
+  aria-describedby="consent-description"
+  hidden
+>
+  <div class="consent-copy">
+    <h2 id="consent-title">Analytics preferences</h2>
+    <p id="consent-description">
+      We use optional analytics to understand which portfolio content is useful. Form values and contact details are
+      never included.
+    </p>
+  </div>
+  <div class="consent-actions">
+    <button class="btn btn-primary" id="consent-accept" type="button">Accept analytics</button>
+    <button class="btn" id="consent-reject" type="button">Reject non-essential</button>
+    <button class="consent-manage" id="consent-manage" type="button">Manage preferences</button>
+  </div>
+</section>
+
+<button class="consent-settings" id="consent-settings" type="button" aria-haspopup="dialog">
+  Privacy settings
+</button>
+
+<dialog class="consent-dialog" id="consent-dialog" aria-labelledby="consent-dialog-title">
+  <div class="consent-dialog-inner">
+    <div>
+      <p class="eyebrow">Privacy controls</p>
+      <h2 id="consent-dialog-title">Manage preferences</h2>
+      <p class="muted">Essential storage is always active. Optional categories can be changed at any time.</p>
+    </div>
+
+    <div class="consent-options">
+      <label class="consent-option">
+        <span>
+          <strong>Essential</strong>
+          <small>Required for saved language and privacy choices.</small>
+        </span>
+        <input type="checkbox" checked disabled aria-label="Essential storage enabled" />
+      </label>
+      <label class="consent-option">
+        <span>
+          <strong>Analytics</strong>
+          <small>Measures meaningful portfolio and contact interactions.</small>
+        </span>
+        <input id="consent-analytics" type="checkbox" />
+      </label>
+      <label class="consent-option">
+        <span>
+          <strong>Advertising</strong>
+          <small>Allows advertising storage and personalization signals.</small>
+        </span>
+        <input id="consent-ads" type="checkbox" />
+      </label>
+    </div>
+
+    <div class="consent-dialog-actions">
+      <button class="btn btn-primary" id="consent-save" type="button">Save preferences</button>
+      <button class="btn" id="consent-cancel" type="button">Cancel</button>
+    </div>
+  </div>
+</dialog>

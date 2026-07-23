@@ -2,6 +2,7 @@
 import { url } from '../lib/site';
 import { thumbFor, thumbDims } from '../lib/thumbs';
 import { DEVICE_ORDER, DEVICE_LABEL, type LandingItem } from '../data/projects';
+import { stableAnalyticsId } from '../lib/analytics.mjs';
 
 interface Props {
   items: LandingItem[];
@@ -30,8 +31,18 @@ const tiles = items.map((item) => {
   {
     payload.map((item, i) => {
       const thumb = tiles[i];
+      const analyticsId = stableAnalyticsId('landing', item.devices[0].src);
       return (
-        <button class="lg-item reveal" data-index={i} aria-haspopup="dialog">
+        <button
+          class="lg-item reveal"
+          data-index={i}
+          aria-haspopup="dialog"
+          data-analytics-event="select_content"
+          data-analytics-id={analyticsId}
+          data-analytics-location="landing_gallery"
+          data-content-type="landing"
+          data-content-id={analyticsId}
+        >
           <span class="phone">
             <img
               src={thumb.src}

@@ -20,7 +20,16 @@ const cols = projects.length % 4 === 1 && projects.length % 3 !== 1 ? 3 : 4;
 <div class="grid" style={`--cols:${cols}`}>
   {
     projects.map((p) => (
-      <a class="card" href={url(projectEntry(p))} style={`--card-accent:${p.accent ?? 'var(--accent)'}`}>
+      <a
+        class="card"
+        href={url(projectEntry(p))}
+        style={`--card-accent:${p.accent ?? 'var(--accent)'}`}
+        data-analytics-event="select_content"
+        data-analytics-id={`project_${p.slug}`}
+        data-analytics-location="project_grid"
+        data-content-type="project"
+        data-content-id={p.slug}
+      >
         <span class="glow" aria-hidden="true" />
         <span class="logo-wrap">
           {assetExists(p.logo) ? (

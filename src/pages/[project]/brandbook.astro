@@ -41,7 +41,13 @@ const figmaLogo = `
   crumbs={[{ label: 'Projects', href: '/' }, projectCrumb(p), { label: 'Brand Book' }]}
 >
   <section class="container head">
-    <a class="backlink reveal" href={url(back.href)}>← {back.label}</a>
+    <a
+      class="backlink reveal"
+      href={url(back.href)}
+      data-analytics-event="navigation_click"
+      data-analytics-id="brandbook_back"
+      data-analytics-location="page_header"
+    >← {back.label}</a>
     <div class="row reveal">
       <h1>{p.name}<span class="h1-sep" aria-hidden="true">/</span><span class="muted">Brand Book</span></h1>
       {

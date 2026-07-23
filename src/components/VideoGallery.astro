@@ -5,6 +5,7 @@ import { url } from '../lib/site';
 import { cleanTitle } from '../lib/titles';
 import { thumbFor } from '../lib/thumbs';
 import { SIZE_LABEL, SIZE_RATIO, availableVideoSizes, type VideoItem } from '../data/projects';
+import { stableAnalyticsId } from '../lib/analytics.mjs';
 
 interface Props {
   items: VideoItem[];
@@ -42,8 +43,18 @@ const payload = items.map((v) => ({
   {
     items.map((v, i) => {
       const count = availableVideoSizes(v).length;
+      const analyticsId = stableAnalyticsId('video', v.poster);
       return (
-        <button class="vtile reveal" data-index={i} aria-haspopup="dialog">
+        <button
+          class="vtile reveal"
+          data-index={i}
+          aria-haspopup="dialog"
+          data-analytics-event="select_content"
+          data-analytics-id={analyticsId}
+          data-analytics-location="video_gallery"
+          data-content-type="video"
+          data-content-id={analyticsId}
+        >
           <span class="poster">
             <img src={url(thumbFor(v.poster)!)} alt={cleanTitle(v.title)} loading="lazy" decoding="async" />
             <span class="play" aria-hidden="true">

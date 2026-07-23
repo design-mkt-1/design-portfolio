@@ -67,8 +67,22 @@ const stats = [
       Brand systems, promo landings, banners and video for casino & sportsbook operators — across Romania, Ukraine and worldwide markets.
     </p>
     <div class="hero-cta reveal">
-      <a class="btn btn-spin" href={url('/contact')}>Start a project</a>
-      <a class="btn" href="#projects">Browse the work</a>
+      <a
+        class="btn btn-spin"
+        href={url('/contact')}
+        data-analytics-event="cta_click"
+        data-analytics-id="hero_start_project"
+        data-analytics-type="link"
+        data-analytics-location="hero"
+      >Start a project</a>
+      <a
+        class="btn"
+        href="#projects"
+        data-analytics-event="cta_click"
+        data-analytics-id="hero_browse_work"
+        data-analytics-type="link"
+        data-analytics-location="hero"
+      >Browse the work</a>
     </div>
     <div class="stats reveal">
       {
@@ -235,7 +249,16 @@ const stats = [
             href: '/work/videos',
           },
         ].map((s) => (
-          <a class="svc reveal" href={url(s.href)} style={`--sa:${s.accent}`}>
+          <a
+            class="svc reveal"
+            href={url(s.href)}
+            style={`--sa:${s.accent}`}
+            data-analytics-event="select_content"
+            data-analytics-id={`service_${s.href.split('/').filter(Boolean).at(-1)}`}
+            data-analytics-location="services_grid"
+            data-content-type="service"
+            data-content-id={s.href.split('/').filter(Boolean).at(-1)}
+          >
             <span class="svc-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" set:html={s.icon} />
             </span>

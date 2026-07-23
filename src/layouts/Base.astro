@@ -3,6 +3,9 @@ import '../styles/global.css';
 import { url } from '../lib/site';
 import { assetExists } from '../lib/portfolio';
 import { squareFavicon } from '../lib/thumbs';
+import { pathAnalyticsId } from '../lib/analytics.mjs';
+import AnalyticsHead from '../components/AnalyticsHead.astro';
+import AnalyticsBody from '../components/AnalyticsBody.astro';
 
 interface Crumb {
   label: string;
@@ -42,12 +45,27 @@ const faviconHref = url(squareFavicon(favicon && assetExists(favicon) ? favicon 
 const msMark = assetExists('assets/_thumbs/favicons/ms-mark.png')
   ? 'assets/_thumbs/favicons/ms-mark.png'
   : 'assets/favicon_ms.webp';
+const pagePath = Astro.url.pathname.toLowerCase();
+const siteSection = pagePath.includes('/contact')
+  ? 'contact'
+  : pagePath.includes('/work/')
+    ? 'work'
+    : pagePath.includes('/portfolio/')
+      ? 'portfolio'
+      : pagePath.includes('/brandbook')
+        ? 'brandbook'
+        : pagePath.endsWith('/404') || pagePath.endsWith('/404.html')
+          ? 'error'
+          : pagePath === '/' || /\/design-portfolio\/?$/.test(pagePath)
+            ? 'home'
+            : 'project';
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <AnalyticsHead />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <title>{title}</title>
@@ -93,10 +111,18 @@ const msMark = assetExists('assets/_thumbs/favicons/ms-mark.png')
       )
     }
   </head>
-  <body>
+  <body data-site-section={siteSection}>
+    <AnalyticsBody />
     <header class="site-header">
       <div class="container header-inner">
-        <a class="brand" href={url('/')} aria-label="Marketing Solutions — home">
+        <a
+          class="brand"
+          href={url('/')}
+          aria-label="Marketing Solutions — home"
+          data-analytics-event="navigation_click"
+          data-analytics-id="header_home"
+          data-analytics-location="header"
+        >
           <img class="brand-full" src={url('assets/marketing-solutions-logo.webp')} alt="Marketing Solutions" height="34" />
           <img class="brand-mark" src={url(msMark)} alt="Marketing Solutions" height="36" />
         </a>
@@ -105,7 +131,20 @@ const msMark = assetExists('assets/_thumbs/favicons/ms-mark.png')
             <nav class="crumbs" aria-label="Breadcrumb">
               {crumbs.map((c, i) => (
                 <>
-                  {c.href ? <a href={url(c.href)}>{c.label}</a> : <span aria-current="page">{c.label}</span>}
+                  {
+                    c.href ? (
+                      <a
+                        href={url(c.href)}
+                        data-analytics-event="navigation_click"
+                        data-analytics-id={pathAnalyticsId('breadcrumb', c.href)}
+                        data-analytics-location="breadcrumb"
+                      >
+                        {c.label}
+                      </a>
+                    ) : (
+                      <span aria-current="page">{c.label}</span>
+                    )
+                  }
                   {i < crumbs.length - 1 && <span class="sep">/</span>}
                 </>
               ))}
@@ -113,12 +152,20 @@ const msMark = assetExists('assets/_thumbs/favicons/ms-mark.png')
           )
         }
         <div class="lang-switch" role="group" aria-label="Language">
-          <button type="button" class="lang-btn" data-lang="en">EN</button>
-          <button type="button" class="lang-btn" data-lang="ro">RO</button>
-          <button type="button" class="lang-btn" data-lang="ru">RU</button>
+          <button type="button" class="lang-btn" data-lang="en" data-selected-language="en" data-analytics-event="language_change" data-analytics-id="language_en" data-analytics-location="header">EN</button>
+          <button type="button" class="lang-btn" data-lang="ro" data-selected-language="ro" data-analytics-event="language_change" data-analytics-id="language_ro" data-analytics-location="header">RO</button>
+          <button type="button" class="lang-btn" data-lang="ru" data-selected-language="ru" data-analytics-event="language_change" data-analytics-id="language_ru" data-analytics-location="header">RU</button>
         </div>
         {/* keyed (data-i18n) so it never collides with the contact page's identical English heading */}
-        <a class="header-cta" href={url('/contact')} data-i18n="nav.contact">Contact us</a>
+        <a
+          class="header-cta"
+          href={url('/contact')}
+          data-i18n="nav.contact"
+          data-analytics-event="cta_click"
+          data-analytics-id="header_contact"
+          data-analytics-type="link"
+          data-analytics-location="header"
+        >Contact us</a>
       </div>
     </header>
 

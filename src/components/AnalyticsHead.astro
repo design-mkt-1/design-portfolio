@@ -1,0 +1,56 @@
+---
+// The public GTM container ID is intentionally safe to expose in generated
+// markup. PUBLIC_GTM_ID remains available for staging/preview containers.
+const gtmId = import.meta.env.PUBLIC_GTM_ID?.trim() || 'GTM-5CRD484Z';
+---
+
+<!-- Consent Mode v2 defaults must be queued before the GTM container. -->
+<script is:inline>
+  (function bootstrapConsent(window) {
+    var preferenceKey = 'almeron_consent_v1';
+    window.dataLayer = Array.isArray(window.dataLayer) ? window.dataLayer : [];
+    window.gtag =
+      window.gtag ||
+      function gtag() {
+        window.dataLayer.push(arguments);
+      };
+
+    var denied = {
+      analytics_storage: 'denied',
+      ad_storage: 'denied',
+      ad_user_data: 'denied',
+      ad_personalization: 'denied',
+      wait_for_update: 500,
+    };
+    window.gtag('consent', 'default', denied);
+
+    var stored = null;
+    try {
+      stored = JSON.parse(window.localStorage.getItem(preferenceKey) || 'null');
+    } catch {}
+
+    if (stored && stored.version === 1 && typeof stored.analytics === 'boolean' && typeof stored.ads === 'boolean') {
+      window.gtag('consent', 'update', {
+        analytics_storage: stored.analytics ? 'granted' : 'denied',
+        ad_storage: stored.ads ? 'granted' : 'denied',
+        ad_user_data: stored.ads ? 'granted' : 'denied',
+        ad_personalization: stored.ads ? 'granted' : 'denied',
+      });
+    }
+
+    window.AlmeronConsentBootstrap = {
+      preferenceKey: preferenceKey,
+      preference: stored,
+    };
+  })(window);
+</script>
+
+<!-- Google Tag Manager -->
+<script is:inline define:vars={{ gtmId }}>
+  (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer',gtmId);
+</script>
+<!-- End Google Tag Manager -->

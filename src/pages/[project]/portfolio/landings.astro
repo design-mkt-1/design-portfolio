@@ -29,7 +29,13 @@ const landings = projectLandings(p.slug);
   ]}
 >
   <section class="container head">
-    <a class="backlink reveal" href={url(formatBack(p).href)}>← {formatBack(p).label}</a>
+    <a
+      class="backlink reveal"
+      href={url(formatBack(p).href)}
+      data-analytics-event="navigation_click"
+      data-analytics-id="landings_back"
+      data-analytics-location="page_header"
+    >← {formatBack(p).label}</a>
     <h1 class="reveal">{p.name}<span class="h1-sep" aria-hidden="true">/</span><span class="muted">Landings</span></h1>
     <p class="lede muted reveal">Mobile-first. Tap any landing to view it full-length and switch between mobile and desktop.</p>
   </section>
