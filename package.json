@@ -7,9 +7,16 @@
     "dev": "astro dev",
     "start": "astro dev",
     "build": "astro build",
+    "build:web": "node scripts/build-web.mjs",
+    "build:gtm": "node tools/analytics/build-gtm-container.mjs",
+    "test:analytics": "node tools/analytics/test-runtime.mjs && node tools/analytics/test-contact-lifecycle.mjs && node tools/analytics/test-gtm-import.mjs",
+    "validate:analytics": "node tools/analytics/validate-implementation.mjs --html-dir dist --require-real-ids",
+    "configure:ga4:dry-run": "node tools/analytics/configure-ga4.mjs",
+    "configure:ga4:apply": "node tools/analytics/configure-ga4.mjs --apply",
     "preview": "astro preview",
     "astro": "astro",
-    "prebuild": "node scripts/gen-thumbs.mjs"
+    "prebuild": "node scripts/gen-thumbs.mjs",
+    "prebuild:web": "node scripts/gen-thumbs.mjs"
   },
   "devDependencies": {
     "@astrojs/sitemap": "^3.7.3",

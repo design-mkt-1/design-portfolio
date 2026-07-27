@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { url } from '../lib/site';
 import { thumbFor, thumbDims } from '../lib/thumbs';
 import type { StoreGroup } from '../lib/store';
+import { stableAnalyticsId } from '../lib/analytics.mjs';
 
 interface Props {
   groups: StoreGroup[];
@@ -31,7 +32,13 @@ const rendered = groups.map((g) => {
   // marquee frames use generated thumbnails; the lightbox opens the original
   const items = g.images.map((src) => {
     const thumb = thumbFor(src)!;
-    return { src: bust(src), thumb: url(thumb), dims: thumbDims(thumb), index: counter++ };
+    return {
+      src: bust(src),
+      thumb: url(thumb),
+      dims: thumbDims(thumb),
+      index: counter++,
+      analyticsId: stableAnalyticsId('store_screenshot', src),
+    };
   });
   const copies = Math.max(6, Math.ceil(36 / (items.length + 1)));
   return { key: g.key, label: g.label, items, copies };
@@ -51,10 +58,20 @@ const flat = rendered.flatMap((g) => g.items.map((it) => ({ src: it.src, label: 
         )}
         <div class="marquee reveal" data-copies={g.copies}>
           <div class="mtrack">
-            {Array.from({ length: g.copies }).map(() => (
+            {Array.from({ length: g.copies }).map((_, copyIndex) => (
               <>
                 {g.items.map((it) => (
-                  <button class="shot" data-index={it.index} aria-label={`${alt} — ${g.label}`} aria-haspopup="dialog">
+                  <button
+                    class="shot"
+                    data-index={it.index}
+                    aria-label={`${alt} — ${g.label}`}
+                    aria-haspopup="dialog"
+                    data-analytics-event="select_content"
+                    data-analytics-id={`${it.analyticsId}_copy_${copyIndex + 1}`}
+                    data-analytics-location="store_gallery"
+                    data-content-type="store_screenshot"
+                    data-content-id={it.analyticsId}
+                  >
                     <img src={it.thumb} alt="" width={it.dims?.w} height={it.dims?.h} loading="lazy" decoding="async" draggable="false" />
                   </button>
                 ))}
@@ -258,6 +275,8 @@ const flat = rendered.flatMap((g) => g.items.map((it) => ({ src: it.src, label: 
     cursor: inherit;
     line-height: 0;
     border-radius: 20px;
+    position: relative;
+    overflow: hidden;
   }
   .shot img {
     height: clamp(360px, 56vh, 560px);
@@ -383,4 +402,26 @@ const flat = rendered.flatMap((g) => g.items.map((it) => ({ src: it.src, label: 
       right: 28%;
     }
   }
+
+  /* casino "win flash": a gold light sweep crosses the tile on hover */
+  @media (prefers-reduced-motion: no-preference) {
+    .shot::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      background: linear-gradient(115deg, transparent 35%, rgba(255, 214, 130, 0.26) 50%, transparent 65%);
+      transform: translateX(-130%);
+      pointer-events: none;
+    }
+    .shot:hover::after {
+      animation: winflash 0.65s ease forwards;
+    }
+  }
+  @keyframes winflash {
+    to {
+      transform: translateX(130%);
+    }
+  }
+
 </style>

@@ -2,31 +2,64 @@
 import Base from '../layouts/Base.astro';
 import ProjectGrid from '../components/ProjectGrid.astro';
 import CtaBanner from '../components/CtaBanner.astro';
-import { projectBanners, projectLandings, visibleProjects } from '../lib/portfolio';
+import HeroCards from '../components/HeroCards.astro';
+import { existsSync, readdirSync } from 'node:fs';
+import { join } from 'node:path';
+import { projectBanners, projectLandings, projectVideos, visibleProjects } from '../lib/portfolio';
 import { url } from '../lib/site';
+
+// AI tool stack: logos auto-detected from public/assets/ai/ — any image file
+// whose name contains the tool name works (exact <slug>.<ext> preferred), so
+// drop-ins from GitHub Desktop need no renaming. --tc tints the chip per brand.
+const aiDir = join(process.cwd(), 'public', 'assets', 'ai');
+const aiFiles = existsSync(aiDir) ? readdirSync(aiDir).filter((f) => /\.(webp|svg|png)$/i.test(f)) : [];
+const AI_TOOLS = [
+  { name: 'Higgsfield', slug: 'higgsfield', color: '#a2c415' },
+  { name: 'Krea', slug: 'krea', color: '#ffffff' },
+  { name: 'ElevenLabs', slug: 'elevenlabs', color: '#ffffff' },
+  { name: 'Magnific', slug: 'magnific', color: '#f472b6' },
+  { name: 'Recraft', slug: 'recraft', color: '#ffffff' },
+  { name: 'Claude', slug: 'claude', color: '#d97757' },
+  { name: 'ChatGPT', slug: 'chatgpt', color: '#74aa9c' },
+  { name: 'Grok', slug: 'grok', color: '#e2e8f0' },
+].map((t) => {
+  const exact = aiFiles.find((f) => new RegExp(`^${t.slug}\\.(webp|svg|png)$`, 'i').test(f));
+  const loose = aiFiles.find((f) => f.toLowerCase().includes(t.slug));
+  const file = exact ?? loose;
+  return { ...t, icon: file ? `assets/ai/${file}` : undefined };
+});
 
 // Proof numbers, computed from the asset tree at build time so they stay
 // current as new work is uploaded — no hand-maintained stats. Counts cover the
 // projects actually shown on the grid, so the numbers always match the page.
+// The portfolio holds only a fraction of the studio's output, so produced-work
+// counters carry a "+" (real totals are ~5x); markets is a known 10+.
 const shown = visibleProjects();
 const totalLandings = shown.reduce((n, p) => n + projectLandings(p.slug).length, 0);
 const totalBanners = shown.reduce((n, p) => n + projectBanners(p.slug).length, 0);
-const totalMarkets = new Set(shown.map((p) => p.geo?.code).filter(Boolean)).size;
+const totalVideos = shown.reduce((n, p) => n + projectVideos(p.slug).length, 0);
 const stats = [
-  { n: shown.length, label: 'brands' },
-  { n: totalLandings, label: 'promo landings' },
-  { n: totalBanners, label: 'banner sets' },
-  { n: totalMarkets, label: 'markets' },
-].filter((s) => s.n > 0);
+  { n: `${shown.length}`, label: 'brands', count: shown.length },
+  { n: `${totalLandings}+`, label: 'promo landings', count: totalLandings },
+  { n: `${totalBanners}+`, label: 'banner sets', count: totalBanners },
+  { n: `${totalVideos}+`, label: 'videos', count: totalVideos },
+  { n: '10+', label: 'markets', count: 1 },
+].filter((s) => s.count > 0);
 ---
 
 <Base
   title="Marketing Solutions — iGaming Creative Studio"
   description="Casino & sportsbook creative: brand systems, promo landings, banners and video for iGaming operators across Romania, Ukraine and worldwide markets."
 >
-  <section class="hero container">
+  <section class="hero-wrap">
+    <HeroCards />
+    <div class="hero container">
     <div class="hero-logo reveal">
       <img src={url('assets/marketing-solutions-logo.webp')} alt="Marketing Solutions" />
+      <button class="spin-hint" type="button" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36" /><path d="M21 3v6h-6" /></svg>
+        Tap the logo to spin
+      </button>
     </div>
     <p class="eyebrow reveal">iGaming Creative Studio</p>
     <h1 class="reveal">Creative that <span class="gradient-text">converts players.</span></h1>
@@ -34,8 +67,22 @@ const stats = [
       Brand systems, promo landings, banners and video for casino & sportsbook operators — across Romania, Ukraine and worldwide markets.
     </p>
     <div class="hero-cta reveal">
-      <a class="btn btn-primary" href={url('/contact')}>Start a project</a>
-      <a class="btn" href="#projects">Browse the work</a>
+      <a
+        class="btn btn-spin"
+        href={url('/contact')}
+        data-analytics-event="cta_click"
+        data-analytics-id="hero_start_project"
+        data-analytics-type="link"
+        data-analytics-location="hero"
+      >Start a project</a>
+      <a
+        class="btn"
+        href="#projects"
+        data-analytics-event="cta_click"
+        data-analytics-id="hero_browse_work"
+        data-analytics-type="link"
+        data-analytics-location="hero"
+      >Browse the work</a>
     </div>
     <div class="stats reveal">
       {
@@ -47,7 +94,111 @@ const stats = [
         ))
       }
     </div>
+    </div>
   </section>
+
+  <script>
+    // Slot-machine counters: when a stats row scrolls into view, every digit
+    // becomes a reel (0-9 stacked twice) that spins a full loop and settles on
+    // its target, staggered left→right like slot reels stopping. Symbols (+)
+    // stay static. Skipped entirely under prefers-reduced-motion.
+    document.querySelectorAll<HTMLElement>('.stats').forEach((statsEl) => {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      const spin = () => {
+        statsEl.querySelectorAll<HTMLElement>('.stat-n').forEach((el, si) => {
+          const text = el.textContent?.trim() ?? '';
+          el.textContent = '';
+          [...text].forEach((ch, i) => {
+            if (!/\d/.test(ch)) {
+              const s = document.createElement('span');
+              s.className = 'sym';
+              s.textContent = ch;
+              el.appendChild(s);
+              return;
+            }
+            const target = Number(ch);
+            const digit = document.createElement('span');
+            digit.className = 'digit';
+            const reel = document.createElement('span');
+            reel.className = 'reel';
+            for (let loop = 0; loop < 2; loop++)
+              for (let n = 0; n <= 9; n++) {
+                const c = document.createElement('span');
+                c.textContent = String(n);
+                reel.appendChild(c);
+              }
+            digit.appendChild(reel);
+            el.appendChild(digit);
+            requestAnimationFrame(() =>
+              requestAnimationFrame(() => {
+                reel.style.transitionDelay = `${si * 90 + i * 150}ms`;
+                reel.style.transform = `translateY(${-(10 + target) * 1.1}em)`;
+              }),
+            );
+          });
+        });
+      };
+      const io = new IntersectionObserver(
+        (entries) => {
+          if (entries.some((e) => e.isIntersecting)) {
+            io.disconnect();
+            spin();
+          }
+        },
+        { threshold: 0.4 },
+      );
+      io.observe(statsEl);
+    });
+
+    // AI tool ribbon: JS-driven infinite loop so it can be dragged/swiped by
+    // hand (mouse or touch); auto-scroll pauses on hover or drag and resumes
+    // seamlessly. Reduced motion keeps the static wrapped layout instead.
+    const marquee = document.querySelector<HTMLElement>('.ai-marquee');
+    const track = marquee?.querySelector<HTMLElement>('.ai-track');
+    if (marquee && track && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      track.style.animation = 'none';
+      let pos = 0;
+      let dragging = false;
+      let hovering = false;
+      let visible = false;
+      let startX = 0;
+      let startPos = 0;
+      let last = performance.now();
+      const step = (now: number) => {
+        const dt = Math.min(64, now - last);
+        last = now;
+        const half = track.scrollWidth / 2 || 1;
+        if (visible && !dragging && !hovering) pos += (half / 28000) * dt;
+        pos = ((pos % half) + half) % half;
+        track.style.transform = `translateX(${-pos}px)`;
+        requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+      new IntersectionObserver((es) => (visible = es.some((e) => e.isIntersecting))).observe(marquee);
+      // native image drag-and-drop would hijack the gesture (chip logos are <img>s)
+      marquee.addEventListener('dragstart', (e) => e.preventDefault());
+      marquee.addEventListener('pointerdown', (e) => {
+        dragging = true;
+        startX = e.clientX;
+        startPos = pos;
+        marquee.setPointerCapture(e.pointerId);
+      });
+      marquee.addEventListener('pointermove', (e) => {
+        if (dragging) pos = startPos - (e.clientX - startX);
+      });
+      const endDrag = () => {
+        dragging = false;
+      };
+      marquee.addEventListener('pointerup', endDrag);
+      marquee.addEventListener('pointercancel', endDrag);
+      marquee.addEventListener('pointerenter', (e) => {
+        if (e.pointerType === 'mouse') hovering = true;
+      });
+      marquee.addEventListener('pointerleave', () => {
+        hovering = false;
+      });
+    }
+  </script>
 
   <section class="container" id="projects">
     <div class="section-head reveal">
@@ -69,30 +220,57 @@ const stats = [
             title: 'Brand systems',
             desc: 'Logo, colors, typography and full usage guidelines, ready for every channel.',
             icon: '<path d="M4 5a2 2 0 0 1 2-2h11v16H6a2 2 0 0 0-2 2z"/><path d="M17 3v16"/>',
+            accent: '#a78bfa',
+            chips: ['Logo', 'Colors', 'Guidelines'],
+            href: '/work/brandbooks',
           },
           {
             title: 'Promo landings',
             desc: 'Campaign landing pages designed mobile-first, with tablet and desktop versions.',
             icon: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>',
+            accent: '#23c6aa',
+            chips: ['Mobile', 'Tablet', 'Desktop'],
+            href: '/work/landings',
           },
           {
             title: 'Banner sets',
             desc: 'Static creative in every placement size: 1:1, 9:16, 16:9 and 4:5.',
             icon: '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/>',
+            accent: '#4a92e0',
+            chips: ['1:1', '9:16', '16:9', '4:5'],
+            href: '/work/banners',
           },
           {
             title: 'Video & motion',
-            desc: 'Promo videos and motion creative, plus app-store listing assets.',
+            desc: 'Promo videos and motion creative for campaigns and social.',
             icon: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 3v18M17 3v18M3 8h4M17 8h4M3 16h4M17 16h4"/>',
+            accent: '#f5b301',
+            chips: ['Promo', 'Motion', 'Social'],
+            href: '/work/videos',
           },
         ].map((s) => (
-          <div class="svc reveal">
+          <a
+            class="svc reveal"
+            href={url(s.href)}
+            style={`--sa:${s.accent}`}
+            data-analytics-event="select_content"
+            data-analytics-id={`service_${s.href.split('/').filter(Boolean).at(-1)}`}
+            data-analytics-location="services_grid"
+            data-content-type="service"
+            data-content-id={s.href.split('/').filter(Boolean).at(-1)}
+          >
             <span class="svc-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" set:html={s.icon} />
             </span>
             <span class="svc-title">{s.title}</span>
             <span class="svc-desc muted">{s.desc}</span>
-          </div>
+            <span class="svc-chips">
+              {s.chips.map((c) => (
+                <span class="svc-chip">{c}</span>
+              ))}
+            </span>
+            <span class="svc-more">See all <span class="svc-arrow">→</span></span>
+          </a>
         ))
       }
     </div>
@@ -103,20 +281,133 @@ const stats = [
     </div>
   </section>
 
+  <section class="container team">
+    <div class="svc-head reveal">
+      <h2>Our team</h2>
+      <p class="muted">Young, fast-moving and focused — 15 design wizards and growing.</p>
+      {/* SVG flags, not emoji — Windows renders flag emoji as bare letter pairs */}
+      <div class="geo">
+        <span class="geo-chip">
+          <svg class="geo-flag" viewBox="0 0 3 2" aria-hidden="true"><rect width="1" height="2" fill="#002B7F"/><rect x="1" width="1" height="2" fill="#FCD116"/><rect x="2" width="1" height="2" fill="#CE1126"/></svg>
+          Romania
+        </span>
+        <span class="geo-chip">
+          <svg class="geo-flag" viewBox="0 0 3 2" aria-hidden="true"><rect width="3" height="1" fill="#005BBB"/><rect y="1" width="3" height="1" fill="#FFD500"/></svg>
+          Ukraine
+        </span>
+        <span class="geo-chip">
+          <svg class="geo-flag" viewBox="0 0 3 2" aria-hidden="true"><rect width="1" height="2" fill="#003DA5"/><rect x="1" width="1" height="2" fill="#FFD200"/><rect x="2" width="1" height="2" fill="#CC092F"/><path d="M1.28 0.62h0.44v0.5l-0.22 0.26-0.22-0.26z" fill="#9a6a43" opacity="0.9"/></svg>
+          Moldova
+        </span>
+        <span class="geo-chip">
+          <svg class="geo-flag geo-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.9 5.7 3.9 9S14.5 21 12 21m0-18C9.5 5.6 8.1 8.7 8.1 12s1.4 6.4 3.9 9"/></svg>
+          and beyond
+        </span>
+      </div>
+    </div>
+    <div class="stats team-stats reveal">
+      {
+        [
+          { n: '15+', label: 'team members' },
+          { n: '9', label: 'graphic designers' },
+          { n: '3', label: 'motion designers' },
+          { n: '3', label: 'UI/UX designers' },
+        ].map((s) => (
+          <div class="stat">
+            <span class="stat-n">{s.n}</span>
+            <span class="stat-l muted">{s.label}</span>
+          </div>
+        ))
+      }
+    </div>
+    <div class="team-ai reveal">
+      <h3>AI-boosted workflow</h3>
+      <p class="muted">
+        AI is wired into our pipeline — concepting, upscaling, motion and voice — with every deliverable
+        art-directed by our designers. Better quality, shipped faster.
+      </p>
+      <div class="ai-marquee">
+        <div class="ai-track">
+          {
+            [0, 1].map((copy) => (
+              <div class="ai-group" aria-hidden={copy === 1}>
+                {AI_TOOLS.map((t) => (
+                  <span class="ai-chip" style={`--tc:${t.color}`}>
+                    {t.icon ? (
+                      <img src={url(t.icon)} alt="" width="18" height="18" loading="lazy" decoding="async" />
+                    ) : (
+                      <span class="ai-mono" aria-hidden="true">{t.name[0]}</span>
+                    )}
+                    <span class="ai-name">{t.name}</span>
+                  </span>
+                ))}
+              </div>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+  </section>
+
   <CtaBanner />
 </Base>
 
 <style>
+  /* full-width stage for the floating 3D cards; overflow clipped so cards can
+     drift past the edges without creating horizontal scroll */
+  .hero-wrap {
+    position: relative;
+    overflow: hidden;
+  }
   .hero {
+    position: relative;
+    z-index: 1;
     padding: 72px 24px 48px;
     text-align: center;
     max-width: 860px;
+    margin: 0 auto;
   }
   .hero-logo img {
     height: 84px;
     width: auto;
-    margin: 0 auto 30px;
+    margin: 0 auto 12px;
     filter: drop-shadow(0 10px 50px rgba(74, 146, 224, 0.28));
+  }
+  /* easter-egg invitation: appears shortly after load, gone after the first spin */
+  .spin-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 14px;
+    padding: 5px 13px;
+    font-size: 0.76rem;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    color: var(--fg-muted);
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    animation: hint-bob 2.4s ease-in-out infinite;
+    transition: color 0.2s, border-color 0.2s, opacity 0.45s ease, visibility 0.45s;
+  }
+  /* the pill's slot is reserved from first paint — it fades in/out without
+     ever shifting the hero layout */
+  .spin-hint[hidden] {
+    visibility: hidden;
+    opacity: 0;
+  }
+  .spin-hint:hover {
+    color: var(--fg);
+    border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+  }
+  .spin-hint svg {
+    width: 13px;
+    height: 13px;
+    color: var(--accent);
+  }
+  @keyframes hint-bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
   }
   .hero h1 {
     font-size: clamp(2.2rem, 6vw, 3.6rem);
@@ -144,18 +435,73 @@ const stats = [
   .stat {
     display: flex;
     flex-direction: column;
+    align-items: center;
+    text-align: center;
     gap: 2px;
     min-width: 88px;
+  }
+  @media (max-width: 700px) {
+    .stats {
+      gap: 12px 26px;
+    }
+    .stat {
+      min-width: 68px;
+    }
+    /* team row is exactly 4 cells: a strict 2×2 keeps the columns aligned
+       (flex-wrap centers each row independently, so cells drift) */
+    .team-stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      justify-items: center;
+      row-gap: 18px;
+    }
   }
   .stat-n {
     font-family: var(--font-display);
     font-weight: 800;
     font-size: clamp(1.6rem, 4vw, 2.1rem);
     line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+    display: inline-flex;
+    justify-content: center;
+    align-items: flex-start;
     background: var(--brand-gradient);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+  }
+  /* Slot-reel digits (built by JS). The parent's background-clip:text cannot
+     paint through transformed/overflow-hidden children, so every reel cell and
+     symbol carries the gradient itself. */
+  .stat-n :global(.digit) {
+    display: inline-block;
+    height: 1.1em;
+    overflow: hidden;
+    vertical-align: top;
+  }
+  .stat-n :global(.sym) {
+    display: inline-block;
+    vertical-align: top;
+    /* optical: Archivo's + ink sits below the digits' ink center — lift it so
+       both centers coincide (verified to sub-pixel against rendered ink) */
+    transform: translateY(-0.07em);
+  }
+  .stat-n :global(.reel) {
+    display: block;
+    transition: transform 1.7s var(--ease-expo);
+    will-change: transform;
+  }
+  .stat-n :global(.reel span),
+  .stat-n :global(.sym) {
+    background: var(--brand-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .stat-n :global(.reel span) {
+    display: block;
+    height: 1.1em;
+    line-height: 1.1;
   }
   .stat-l {
     font-size: 0.82rem;
@@ -184,15 +530,36 @@ const stats = [
     gap: 18px;
     grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
   }
+  /* each service carries its own accent (--sa): tinted icon tile, top hairline,
+     glow and deliverable chips — four clearly different offers at a glance */
   .svc {
+    position: relative;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
     padding: 24px;
-    border: 1px solid var(--border);
+    border: 1px solid color-mix(in srgb, var(--sa, var(--accent)) 18%, var(--border));
     border-radius: var(--radius-lg);
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.012));
+    background:
+      radial-gradient(220px 120px at 18% 0%, color-mix(in srgb, var(--sa, var(--accent)) 11%, transparent), transparent 70%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.012));
+    transition: transform 0.25s var(--ease-expo), border-color 0.25s, box-shadow 0.25s;
+  }
+  .svc::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, var(--sa, var(--accent)), transparent 70%);
+    opacity: 0.85;
+  }
+  .svc:hover {
+    transform: translateY(-3px);
+    border-color: color-mix(in srgb, var(--sa, var(--accent)) 45%, var(--border));
+    box-shadow: 0 14px 40px color-mix(in srgb, var(--sa, var(--accent)) 18%, transparent);
   }
   .svc-icon {
     display: grid;
@@ -200,9 +567,9 @@ const stats = [
     width: 46px;
     height: 46px;
     border-radius: 13px;
-    color: var(--accent);
-    background: color-mix(in srgb, var(--accent) 15%, transparent);
-    border: 1px solid color-mix(in srgb, var(--accent) 32%, transparent);
+    color: var(--sa, var(--accent));
+    background: color-mix(in srgb, var(--sa, var(--accent)) 15%, transparent);
+    border: 1px solid color-mix(in srgb, var(--sa, var(--accent)) 32%, transparent);
   }
   .svc-icon svg {
     width: 23px;
@@ -216,6 +583,40 @@ const stats = [
   .svc-desc {
     font-size: 0.9rem;
     line-height: 1.55;
+  }
+  .svc-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: auto;
+    padding-top: 4px;
+  }
+  .svc-chip {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: color-mix(in srgb, var(--sa, var(--accent)) 75%, #fff);
+    padding: 3px 10px;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--sa, var(--accent)) 30%, transparent);
+    background: color-mix(in srgb, var(--sa, var(--accent)) 10%, transparent);
+    white-space: nowrap;
+  }
+  a.svc {
+    color: inherit;
+  }
+  .svc-more {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: color-mix(in srgb, var(--sa, var(--accent)) 80%, #fff);
+    margin-top: 2px;
+  }
+  .svc-arrow {
+    display: inline-block;
+    transition: transform 0.22s var(--ease-expo);
+  }
+  .svc:hover .svc-arrow {
+    transform: translateX(4px);
   }
   .svc-points {
     display: flex;
@@ -234,6 +635,145 @@ const stats = [
     background: var(--bg-elev);
     white-space: nowrap;
   }
+  .team {
+    margin-top: 76px;
+  }
+  .geo {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .geo-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--fg-muted);
+    padding: 5px 13px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--bg-elev);
+  }
+  .geo-flag {
+    width: 17px;
+    height: 12px;
+    border-radius: 2.5px;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.14);
+    flex: none;
+  }
+  .geo-globe {
+    height: 15px;
+    width: 15px;
+    border-radius: 0;
+    box-shadow: none;
+    color: var(--brand-blue);
+  }
+  .team-stats {
+    margin-top: 30px;
+  }
+  /* AI workflow panel: bordered card with the tool stack as an auto-scrolling
+     logo ribbon (pauses on hover; static wrap under prefers-reduced-motion) */
+  .team-ai {
+    max-width: 760px;
+    margin: 44px auto 0;
+    padding: 26px 0 22px;
+    text-align: center;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background:
+      radial-gradient(420px 180px at 50% 0%, rgba(74, 146, 224, 0.08), transparent 70%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.01));
+  }
+  .team-ai h3 {
+    font-size: 1.05rem;
+    margin: 0 0 10px;
+  }
+  .team-ai p {
+    margin: 0 auto;
+    max-width: 560px;
+    padding: 0 22px;
+    line-height: 1.6;
+  }
+  .ai-marquee {
+    margin-top: 22px;
+    overflow: hidden;
+    cursor: grab;
+    touch-action: pan-y; /* horizontal drags are ours, vertical stays page scroll */
+    user-select: none;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  }
+  .ai-marquee:active {
+    cursor: grabbing;
+  }
+  .ai-track {
+    display: flex;
+    width: max-content;
+    animation: ai-scroll 28s linear infinite;
+  }
+  .ai-marquee:hover .ai-track {
+    animation-play-state: paused;
+  }
+  .ai-group {
+    display: flex;
+    gap: 10px;
+    padding-right: 10px;
+  }
+  @keyframes ai-scroll {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+  .ai-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.84rem;
+    font-weight: 500;
+    color: var(--fg);
+    padding: 8px 16px;
+    border: 1px solid color-mix(in srgb, var(--tc, #fff) 28%, var(--border));
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--tc, #fff) 6%, var(--bg-elev));
+    white-space: nowrap;
+  }
+  .ai-chip img {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    object-fit: contain;
+  }
+  .ai-mono {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 5px;
+    font-size: 0.66rem;
+    font-weight: 700;
+    color: #0b0b12;
+    background: var(--tc, #fff);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ai-track {
+      animation: none;
+      width: auto;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .ai-group[aria-hidden='true'] {
+      display: none;
+    }
+    .ai-marquee {
+      -webkit-mask-image: none;
+      mask-image: none;
+      padding: 0 16px;
+    }
+  }
   .section-head {
     display: flex;
     align-items: baseline;
@@ -246,4 +786,6 @@ const stats = [
   .count {
     font-size: 0.9rem;
   }
+
+
 </style>

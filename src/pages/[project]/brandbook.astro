@@ -4,6 +4,7 @@ import CtaBanner from '../../components/CtaBanner.astro';
 import { url } from '../../lib/site';
 import { projects, getProject } from '../../data/projects';
 import { projectCrumb, sectionBack, hasBrandbook, brandbookFrames, projectOg } from '../../lib/portfolio';
+import { thumbFor, thumbDims } from '../../lib/thumbs';
 
 export function getStaticPaths() {
   // Only projects with real brand-book content (frames, PDF, or Figma) — a
@@ -41,7 +42,13 @@ const figmaLogo = `
   crumbs={[{ label: 'Projects', href: '/' }, projectCrumb(p), { label: 'Brand Book' }]}
 >
   <section class="container head">
-    <a class="backlink reveal" href={url(back.href)}>← {back.label}</a>
+    <a
+      class="backlink reveal"
+      href={url(back.href)}
+      data-analytics-event="navigation_click"
+      data-analytics-id="brandbook_back"
+      data-analytics-location="page_header"
+    >← {back.label}</a>
     <div class="row reveal">
       <h1>{p.name}<span class="h1-sep" aria-hidden="true">/</span><span class="muted">Brand Book</span></h1>
       {
@@ -63,15 +70,21 @@ const figmaLogo = `
   {
     frames.length > 0 ? (
       <section class="container reader">
-        {frames.map((f, i) => (
-          <img
-            class="page reveal"
-            src={url(f)}
-            alt={`${p.name} brand book — page ${i + 1}`}
-            loading={i < 2 ? 'eager' : 'lazy'}
-            decoding="async"
-          />
-        ))}
+        {frames.map((f, i) => {
+          const framed = thumbFor(f)!;
+          const dims = thumbDims(framed);
+          return (
+            <img
+              class="page reveal"
+              src={url(framed)}
+              width={dims?.w}
+              height={dims?.h}
+              alt={`${p.name} brand book — page ${i + 1}`}
+              loading={i < 2 ? 'eager' : 'lazy'}
+              decoding="async"
+            />
+          );
+        })}
       </section>
     ) : figma ? (
       <section class="container cta-wrap reveal">

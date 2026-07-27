@@ -2,12 +2,13 @@
 import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import Base from '../../layouts/Base.astro';
+import AnalyticsHead from '../../components/AnalyticsHead.astro';
+import AnalyticsBody from '../../components/AnalyticsBody.astro';
 import ChoiceCards, { type Choice } from '../../components/ChoiceCards.astro';
 import { url } from '../../lib/site';
 import { projects, getProject, firstSize, landingThumb } from '../../data/projects';
-import { projectBanners, projectLandings, hasPortfolio, hasBrandbook, assetExists, projectSections, projectOg } from '../../lib/portfolio';
+import { projectBanners, projectLandings, hasPortfolio, hasBrandbook, assetExists, projectSections, projectOg, projectVideos } from '../../lib/portfolio';
 import { thumbFor } from '../../lib/thumbs';
-import { readyVideos } from '../../lib/videos';
 
 export function getStaticPaths() {
   return projects.map((p) => ({ params: { project: p.slug } }));
@@ -20,7 +21,7 @@ const p = getProject(project!)!;
 const portfolioThumbs = [
   ...projectBanners(p.slug).map(firstSize),
   ...projectLandings(p.slug).map(landingThumb),
-  ...readyVideos(p.videos).map((v) => v.poster),
+  ...projectVideos(p.slug).map((v) => v.poster),
 ]
   .filter((s): s is string => Boolean(s))
   .map((s) => thumbFor(s)!);
@@ -80,6 +81,12 @@ if (portfolio) {
 const sections = projectSections(p);
 const only = sections.length === 1 ? sections[0] : null;
 const redirectTo = only ? url(`/${p.slug}/${only}`) : null;
+
+// Link-preview scrapers (Slack/Telegram/WhatsApp) read THIS stub and don't
+// follow the refresh — give them a full card so shared short URLs unfurl.
+const stubDescription = p.tagline ? `${p.name} — ${p.tagline}` : `${p.name} on the Marketing Solutions design portfolio.`;
+const stubOgImage = Astro.site ? new URL(url(projectOg(p)), Astro.site).href : url(projectOg(p));
+const stubUrl = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined;
 ---
 
 {
@@ -87,13 +94,25 @@ const redirectTo = only ? url(`/${p.slug}/${only}`) : null;
     <html lang="en">
       <head>
         <meta charset="utf-8" />
+        <AnalyticsHead />
         <meta http-equiv="refresh" content={`0; url=${redirectTo}`} />
         <link rel="canonical" href={redirectTo} />
         <meta name="robots" content="noindex" />
         <title>{p.name} — Marketing Solutions</title>
+        <meta name="description" content={stubDescription} />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="Marketing Solutions" />
+        <meta property="og:title" content={`${p.name} — Marketing Solutions`} />
+        <meta property="og:description" content={stubDescription} />
+        <meta property="og:image" content={stubOgImage} />
+        {stubUrl && <meta property="og:url" content={stubUrl} />}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${p.name} — Marketing Solutions`} />
+        <meta name="twitter:image" content={stubOgImage} />
         <script is:inline set:html={`location.replace(${JSON.stringify(redirectTo)})`} />
       </head>
-      <body>
+      <body data-site-section="project">
+        <AnalyticsBody />
         <a href={redirectTo}>Continue to {p.name} →</a>
       </body>
     </html>
@@ -107,7 +126,13 @@ const redirectTo = only ? url(`/${p.slug}/${only}`) : null;
       crumbs={[{ label: 'Projects', href: '/' }, { label: p.name }]}
     >
   <section class="container intro">
-    <a class="backlink reveal" href={url('/')}>← All projects</a>
+    <a
+      class="backlink reveal"
+      href={url('/')}
+      data-analytics-event="navigation_click"
+      data-analytics-id="project_back_to_all"
+      data-analytics-location="page_header"
+    >← All projects</a>
     <div class="head reveal">
       {
         headerIcon ? (

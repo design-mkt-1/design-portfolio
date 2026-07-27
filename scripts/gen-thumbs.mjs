@@ -28,6 +28,9 @@ const RULES = {
   store: { height: 1120 },
   poster: { width: 640 },
   brandbookCover: { width: 960 },
+  // full-page reader frames: viewer-width webp so raw multi-MB page exports
+  // (e.g. 2.5MB JPGs) never ship to the browser
+  brandbookFrame: { width: 1600 },
 };
 
 /** Collect [absSrc, kind] jobs from the conventional asset tree. */
@@ -57,12 +60,13 @@ function collectJobs() {
     eachSet('videos', (set) => {
       for (const f of readdirSync(set)) if (IMG.test(f) && /^cover/i.test(f)) jobs.push([join(set, f), 'poster']);
     });
-    // brand-book chooser cover: first numbered frame and/or explicit cover.*
+    // brand-book reader frames (all numbered pages) + explicit cover.*
     const bb = join(base, 'brandbook');
     if (existsSync(bb)) {
-      const frames = readdirSync(bb).filter((f) => /^\d+\.(webp|png|jpe?g)$/i.test(f)).sort((a, b) => parseInt(a) - parseInt(b));
-      if (frames[0]) jobs.push([join(bb, frames[0]), 'brandbookCover']);
-      for (const f of readdirSync(bb)) if (/^cover\.(webp|png|jpe?g)$/i.test(f)) jobs.push([join(bb, f), 'brandbookCover']);
+      for (const f of readdirSync(bb)) {
+        if (/^\d+\.(webp|png|jpe?g)$/i.test(f)) jobs.push([join(bb, f), 'brandbookFrame']);
+        else if (/^cover\.(webp|png|jpe?g)$/i.test(f)) jobs.push([join(bb, f), 'brandbookCover']);
+      }
     }
   }
   return jobs;
@@ -82,13 +86,41 @@ async function makeFavicons() {
     const f = readdirSync(join(ASSETS, p.name)).find((n) => /^favicon.*\.(svg|webp|png|jpe?g)$/i.test(n));
     if (f) jobs.push([p.name, join(ASSETS, p.name, f)]);
   }
+  // header brand mark: trimmed to the ink, kept at its NATURAL aspect ratio
+  // (no square letterbox) so the mark fills its header slot edge-to-edge
+  if (existsSync(ms)) {
+    const dest = join(OUT, 'favicons', 'ms-mark.png');
+    if (!existsSync(dest) || statSync(dest).mtimeMs < statSync(ms).mtimeMs) {
+      mkdirSync(dirname(dest), { recursive: true });
+      await sharp(ms, { density: 300 }).trim({ threshold: 12 }).resize({ height: 96 }).png().toFile(dest);
+    }
+  }
+  // iOS home-screen icon: the MS mark on the site's dark background (iOS
+  // replaces transparency with white, so the plain favicon looks broken there)
+  if (existsSync(ms)) {
+    const dest = join(OUT, 'favicons', 'apple-touch-icon.png');
+    if (!existsSync(dest) || statSync(dest).mtimeMs < statSync(ms).mtimeMs) {
+      mkdirSync(dirname(dest), { recursive: true });
+      const msTrim = await sharp(ms, { density: 300 }).trim({ threshold: 12 }).png().toBuffer();
+      const mark = await sharp(msTrim)
+        .resize({ width: 128, height: 128, fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+        .png()
+        .toBuffer();
+      await sharp({ create: { width: 180, height: 180, channels: 4, background: { r: 11, g: 11, b: 18, alpha: 1 } } })
+        .composite([{ input: mark }])
+        .png()
+        .toFile(dest);
+    }
+  }
   let n = 0;
   for (const [slug, src] of jobs) {
     const dest = join(OUT, 'favicons', `${slug}.png`);
     try {
       if (existsSync(dest) && statSync(dest).mtimeMs >= statSync(src).mtimeMs) continue;
       mkdirSync(dirname(dest), { recursive: true });
-      await sharp(src, { density: 300 })
+      // trim any padding baked into the source so the mark fills the square
+      const trimmed = await sharp(src, { density: 300 }).trim({ threshold: 12 }).png().toBuffer();
+      await sharp(trimmed)
         .resize({ width: 128, height: 128, fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
         .png()
         .toFile(dest);

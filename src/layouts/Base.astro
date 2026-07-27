@@ -3,6 +3,9 @@ import '../styles/global.css';
 import { url } from '../lib/site';
 import { assetExists } from '../lib/portfolio';
 import { squareFavicon } from '../lib/thumbs';
+import { pathAnalyticsId } from '../lib/analytics.mjs';
+import AnalyticsHead from '../components/AnalyticsHead.astro';
+import AnalyticsBody from '../components/AnalyticsBody.astro';
 
 interface Crumb {
   label: string;
@@ -17,6 +20,8 @@ interface Props {
   favicon?: string;
   /** social-preview image (path under /public); defaults to the 1200×630 share card */
   ogImage?: string;
+  /** single-screen pages (e.g. contact): drop the footer so nothing scrolls */
+  noFooter?: boolean;
 }
 const {
   title,
@@ -25,6 +30,7 @@ const {
   accent,
   favicon,
   ogImage = 'assets/og-card.png',
+  noFooter = false,
 } = Astro.props;
 
 // Absolute URLs for social/canonical tags (Astro.site is configured in astro.config.mjs).
@@ -35,16 +41,39 @@ const ogImageAbs = Astro.site ? new URL(url(ogImage), Astro.site).href : url(ogI
 // squareFavicon() serves the letterboxed square PNG so non-square brand marks
 // aren't stretched by the browser's square tab slot.
 const faviconHref = url(squareFavicon(favicon && assetExists(favicon) ? favicon : 'assets/favicon_ms.webp'));
+// header mark: trimmed, natural aspect ratio — never the letterboxed tab icon
+const msMark = assetExists('assets/_thumbs/favicons/ms-mark.png')
+  ? 'assets/_thumbs/favicons/ms-mark.png'
+  : 'assets/favicon_ms.webp';
+const pagePath = Astro.url.pathname.toLowerCase();
+const siteSection = pagePath.includes('/contact')
+  ? 'contact'
+  : pagePath.includes('/work/')
+    ? 'work'
+    : pagePath.includes('/portfolio/')
+      ? 'portfolio'
+      : pagePath.includes('/brandbook')
+        ? 'brandbook'
+        : pagePath.endsWith('/404') || pagePath.endsWith('/404.html')
+          ? 'error'
+          : pagePath === '/' || /\/design-portfolio\/?$/.test(pagePath)
+            ? 'home'
+            : 'project';
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    {/* mark JS as available before any CSS applies — reveal animations only
+        hide content under html.js, so no-JS/slow-JS visitors see everything */}
+    <script is:inline>document.documentElement.classList.add('js');</script>
+    <AnalyticsHead />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <title>{title}</title>
     <link rel="icon" href={faviconHref} />
+    <link rel="apple-touch-icon" sizes="180x180" href={url('assets/_thumbs/favicons/apple-touch-icon.png')} />
     {canonical && <link rel="canonical" href={canonical} />}
 
     {/* Locale variants: RO/RU render via ?lang=… (client i18n; Googlebot executes
@@ -85,18 +114,40 @@ const faviconHref = url(squareFavicon(favicon && assetExists(favicon) ? favicon 
       )
     }
   </head>
-  <body>
+  <body data-site-section={siteSection}>
+    <AnalyticsBody />
     <header class="site-header">
       <div class="container header-inner">
-        <a class="brand" href={url('/')} aria-label="Marketing Solutions — home">
-          <img src={url('assets/marketing-solutions-logo.webp')} alt="Marketing Solutions" height="34" />
+        <a
+          class="brand"
+          href={url('/')}
+          aria-label="Marketing Solutions — home"
+          data-analytics-event="navigation_click"
+          data-analytics-id="header_home"
+          data-analytics-location="header"
+        >
+          <img class="brand-full" src={url('assets/marketing-solutions-logo.webp')} alt="Marketing Solutions" height="34" />
+          <img class="brand-mark" src={url(msMark)} alt="Marketing Solutions" height="36" />
         </a>
         {
           crumbs.length > 0 && (
             <nav class="crumbs" aria-label="Breadcrumb">
               {crumbs.map((c, i) => (
                 <>
-                  {c.href ? <a href={url(c.href)}>{c.label}</a> : <span aria-current="page">{c.label}</span>}
+                  {
+                    c.href ? (
+                      <a
+                        href={url(c.href)}
+                        data-analytics-event="navigation_click"
+                        data-analytics-id={pathAnalyticsId('breadcrumb', c.href)}
+                        data-analytics-location="breadcrumb"
+                      >
+                        {c.label}
+                      </a>
+                    ) : (
+                      <span aria-current="page">{c.label}</span>
+                    )
+                  }
                   {i < crumbs.length - 1 && <span class="sep">/</span>}
                 </>
               ))}
@@ -104,12 +155,20 @@ const faviconHref = url(squareFavicon(favicon && assetExists(favicon) ? favicon 
           )
         }
         <div class="lang-switch" role="group" aria-label="Language">
-          <button type="button" class="lang-btn" data-lang="en">EN</button>
-          <button type="button" class="lang-btn" data-lang="ro">RO</button>
-          <button type="button" class="lang-btn" data-lang="ru">RU</button>
+          <button type="button" class="lang-btn" data-lang="en" data-selected-language="en" data-analytics-event="language_change" data-analytics-id="language_en" data-analytics-location="header">EN</button>
+          <button type="button" class="lang-btn" data-lang="ro" data-selected-language="ro" data-analytics-event="language_change" data-analytics-id="language_ro" data-analytics-location="header">RO</button>
+          <button type="button" class="lang-btn" data-lang="ru" data-selected-language="ru" data-analytics-event="language_change" data-analytics-id="language_ru" data-analytics-location="header">RU</button>
         </div>
         {/* keyed (data-i18n) so it never collides with the contact page's identical English heading */}
-        <a class="header-cta" href={url('/contact')} data-i18n="nav.contact">Contact us</a>
+        <a
+          class="header-cta"
+          href={url('/contact')}
+          data-i18n="nav.contact"
+          data-analytics-event="cta_click"
+          data-analytics-id="header_contact"
+          data-analytics-type="link"
+          data-analytics-location="header"
+        >Contact us</a>
       </div>
     </header>
 
@@ -117,9 +176,9 @@ const faviconHref = url(squareFavicon(favicon && assetExists(favicon) ? favicon 
       <slot />
     </main>
 
-    <footer class="site-footer">
+    <footer class="site-footer" hidden={noFooter}>
       <div class="container footer-inner">
-        <span class="muted">© Marketing Solutions — Design Portfolio</span>
+        <span class="muted">© Marketing Solutions — Design Portfolio 2026</span>
         <a
           class="footer-li"
           href="https://www.linkedin.com/company/marketing-solutions-romania/"
@@ -222,9 +281,14 @@ const faviconHref = url(squareFavicon(favicon && assetExists(favicon) ? favicon 
         document.documentElement.lang = lang;
         (window as any).__lang = lang;
         (window as any).__tk = trKey;
-        document.querySelectorAll<HTMLElement>('.lang-btn').forEach((b) =>
-          b.classList.toggle('active', b.dataset.lang === lang),
-        );
+        document.querySelectorAll<HTMLElement>('.lang-btn').forEach((b) => {
+          const on = b.dataset.lang === lang;
+          if (on && !b.classList.contains('active') && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            b.classList.add('rolling');
+            b.addEventListener('animationend', () => b.classList.remove('rolling'), { once: true });
+          }
+          b.classList.toggle('active', on);
+        });
       }
       function setLang(lang: string) {
         if (!(LOCALES as readonly string[]).includes(lang)) lang = 'en';
@@ -274,6 +338,33 @@ const faviconHref = url(squareFavicon(favicon && assetExists(favicon) ? favicon 
         .site-header.revealed {
           transform: translateY(0);
         }
+        /* crumbs leave the bar so the logo never gets squeezed: they become a
+           slim low-opacity path strip hanging under the navbar (secondary info,
+           deliberately quiet). Travels with the fixed header's slide in/out. */
+        .header-inner {
+          position: relative;
+        }
+        .crumbs {
+          position: absolute;
+          top: 68px;
+          left: 0;
+          right: 0;
+          padding: 0 24px;
+          font-size: 0.8rem;
+          opacity: 0.6;
+          background: linear-gradient(to bottom, rgba(11, 11, 18, 0.75), rgba(11, 11, 18, 0.35));
+          backdrop-filter: blur(10px);
+        }
+        /* comfortable tap height comes from real link padding the strip
+           absorbs — the box grows inside the strip, so nothing overflows the
+           horizontal scroller (overflowing boxes paint scrollbars on Windows) */
+        .crumbs a {
+          padding: 12px 6px;
+          margin: 0 -6px;
+        }
+        .crumbs [aria-current='page'] {
+          padding: 12px 0;
+        }
       }
       .header-inner {
         display: flex;
@@ -291,6 +382,7 @@ const faviconHref = url(squareFavicon(favicon && assetExists(favicon) ? favicon 
         background: var(--bg-elev);
       }
       .lang-btn {
+        position: relative;
         padding: 5px 10px;
         border: 0;
         border-radius: 999px;
@@ -301,12 +393,38 @@ const faviconHref = url(squareFavicon(favicon && assetExists(favicon) ? favicon 
         letter-spacing: 0.02em;
         transition: color 0.2s, background 0.2s;
       }
+      /* invisible hit-area expansion to the ~44px touch comfort zone — the
+         visual size of the small header controls doesn't change */
+      .lang-btn::after,
+      .brand::after {
+        content: '';
+        position: absolute;
+        inset: -10px -3px;
+      }
+      .brand {
+        position: relative;
+      }
+      .brand::after {
+        inset: -8px;
+      }
       .lang-btn:hover {
         color: var(--fg);
       }
       .lang-btn.active {
         color: var(--accent-fg);
         background: color-mix(in srgb, var(--accent) 55%, transparent);
+      }
+      /* roulette roll: the freshly picked language does one full spin */
+      .lang-btn.rolling {
+        animation: lang-roll 0.5s var(--ease-back);
+      }
+      @keyframes lang-roll {
+        from {
+          transform: rotate(0);
+        }
+        to {
+          transform: rotate(360deg);
+        }
       }
       .header-cta {
         flex: none;
@@ -327,6 +445,10 @@ const faviconHref = url(squareFavicon(favicon && assetExists(favicon) ? favicon 
         display: inline-flex;
         align-items: center;
         transition: opacity 0.2s;
+      }
+      /* the compact square MS mark is the header brand on every screen */
+      .brand-full {
+        display: none;
       }
       .brand:hover {
         opacity: 0.85;

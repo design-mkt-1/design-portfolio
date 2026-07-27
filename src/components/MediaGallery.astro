@@ -2,6 +2,7 @@
 import { url, isVideoFile } from '../lib/site';
 import { thumbFor, thumbDims } from '../lib/thumbs';
 import { SIZE_ORDER, SIZE_LABEL, SIZE_RATIO, availableSizes, firstSize, type MediaItem } from '../data/projects';
+import { stableAnalyticsId } from '../lib/analytics.mjs';
 
 interface Props {
   items: MediaItem[];
@@ -28,14 +29,30 @@ const payload = items.map((item) => ({
       const original = firstSize(item)!;
       const thumb = isVideoFile(original) ? original : thumbFor(original)!;
       const dims = thumbDims(thumb);
+      // any non-square banner (real pixel ratio, not bucket) fits whole into
+      // the square tile over a blurred copy — never cropped
+      const wide = !!dims && Math.abs(dims.w / dims.h - 1) > 0.02;
       const count = availableSizes(item).length;
+      const analyticsId = stableAnalyticsId(kind, original);
       return (
-        <button class="tile reveal" data-index={i} aria-haspopup="dialog">
+        <button
+          class="tile reveal"
+          data-index={i}
+          aria-haspopup="dialog"
+          data-analytics-event="select_content"
+          data-analytics-id={analyticsId}
+          data-analytics-location={`${kind}_gallery`}
+          data-content-type={kind}
+          data-content-id={analyticsId}
+        >
           <span class="thumb">
             {isVideoFile(thumb) ? (
               <video src={url(thumb)} muted playsinline preload="metadata" />
             ) : (
-              <img src={url(thumb)} alt={item.title} width={dims?.w} height={dims?.h} loading="lazy" decoding="async" />
+              <>
+                {wide && <img class="thumb-blur" src={url(thumb)} alt="" aria-hidden="true" loading="lazy" decoding="async" />}
+                <img class={wide ? 'thumb-fit' : undefined} src={url(thumb)} alt={item.title} width={dims?.w} height={dims?.h} loading="lazy" decoding="async" />
+              </>
             )}
             {kind === 'video' && (
               <span class="play" aria-hidden="true">
@@ -94,6 +111,10 @@ const payload = items.map((item) => ({
     const item = items[current];
     const size = item.sizes[sizeIdx];
     stage.innerHTML = '';
+    // spinner until the new media has data — the stage is blank meanwhile, so
+    // the previous creative never lingers during multi-second downloads
+    stage.classList.add('loading');
+    const done = () => stage.classList.remove('loading');
     let el: HTMLElement;
     if (size.video) {
       const v = document.createElement('video');
@@ -103,11 +124,16 @@ const payload = items.map((item) => ({
       v.loop = true;
       v.muted = true;
       (v as HTMLVideoElement).playsInline = true;
+      v.addEventListener('loadeddata', done, { once: true });
+      v.addEventListener('error', done, { once: true });
       el = v;
     } else {
       const img = document.createElement('img');
+      img.onload = done;
+      img.onerror = done;
       img.src = size.src;
       img.alt = item.title;
+      if (img.complete) done();
       el = img;
     }
     stage.appendChild(el);
@@ -153,6 +179,14 @@ const payload = items.map((item) => ({
   document.querySelectorAll<HTMLElement>('.tile').forEach((tile) => {
     tile.addEventListener('click', () => ctrl.open(Number(tile.dataset.index)));
   });
+
+  // deep link from the /work overviews: #open-<n> opens that item directly
+  const deep = location.hash.match(/^#open-(\d+)$/);
+  if (deep && items.length) {
+    const i = Math.min(items.length - 1, Math.max(0, Number(deep[1])));
+    document.querySelector<HTMLElement>(`.tile[data-index="${i}"]`)?.scrollIntoView({ block: 'center' });
+    requestAnimationFrame(() => ctrl.open(i));
+  }
 </script>
 
 <style>
@@ -187,6 +221,18 @@ const payload = items.map((item) => ({
     height: 100%;
     object-fit: cover;
   }
+  /* blurred-letterbox tile for wide-only banners: a blurred cover copy fills
+     the square, the full banner sits sharp and centered on top */
+  .thumb .thumb-blur {
+    position: absolute;
+    inset: 0;
+    filter: blur(16px) brightness(0.65);
+    transform: scale(1.15);
+  }
+  .thumb .thumb-fit {
+    position: relative;
+    object-fit: contain;
+  }
   .tile:hover .thumb {
     transform: translateY(-4px);
     border-color: color-mix(in srgb, var(--accent) 55%, transparent);
@@ -195,6 +241,7 @@ const payload = items.map((item) => ({
   .play {
     position: absolute;
     inset: 0;
+    z-index: 2;
     display: grid;
     place-items: center;
     color: #fff;
@@ -210,6 +257,7 @@ const payload = items.map((item) => ({
   }
   .hover-cta {
     position: absolute;
+    z-index: 2;
     left: 0;
     right: 0;
     bottom: 0;
@@ -270,11 +318,32 @@ const payload = items.map((item) => ({
     max-height: 90vh;
   }
   .lb-stage {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
     width: min(94vw, 1100px);
     height: 72vh;
+  }
+  /* spinner while the next creative downloads */
+  .lb-stage.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 40px;
+    height: 40px;
+    margin: -20px 0 0 -20px;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.16);
+    border-top-color: var(--accent);
+    animation: lb-spin 0.8s linear infinite;
+    pointer-events: none;
+  }
+  @keyframes lb-spin {
+    to {
+      transform: rotate(360deg);
+    }
   }
   /* media element is created dynamically in JS → must be :global to receive styles */
   .lb-stage :global(img),
@@ -414,4 +483,26 @@ const payload = items.map((item) => ({
       right: 14px;
     }
   }
+
+  /* casino "win flash": a gold light sweep crosses the tile on hover */
+  @media (prefers-reduced-motion: no-preference) {
+    .thumb::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      background: linear-gradient(115deg, transparent 35%, rgba(255, 214, 130, 0.26) 50%, transparent 65%);
+      transform: translateX(-130%);
+      pointer-events: none;
+    }
+    .tile:hover .thumb::after {
+      animation: winflash 0.65s ease forwards;
+    }
+  }
+  @keyframes winflash {
+    to {
+      transform: translateX(130%);
+    }
+  }
+
 </style>

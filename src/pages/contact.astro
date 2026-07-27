@@ -16,6 +16,7 @@ const nextUrl = Astro.site ? new URL(`${url('/contact/')}?sent=1`, Astro.site).h
   title="Contact — Marketing Solutions"
   description="Get in touch with Marketing Solutions — tell us about your project."
   crumbs={[{ label: 'Projects', href: '/' }, { label: 'Contact' }]}
+  noFooter
 >
   <section class="container contact">
     <div class="contact-head reveal">
@@ -31,6 +32,8 @@ const nextUrl = Astro.site ? new URL(`${url('/contact/')}?sent=1`, Astro.site).h
       id="contact-form"
       action={`https://formsubmit.co/${ENDPOINT}`}
       method="POST"
+      data-form-id="contact_form"
+      data-form-location="contact_page"
     >
       {/* FormSubmit options */}
       <input type="hidden" name="_subject" value="New enquiry — Marketing Solutions portfolio" />
@@ -52,16 +55,20 @@ const nextUrl = Astro.site ? new URL(`${url('/contact/')}?sent=1`, Astro.site).h
       </div>
       <div class="field">
         <label for="message">Message</label>
-        <textarea id="message" name="message" rows="6" required placeholder="What can we help with?" data-i18n-ph="contact.ph.message"></textarea>
+        <textarea id="message" name="message" rows="4" required placeholder="What can we help with?" data-i18n-ph="contact.ph.message"></textarea>
       </div>
 
       <button class="btn btn-primary submit" type="submit">Send message</button>
       <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
       <p class="form-alt muted">
-        Prefer email? <a href={`mailto:${EMAIL}`}>{EMAIL}</a>
-      </p>
-      <p class="form-alt muted">
-        Or connect with us on
+        Prefer email? <a
+          href={`mailto:${EMAIL}`}
+          data-analytics-event="contact_click"
+          data-analytics-id="contact_email"
+          data-analytics-location="contact_page"
+          data-contact-method="email"
+        >{EMAIL}</a>
+        <span class="alt-sep" aria-hidden="true">·</span>
         <a class="li-link" href={LINKEDIN} target="_blank" rel="noopener">
           <svg class="li-ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zm1.78 13.02H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.72v20.55C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.72C24 .77 23.2 0 22.22 0z"/></svg>
           LinkedIn
@@ -93,15 +100,22 @@ const nextUrl = Astro.site ? new URL(`${url('/contact/')}?sent=1`, Astro.site).h
   }
 
   const loadedAt = Date.now();
+  let submitting = false;
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!statusEl) return;
     const btn = form.querySelector<HTMLButtonElement>('button[type="submit"]');
     if ((form.querySelector<HTMLInputElement>('input[name="_honey"]')?.value || '') !== '') return; // bot
     if (Date.now() - loadedAt < 3000) return; // bots submit instantly; humans don't
+    if (submitting) return;
+    submitting = true;
+    (window as any).AlmeronAnalytics?.trackFormSubmitAttempt(form);
     statusEl.textContent = tk('contact.sending', 'Sending…');
     statusEl.className = 'form-status';
     if (btn) btn.disabled = true;
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 12000);
+    let errorType = 'unknown';
     try {
       const body = new FormData(form);
       body.set('_captcha', 'false'); // AJAX path only — plain POSTs keep the captcha
@@ -109,57 +123,117 @@ const nextUrl = Astro.site ? new URL(`${url('/contact/')}?sent=1`, Astro.site).h
         method: 'POST',
         headers: { Accept: 'application/json' },
         body,
+        signal: controller.signal,
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok && String(data.success) === 'true') {
         form.reset();
         statusEl.textContent = tk('contact.ok', 'Thanks! Your message has been sent.');
         statusEl.classList.add('ok');
+        (window as any).AlmeronAnalytics?.trackFormSuccess(form);
       } else {
-        throw new Error(data.message || 'failed');
+        errorType = 'server';
+        throw new Error('server');
       }
-    } catch {
+    } catch (error) {
+      if (errorType === 'unknown') {
+        errorType = error instanceof DOMException && error.name === 'AbortError'
+          ? 'timeout'
+          : error instanceof TypeError
+            ? 'network'
+            : 'unknown';
+      }
+      (window as any).AlmeronAnalytics?.trackFormError(form, errorType);
       const prefix = tk('contact.errPrefix', "Couldn't send. Please email us directly at");
-      statusEl.innerHTML = `${prefix} <a href="mailto:${EMAIL}">${EMAIL}</a>.`;
+      statusEl.innerHTML = `${prefix} <a href="mailto:${EMAIL}" data-analytics-event="contact_click" data-analytics-id="contact_email_error" data-analytics-location="form_error" data-contact-method="email">${EMAIL}</a>.`;
       statusEl.classList.add('err');
     } finally {
+      window.clearTimeout(timeout);
+      submitting = false;
       if (btn) btn.disabled = false;
     }
   });
 </script>
 
 <style>
+  /* the whole page — head, form, submit, alternatives — is sized to fit one
+     viewport with no scrolling */
   .contact {
     max-width: 640px;
-    padding-top: 40px;
-    padding-bottom: 80px;
+    padding-top: 22px;
+    padding-bottom: 40px;
   }
   .contact-head {
     text-align: center;
-    margin-bottom: 34px;
+    margin-bottom: 20px;
   }
   .contact-head h1 {
-    font-size: clamp(2rem, 6vw, 3rem);
-    margin: 12px 0 0;
+    font-size: clamp(1.9rem, 5.5vw, 2.7rem);
+    margin: 8px 0 0;
   }
   .lede {
-    font-size: 1.05rem;
-    margin: 16px auto 0;
+    font-size: 1rem;
+    margin: 10px auto 0;
     max-width: 480px;
   }
   .contact-form {
     display: flex;
     flex-direction: column;
-    gap: 18px;
-    padding: 30px;
+    gap: 13px;
+    padding: 22px;
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015));
   }
+  @media (max-width: 700px) {
+    .contact {
+      padding-top: 12px;
+      padding-bottom: 24px;
+    }
+    .contact-form {
+      padding: 18px 16px;
+    }
+  }
+  /* short viewports (landscape phones, small laptops): squeeze further */
+  @media (max-height: 760px) {
+    .contact {
+      padding-top: 10px;
+      padding-bottom: 16px;
+    }
+    .contact-head {
+      margin-bottom: 12px;
+    }
+    .contact-head h1 {
+      font-size: clamp(1.6rem, 4.5vw, 2.1rem);
+    }
+    .lede {
+      font-size: 0.92rem;
+      margin-top: 6px;
+    }
+    .field textarea {
+      height: 88px;
+    }
+  }
+  @media (max-height: 680px) {
+    .contact {
+      padding-top: 6px;
+      padding-bottom: 10px;
+    }
+    .contact-form {
+      gap: 10px;
+      padding: 14px;
+    }
+    .lede {
+      display: none;
+    }
+    .field textarea {
+      height: 72px;
+    }
+  }
   .field {
     display: flex;
     flex-direction: column;
-    gap: 7px;
+    gap: 6px;
   }
   .field label {
     font-size: 0.85rem;
@@ -169,7 +243,7 @@ const nextUrl = Astro.site ? new URL(`${url('/contact/')}?sent=1`, Astro.site).h
   .field input,
   .field textarea {
     width: 100%;
-    padding: 12px 14px;
+    padding: 10px 13px;
     font: inherit;
     color: var(--fg);
     background: var(--bg-elev);
@@ -219,6 +293,10 @@ const nextUrl = Astro.site ? new URL(`${url('/contact/')}?sent=1`, Astro.site).h
     text-align: center;
     font-size: 0.88rem;
     margin: 0;
+  }
+  .alt-sep {
+    margin: 0 6px;
+    color: var(--fg-dim);
   }
   .form-alt a {
     color: var(--accent);

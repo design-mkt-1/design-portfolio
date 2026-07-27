@@ -6,25 +6,26 @@
 import { readdirSync, existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { imageSize } from 'image-size';
-import { projects, type MediaItem, type LandingItem, type SizeKey, type Project } from '../data/projects';
-import { readyVideos } from './videos';
+import { projects, type MediaItem, type LandingItem, type VideoItem, type SizeKey, type Project } from '../data/projects';
 import { hasStore } from './store';
 import { cleanTitle, isInProgress } from './titles';
 
 const natural = (a: string, b: string) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
 const IMG = /\.(webp|png|jpe?g)$/i;
 
-function kindDir(slug: string, kind: 'banners' | 'landings'): string {
+function kindDir(slug: string, kind: 'banners' | 'landings' | 'videos'): string {
   return join(process.cwd(), 'public', 'assets', slug, kind);
 }
-function setFolders(slug: string, kind: 'banners' | 'landings'): string[] {
+function setFolders(slug: string, kind: 'banners' | 'landings' | 'videos'): string[] {
   const d = kindDir(slug, kind);
   if (!existsSync(d)) return [];
   return readdirSync(d, { withFileTypes: true })
     .filter((x) => x.isDirectory())
     .map((x) => x.name)
     .filter((n) => !isInProgress(n))
-    .sort(natural);
+    // newest work first: folders are "<task ID> - Name", so descending natural
+    // order puts the highest (latest) IDs at the top of every gallery
+    .sort((a, b) => natural(b, a));
 }
 
 /** Aspect buckets: real pixel dimensions are snapped to the nearest ratio, so
@@ -36,6 +37,8 @@ const RATIO_BUCKETS: [SizeKey, number][] = [
   ['16x9', 16 / 9],
   ['4x5', 4 / 5],
   ['2x1', 2],
+  ['3x1', 3],
+  ['4x1', 4],
 ];
 function bucketFor(w: number, h: number): SizeKey {
   const r = w / h;
@@ -75,18 +78,13 @@ export function projectBanners(slug: string): MediaItem[] {
     }
     if (!probes.length) continue;
     const rel = (f: string) => `assets/${slug}/banners/${folder}/${f}`;
-    const perKey = new Map<SizeKey, Probe[]>();
-    for (const p of probes) perKey.set(p.key, [...(perKey.get(p.key) ?? []), p]);
     const title = cleanTitle(folder);
-    if (Math.max(...[...perKey.values()].map((a) => a.length)) === 1) {
-      const sizes: MediaItem['sizes'] = {};
-      const labels: MediaItem['labels'] = {};
-      for (const [key, [p]] of perKey) {
-        sizes[key] = rel(p.file);
-        labels[key] = `${p.w} × ${p.h}`;
-      }
-      out.push({ title, sizes, labels });
-    } else {
+    // Files sharing EXACT dimensions are separate creatives (step banners,
+    // slider series) → the folder splits into numbered items. Distinct
+    // dimensions are placements of ONE creative → a single multi-size item.
+    const dimCounts = new Map<string, number>();
+    for (const p of probes) dimCounts.set(`${p.w}x${p.h}`, (dimCounts.get(`${p.w}x${p.h}`) ?? 0) + 1);
+    if (Math.max(...dimCounts.values()) > 1) {
       probes.forEach((p, i) =>
         out.push({
           title: `${title} ${i + 1}`,
@@ -94,6 +92,23 @@ export function projectBanners(slug: string): MediaItem[] {
           labels: { [p.key]: `${p.w} × ${p.h}` },
         }),
       );
+    } else {
+      const sizes: MediaItem['sizes'] = {};
+      const labels: MediaItem['labels'] = {};
+      for (const p of probes) {
+        // nearest free bucket if the ideal one is already taken
+        let key = p.key;
+        if (sizes[key]) {
+          const free = RATIO_BUCKETS
+            .filter(([k]) => !sizes[k])
+            .sort((a, b) => Math.abs(Math.log(p.w / p.h / a[1])) - Math.abs(Math.log(p.w / p.h / b[1])))[0];
+          if (!free) continue;
+          key = free[0];
+        }
+        sizes[key] = rel(p.file);
+        labels[key] = `${p.w} × ${p.h}`;
+      }
+      out.push({ title, sizes, labels });
     }
   }
   bannerCache.set(slug, out);
@@ -103,19 +118,89 @@ export function projectBanners(slug: string): MediaItem[] {
 /** Landings, natural order; a *mobile*, *tablet*, and/or *desktop* image per folder. */
 export function projectLandings(slug: string): LandingItem[] {
   return setFolders(slug, 'landings')
-    .map((folder) => {
+    .flatMap((folder) => {
       const files = readdirSync(join(kindDir(slug, 'landings'), folder)).filter((f) => IMG.test(f));
-      const item: LandingItem = { title: cleanTitle(folder) };
-      // "dekstop" tolerated — a real-world upload typo that would otherwise
-      // silently drop the desktop version.
-      const patterns = { mobile: /mobile/i, tablet: /tablet/i, desktop: /desktop|dekstop/i } as const;
-      for (const device of ['mobile', 'tablet', 'desktop'] as const) {
-        const file = files.find((f) => patterns[device].test(f));
-        if (file) item[device] = `assets/${slug}/landings/${folder}/${file}`;
+      // "mob"/"dekstop" tolerated — real-world upload spellings that would
+      // otherwise silently drop a version.
+      const patterns = { mobile: /mob/i, tablet: /tablet/i, desktop: /desktop|dekstop/i } as const;
+      const byDevice = {
+        mobile: files.filter((f) => patterns.mobile.test(f)),
+        tablet: files.filter((f) => patterns.tablet.test(f)),
+        desktop: files.filter((f) => patterns.desktop.test(f)),
+      };
+      const devices = ['mobile', 'tablet', 'desktop'] as const;
+      // Common case: at most one file per device → one landing, stray numbers
+      // in names ("430px (Mobile 2).jpg") are just designer naming noise.
+      if (devices.every((d) => byDevice[d].length <= 1)) {
+        const item: LandingItem = { title: cleanTitle(folder) };
+        for (const d of devices) if (byDevice[d][0]) item[d] = `assets/${slug}/landings/${folder}/${byDevice[d][0]}`;
+        return [item];
       }
-      return item;
+      // A device has several files → the folder holds numbered variants of one
+      // landing ("desktop - 1.jpg" + "mobile 1.jpg", "desktop - 2.jpg" + …).
+      // Pair files by the LAST small number in the name (dimension tokens like
+      // "375-728" stripped first; no number → variant 1) into numbered items.
+      const variants = new Map<number, LandingItem>();
+      for (const device of devices) {
+        for (const file of byDevice[device]) {
+          const stem = file.replace(/\.[^.]+$/, '').replace(/\d{3,4}\s*[-xх×]\s*\d{3,4}/gi, '');
+          const n = Number(stem.match(/(\d+)(?!.*\d)/)?.[1] ?? 1);
+          const v = n >= 1 && n < 100 ? n : 1;
+          if (!variants.has(v)) variants.set(v, { title: cleanTitle(folder) });
+          const item = variants.get(v)!;
+          if (!item[device]) item[device] = `assets/${slug}/landings/${folder}/${file}`;
+        }
+      }
+      const items = [...variants.entries()].sort((a, b) => a[0] - b[0]).map(([, item]) => item);
+      if (items.length > 1) items.forEach((item, i) => (item.title = `${cleanTitle(folder)} ${i + 1}`));
+      return items;
     })
     .filter((l) => l.mobile || l.tablet || l.desktop);
+}
+
+/** Videos, auto-detected like banners: one folder per video under
+ *  videos/<ID - Name>/ with dimension-named MP4s (1080x1080.mp4, 1920x1080.mp4;
+ *  Cyrillic х and dashes tolerated) and a cover.* poster. The poster is
+ *  generated automatically by the compress-videos workflow if missing, so a
+ *  folder shows up within a minute of uploading the MP4s. */
+const VIDEO_DIM = /(\d{3,4})\s*[xх×\-]\s*(\d{3,4})/i;
+const videoCache = new Map<string, VideoItem[]>();
+// Video delivery: GitHub Pages serves the repo directly, but jsDelivr fronts
+// the same files with a global CDN — much faster playback start in far markets
+// (GE/UZ). CI builds pin the exact commit (instant freshness + immutable
+// caching); local builds keep repo-relative paths. Every video is ≤ ~12MB,
+// safely under jsDelivr's 20MB per-file limit.
+const VIDEO_CDN = process.env.GITHUB_SHA
+  ? `https://cdn.jsdelivr.net/gh/design-mkt-1/design-portfolio@${process.env.GITHUB_SHA}/public/`
+  : null;
+const videoSrc = (path: string) => (VIDEO_CDN ? VIDEO_CDN + encodeURI(path) : path);
+
+export function projectVideos(slug: string): VideoItem[] {
+  const hit = videoCache.get(slug);
+  if (hit) return hit;
+  const out: VideoItem[] = [];
+  for (const folder of setFolders(slug, 'videos')) {
+    const dir = join(kindDir(slug, 'videos'), folder);
+    const files = readdirSync(dir);
+    const poster = files.find((f) => /^cover.*\.(webp|png|jpe?g)$/i.test(f));
+    if (!poster) continue;
+    const src: VideoItem['src'] = {};
+    const labels: VideoItem['labels'] = {};
+    for (const f of files.filter((n) => /\.mp4$/i.test(n)).sort(natural)) {
+      const m = f.match(VIDEO_DIM);
+      if (!m) continue;
+      const [w, h] = [parseInt(m[1], 10), parseInt(m[2], 10)];
+      const key = bucketFor(w, h);
+      if (!src[key]) {
+        src[key] = videoSrc(`assets/${slug}/videos/${folder}/${f}`);
+        labels[key] = `${w} × ${h}`;
+      }
+    }
+    if (Object.keys(src).length === 0) continue;
+    out.push({ title: cleanTitle(folder), poster: `assets/${slug}/videos/${folder}/${poster}`, src, labels });
+  }
+  videoCache.set(slug, out);
+  return out;
 }
 
 /** Build-time check for a /public asset (e.g. a logo not yet uploaded). */
@@ -128,7 +213,7 @@ export function hasPortfolio(p: Project): boolean {
   return (
     projectBanners(p.slug).length > 0 ||
     projectLandings(p.slug).length > 0 ||
-    readyVideos(p.videos).length > 0 ||
+    projectVideos(p.slug).length > 0 ||
     hasStore(p.slug)
   );
 }
@@ -214,7 +299,7 @@ export function portfolioFormats(p: Project): PortfolioFormat[] {
   const f: PortfolioFormat[] = [];
   if (projectBanners(p.slug).length > 0) f.push('banners');
   if (projectLandings(p.slug).length > 0) f.push('landings');
-  if (readyVideos(p.videos).length > 0) f.push('videos');
+  if (projectVideos(p.slug).length > 0) f.push('videos');
   if (hasStore(p.slug)) f.push('store');
   return f;
 }

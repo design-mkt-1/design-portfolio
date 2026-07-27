@@ -1,5 +1,6 @@
 ---
 import { url, isVideoFile } from '../lib/site';
+import { pathAnalyticsId } from '../lib/analytics.mjs';
 
 export interface Choice {
   title: string;
@@ -21,6 +22,10 @@ export interface Choice {
     | { type: 'carousel'; images: string[] }
     | { type: 'brand'; logo: string };
   disabled?: boolean;
+  analyticsId?: string;
+  analyticsLocation?: string;
+  contentType?: string;
+  contentId?: string;
 }
 interface Props {
   choices: Choice[];
@@ -56,6 +61,11 @@ function carouselLoop(images: string[]): string[] {
         class:list={['choice reveal', { disabled: c.disabled, 'is-preview': hasPreview }]}
         href={c.disabled ? undefined : url(c.href)}
         aria-disabled={c.disabled ? 'true' : undefined}
+        data-analytics-event={c.disabled ? undefined : 'select_content'}
+        data-analytics-id={c.disabled ? undefined : c.analyticsId ?? pathAnalyticsId('choice', c.href)}
+        data-analytics-location={c.disabled ? undefined : c.analyticsLocation ?? 'section_chooser'}
+        data-content-type={c.disabled ? undefined : c.contentType ?? 'portfolio_section'}
+        data-content-id={c.disabled ? undefined : c.contentId ?? pathAnalyticsId('content', c.href)}
       >
         {hasPreview ? (
           <>
@@ -352,4 +362,26 @@ function carouselLoop(images: string[]): string[] {
     color: var(--accent);
     transform: translateX(5px);
   }
+
+  /* casino "win flash": a gold light sweep crosses the tile on hover */
+  @media (prefers-reduced-motion: no-preference) {
+    .choice-cover::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      background: linear-gradient(115deg, transparent 35%, rgba(255, 214, 130, 0.26) 50%, transparent 65%);
+      transform: translateX(-130%);
+      pointer-events: none;
+    }
+    .choice:not(.disabled):hover .choice-cover::after {
+      animation: winflash 0.65s ease forwards;
+    }
+  }
+  @keyframes winflash {
+    to {
+      transform: translateX(130%);
+    }
+  }
+
 </style>

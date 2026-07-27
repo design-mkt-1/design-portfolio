@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "propertyId": "123456789",
+  "measurementId": "G-48FWDR8WMC",
+  "customDimensions": [
+    {
+      "parameterName": "site_section",
+      "displayName": "Site section",
+      "description": "Stable section classification supplied by the website.",
+      "scope": "EVENT"
+    },
+    {
+      "parameterName": "site_language",
+      "displayName": "Site language",
+      "description": "Language code active when the event occurred.",
+      "scope": "EVENT"
+    },
+    {
+      "parameterName": "element_id",
+      "displayName": "Element ID",
+      "description": "Stable, language-independent identifier for an interactive element.",
+      "scope": "EVENT"
+    },
+    {
+      "parameterName": "element_type",
+      "displayName": "Element type",
+      "description": "Categorical type of the interactive element.",
+      "scope": "EVENT"
+    },
+    {
+      "parameterName": "element_location",
+      "displayName": "Element location",
+      "description": "Stable page region containing the interactive element.",
+      "scope": "EVENT"
+    },
+    {
+      "parameterName": "form_id",
+      "displayName": "Form ID",
+      "description": "Stable identifier for the form.",
+      "scope": "EVENT"
+    },
+    {
+      "parameterName": "form_location",
+      "displayName": "Form location",
+      "description": "Stable page region containing the form.",
+      "scope": "EVENT"
+    },
+    {
+      "parameterName": "error_type",
+      "displayName": "Form error type",
+      "description": "Categorical form failure type without response details.",
+      "scope": "EVENT"
+    },
+    {
+      "parameterName": "field_name",
+      "displayName": "Form field name",
+      "description": "Stable field identifier for browser validation failures; never a field value.",
+      "scope": "EVENT"
+    },
+    {
+      "parameterName": "previous_language",
+      "displayName": "Previous language",
+      "description": "Language code before a language selection.",
+      "scope": "EVENT"
+    },
+    {
+      "parameterName": "selected_language",
+      "displayName": "Selected language",
+      "description": "Language code selected by the visitor.",
+      "scope": "EVENT"
+    }
+  ],
+  "keyEvents": [
+    {
+      "eventName": "generate_lead",
+      "countingMethod": "ONCE_PER_EVENT"
+    }
+  ]
+}

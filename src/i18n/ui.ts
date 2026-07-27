@@ -21,9 +21,9 @@ export const LOCALE_NAME: Record<Locale, string> = {
 export const STRINGS: Record<string, [string, string, string]> = {
   'nav.contact': ['Contact us', 'Contactează-ne', 'Связаться'],
   'footer.copy': [
-    '© Marketing Solutions — Design Portfolio',
-    '© Marketing Solutions — Portofoliu de Design',
-    '© Marketing Solutions — Портфолио Дизайна',
+    '© Marketing Solutions — Design Portfolio 2026',
+    '© Marketing Solutions — Portofoliu de Design 2026',
+    '© Marketing Solutions — Портфолио Дизайна 2026',
   ],
 
   'home.eyebrow': ['iGaming Creative Studio', 'Studio de Creație iGaming', 'Креативная студия iGaming'],
@@ -40,7 +40,10 @@ export const STRINGS: Record<string, [string, string, string]> = {
   'stat.brands': ['brands', 'branduri', 'брендов'],
   'stat.landings': ['promo landings', 'landing-uri promo', 'промо-лендингов'],
   'stat.banners': ['banner sets', 'seturi de bannere', 'серий баннеров'],
-  'stat.markets': ['markets', 'piețe', 'рынка'],
+  'stat.videos': ['videos', 'videouri', 'видео'],
+  'stat.markets': ['markets', 'piețe', 'рынков'],
+
+  'hint.spin': ['Tap the logo to spin', 'Atinge logo-ul pentru un spin', 'Нажми на логотип — крути'],
 
   // Conversion CTAs
   'cta.start': ['Start a project', 'Începe un proiect', 'Начать проект'],
@@ -83,10 +86,46 @@ export const STRINGS: Record<string, [string, string, string]> = {
   ],
   'svc.video': ['Video & motion', 'Video & motion', 'Видео и моушн'],
   'svc.video.desc': [
-    'Promo videos and motion creative, plus app-store listing assets.',
-    'Videouri promo și creative motion, plus materiale pentru magazinele de aplicații.',
-    'Промо-видео и моушн-креативы, а также материалы для сторов приложений.',
+    'Promo videos and motion creative for campaigns and social.',
+    'Videouri promo și creative motion pentru campanii și social media.',
+    'Промо-видео и моушн-креативы для кампаний и соцсетей.',
   ],
+  // Team section (home)
+  'team.head': ['Our team', 'Echipa noastră', 'Наша команда'],
+  'team.sub': [
+    'Young, fast-moving and focused — 15 design wizards and growing.',
+    'Tineri, rapizi și concentrați — 15 magicieni ai designului, și creștem.',
+    'Молодая, быстрая и сфокусированная команда — 15 волшебников дизайна, и нас становится больше.',
+  ],
+  'team.geo.ro': ['Romania', 'România', 'Румыния'],
+  'team.geo.ua': ['Ukraine', 'Ucraina', 'Украина'],
+  'team.geo.md': ['Moldova', 'Moldova', 'Молдова'],
+  'team.geo.more': ['and beyond', 'și nu numai', 'и не только'],
+  'team.members': ['team members', 'membri în echipă', 'человек в команде'],
+  'team.graphic': ['graphic designers', 'graphic designeri', 'графических дизайнеров'],
+  'team.motion': ['motion designers', 'motion designeri', 'моушн-дизайнеров'],
+  'team.uiux': ['UI/UX designers', 'UI/UX designeri', 'UI/UX-дизайнеров'],
+  'team.ai.head': ['AI-boosted workflow', 'Flux de lucru accelerat cu AI', 'AI в рабочем процессе'],
+  'team.ai.p': [
+    'AI is wired into our pipeline — concepting, upscaling, motion and voice — with every deliverable art-directed by our designers. Better quality, shipped faster.',
+    'AI-ul este integrat în procesul nostru — concepte, upscaling, motion și voce — iar fiecare livrabil este coordonat artistic de designerii noștri. Calitate mai bună, livrată mai repede.',
+    'AI встроен в наш процесс — концепты, апскейлинг, моушн и озвучка — при этом каждый материал контролируют наши дизайнеры. Лучше качество, быстрее результат.',
+  ],
+
+  // Cross-brand work overview pages (/work/*)
+  'work.items': ['items across', 'lucrări în', 'работ в'],
+  'work.brands': ['brands', 'branduri', 'брендах'],
+  'work.open': ['Open gallery', 'Deschide galeria', 'Открыть галерею'],
+  'svc.more': ['See all', 'Vezi tot', 'Смотреть все'],
+
+  // Service card deliverable chips ('Logo' and the ratio chips are universal;
+  // Mobile/Tablet/Desktop reuse the dev.* rows via the same EN text)
+  'svc.chip.colors': ['Colors', 'Culori', 'Цвета'],
+  'svc.chip.guides': ['Guidelines', 'Ghid', 'Гайдлайны'],
+  'svc.chip.promo': ['Promo', 'Promo', 'Промо'],
+  'svc.chip.motion': ['Motion', 'Motion', 'Моушн'],
+  'svc.chip.social': ['Social', 'Social', 'Соцсети'],
+
   'svc.point.mobile': ['Mobile-first design', 'Design mobile-first', 'Mobile-first дизайн'],
   'svc.point.speed': ['Campaign-speed turnaround', 'Livrare în ritmul campaniilor', 'Скорость под график кампаний'],
   'svc.point.langs': ['Creative in RO, EN and Worldwide', 'Creative în RO, EN și Worldwide', 'Креативы — RO, EN и Worldwide'],
@@ -223,7 +262,6 @@ export const STRINGS: Record<string, [string, string, string]> = {
   'contact.message': ['Message', 'Mesaj', 'Сообщение'],
   'contact.send': ['Send message', 'Trimite mesajul', 'Отправить'],
   'contact.prefer': ['Prefer email?', 'Preferi emailul?', 'Предпочитаете email?'],
-  'contact.linkedin': ['Or connect with us on', 'Sau conectează-te cu noi pe', 'Или свяжитесь с нами в'],
   // placeholders / JS status (looked up by key)
   'contact.ph.name': ['Your name', 'Numele tău', 'Ваше имя'],
   'contact.ph.message': ['What can we help with?', 'Cu ce te putem ajuta?', 'Чем мы можем помочь?'],

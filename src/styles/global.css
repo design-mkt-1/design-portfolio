@@ -164,6 +164,227 @@ button {
   margin: 0 0.32em;
 }
 
+/* ---- Animated-stroke CTA (casino) ----
+   Idle: one light runs along the outline. Hover: gold fill sweeps in. */
+@property --spin-a {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+.btn-spin {
+  position: relative;
+  z-index: 0; /* stacking context: keeps the fill layer above the bg, below text */
+  overflow: hidden;
+  /* gradient-border: dark fill in the padding box, the conic ring (one bright
+     traveling segment over a faint base line) in the border box */
+  border: 2px solid transparent;
+  /* resting state reads "primary": a quiet brand-tinted fill + soft glow,
+     clearly richer than the flat secondary button next to it */
+  background:
+    linear-gradient(
+        115deg,
+        color-mix(in srgb, var(--brand-teal) 22%, var(--bg-elev)),
+        color-mix(in srgb, var(--brand-blue) 18%, var(--bg-elev)) 50%,
+        color-mix(in srgb, var(--brand-violet) 24%, var(--bg-elev))
+      )
+      padding-box,
+    conic-gradient(
+        from var(--spin-a),
+        rgba(255, 255, 255, 0.14) 0deg 280deg,
+        var(--brand-teal) 310deg,
+        #f5c452 338deg,
+        rgba(255, 255, 255, 0.14) 358deg
+      )
+      border-box;
+  box-shadow: 0 8px 28px rgba(74, 146, 224, 0.2);
+  color: #fff;
+  font-weight: 600;
+  animation: btn-stroke 3.4s linear infinite;
+  transition: color 0.25s, box-shadow 0.25s, transform 0.2s var(--ease-expo);
+}
+@keyframes btn-stroke {
+  to {
+    --spin-a: 360deg;
+  }
+}
+.btn-spin::after {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  border-radius: 999px;
+  background: linear-gradient(115deg, #ffe9a8, #f5b301 55%, #e08c00);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.38s var(--ease-expo);
+}
+.btn-spin:hover {
+  color: #1c1204;
+  box-shadow: 0 10px 34px rgba(245, 179, 1, 0.35);
+  transform: translateY(-2px);
+}
+.btn-spin:hover::after {
+  transform: scaleX(1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn-spin::before {
+    animation: none;
+  }
+  .btn-spin::after {
+    transition: none;
+  }
+}
+
+/* Analytics consent controls: intentionally compact and visually aligned with
+   the existing dark glass UI. */
+.consent-banner {
+  position: fixed;
+  z-index: 90;
+  right: 20px;
+  bottom: 20px;
+  left: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--bg-elev) 94%, transparent);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.48);
+  backdrop-filter: blur(18px);
+}
+.consent-banner[hidden] {
+  display: none;
+}
+.consent-copy {
+  max-width: 570px;
+}
+.consent-copy h2,
+.consent-dialog h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+.consent-copy p {
+  margin: 5px 0 0;
+  color: var(--fg-muted);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+.consent-actions,
+.consent-dialog-actions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+.consent-actions .btn,
+.consent-dialog-actions .btn {
+  min-height: 40px;
+  padding: 9px 14px;
+  font-size: 0.83rem;
+  /* buttons stretch to their grid column on mobile — keep labels centered */
+  justify-content: center;
+}
+.consent-manage {
+  padding: 7px 4px;
+  border: 0;
+  color: var(--fg-muted);
+  background: none;
+  font: inherit;
+  font-size: 0.8rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.consent-settings {
+  position: fixed;
+  z-index: 45;
+  right: 14px;
+  bottom: 12px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--fg-dim);
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  font: inherit;
+  font-size: 0.7rem;
+  backdrop-filter: blur(10px);
+}
+.consent-settings:hover,
+.consent-manage:hover {
+  color: var(--fg);
+}
+.consent-dialog {
+  width: min(560px, calc(100vw - 32px));
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  color: var(--fg);
+  background: var(--bg-elev);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.62);
+}
+.consent-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.66);
+  backdrop-filter: blur(5px);
+}
+.consent-dialog-inner {
+  display: grid;
+  gap: 22px;
+  padding: 24px;
+}
+.consent-dialog .muted {
+  margin: 7px 0 0;
+  font-size: 0.9rem;
+}
+.consent-options {
+  display: grid;
+  gap: 10px;
+}
+.consent-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.025);
+}
+.consent-option span {
+  display: grid;
+  gap: 3px;
+}
+.consent-option small {
+  color: var(--fg-muted);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+.consent-option input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--accent);
+}
+@media (max-width: 760px) {
+  .consent-banner {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 14px;
+    right: 12px;
+    bottom: 12px;
+    left: 12px;
+    padding: 16px;
+  }
+  .consent-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .consent-actions .consent-manage {
+    grid-column: 1 / -1;
+  }
+}
+
 /* ---- Back link ---- */
 .backlink {
   display: inline-flex;
@@ -178,7 +399,10 @@ button {
 }
 
 /* ---- Scroll-reveal (staggered, expo) ---- */
-.reveal {
+/* Reveal animations hide content only once JS is confirmed running (the .js
+   class is set by an inline head script) — with JS disabled, blocked, or still
+   downloading on a slow connection, everything is simply visible. */
+.js .reveal {
   opacity: 0;
   transform: translateY(18px) scale(0.98);
   transition:
@@ -186,7 +410,7 @@ button {
     transform 0.5s var(--ease-expo);
   transition-delay: var(--reveal-delay, 0ms);
 }
-.reveal.is-visible {
+.js .reveal.is-visible {
   opacity: 1;
   transform: none;
 }
@@ -197,7 +421,8 @@ button {
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
-  .reveal {
+  .reveal,
+  .js .reveal {
     opacity: 1;
     transform: none;
   }

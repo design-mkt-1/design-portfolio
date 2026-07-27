@@ -1,0 +1,22 @@
+---
+import { url } from '../lib/site';
+import ConsentPreferences from './ConsentPreferences.astro';
+
+const gtmId = import.meta.env.PUBLIC_GTM_ID?.trim() || 'GTM-5CRD484Z';
+---
+
+<!-- Google Tag Manager (noscript) -->
+<noscript>
+  <iframe
+    src={`https://www.googletagmanager.com/ns.html?id=${gtmId}`}
+    height="0"
+    width="0"
+    style="display:none;visibility:hidden"
+    title="Google Tag Manager"
+  ></iframe>
+</noscript>
+<!-- End Google Tag Manager (noscript) -->
+
+<ConsentPreferences />
+<script is:inline src={url('assets/js/analytics.js')} defer></script>
+<script is:inline src={url('assets/js/consent.js')} defer></script>

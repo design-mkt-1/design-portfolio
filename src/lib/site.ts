@@ -3,6 +3,8 @@
 const BASE = import.meta.env.BASE_URL;
 
 export function url(path = ''): string {
+  // absolute URLs (e.g. CDN-hosted videos) pass through untouched
+  if (/^https?:\/\//i.test(path)) return path;
   const b = BASE.endsWith('/') ? BASE.slice(0, -1) : BASE;
   const p = path.startsWith('/') ? path : `/${path}`;
   // encodeURI so asset folders with spaces (e.g. "27735 - AlbaNeagra") resolve

@@ -1,0 +1,17 @@
+{
+  "name": "almeron-analytics-tools",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build:gtm": "node build-gtm-container.mjs",
+    "ga4:dry-run": "node configure-ga4.mjs",
+    "ga4:apply": "node configure-ga4.mjs --apply"
+  },
+  "dependencies": {
+    "@google-analytics/admin": "^7.6.0"
+  }
+}
