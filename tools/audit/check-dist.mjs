@@ -62,7 +62,7 @@ for (const { file, html } of indexable) {
     try { JSON.parse(json); } catch (e) { fail('seo', file, `invalid JSON-LD: ${e.message}`); }
   }
   const title = (html.match(/<title>([^<]*)<\/title>/)?.[1] ?? '').replaceAll('&amp;', '&');
-  if (title.length < 30 || title.length > 70) fail('seo', file, `title length ${title.length}: "${title}"`);
+  if (title.length < 30 || title.length > (/^(ro|ru)\//.test(file) ? 80 : 70)) fail('seo', file, `title length ${title.length}: "${title}"`);
   const desc = html.match(/<meta name="description" content="([^"]*)"/)?.[1] ?? '';
   if (desc.length < 110 || desc.length > 170) fail('seo', file, `description length ${desc.length}`);
 }
@@ -114,3 +114,30 @@ for (const [rule, list] of Object.entries(byRule)) {
 }
 console.log(`\n${pages.length} HTML files in ${root}: ${failures.length ? `${failures.length} failure(s)` : 'all audit checks passed'}.`);
 process.exitCode = failures.length ? 1 : 0;
+
+// --- RO/RU routes (phase 9, src/integrations/localize.mjs) ---
+{
+  const extra = [];
+  const enPages = pages.filter((p) => !/^(ro|ru)\//.test(p.file) && p.file !== '404.html' && !isRedirect(p.html));
+  for (const { file } of enPages) {
+    for (const lang of ['ro', 'ru']) {
+      const loc = pages.find((p) => p.file === `${lang}/${file}`);
+      if (!loc) { extra.push(`[i18n] ${lang}/${file}: missing`); continue; }
+      if (!loc.html.includes(`<html lang="${lang}"`)) extra.push(`[i18n] ${lang}/${file}: lang is not ${lang}`);
+      const canon = loc.html.match(/<link rel="canonical" href="([^"]+)"/)?.[1] ?? '';
+      if (!new URL(canon).pathname.startsWith(`/${lang}/`)) extra.push(`[i18n] ${lang}/${file}: canonical ${canon}`);
+      const hreflang = [...loc.html.matchAll(/hreflang="([a-z-]+)"/g)].map((m) => m[1]).sort().join(',');
+      if (hreflang !== 'en,ro,ru,x-default') extra.push(`[i18n] ${lang}/${file}: hreflang ${hreflang}`);
+      const leak = loc.html.match(/<a\b[^>]*\shref="(\/(?!ro\/|ru\/|assets\/|_astro\/)[^"]*\/)"/);
+      if (leak) extra.push(`[i18n] ${lang}/${file}: link to English page ${leak[1]}`);
+    }
+  }
+  const locs = sitemapUrls.map((u) => new URL(u).pathname);
+  for (const lang of ['ro', 'ru'])
+    if (!locs.some((p) => p.startsWith(`/${lang}/`))) extra.push(`[i18n] sitemap: no /${lang}/ URLs`);
+  if (extra.length) {
+    console.log(`\ni18n routes: ${extra.length} failure(s)`);
+    for (const f of extra.slice(0, process.env.ALL ? 1e9 : 8)) console.log(`  ${f}`);
+    process.exitCode = 1;
+  }
+}

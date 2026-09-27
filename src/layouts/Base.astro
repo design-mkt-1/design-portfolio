@@ -120,13 +120,19 @@ const siteSection = pagePath.includes('/contact')
     {robots && <meta name="robots" content={robots} />}
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 
-    {/* Locale variants: RO/RU render via ?lang=… (client i18n; Googlebot executes
-        JS, so translated content on these URLs is indexable). hreflang tells
-        crawlers the three variants belong together; EN is the default. */}
-    {canonical && <link rel="alternate" hreflang="en" href={canonical} />}
-    {canonical && <link rel="alternate" hreflang="ro" href={`${canonical}?lang=ro`} />}
-    {canonical && <link rel="alternate" hreflang="ru" href={`${canonical}?lang=ru`} />}
-    {canonical && <link rel="alternate" hreflang="x-default" href={canonical} />}
+    {/* Locale variants: /ro/… and /ru/… are generated at build time by
+        src/integrations/localize.mjs (same pages, translated HTML). Every
+        variant lists all three; EN is the default. */}
+    {
+      !robots && (
+        <>
+          <link rel="alternate" hreflang="en" href={new URL(pathNoBase, ORIGIN).href} />
+          <link rel="alternate" hreflang="ro" href={new URL(`/ro${pathNoBase}`, ORIGIN).href} />
+          <link rel="alternate" hreflang="ru" href={new URL(`/ru${pathNoBase}`, ORIGIN).href} />
+          <link rel="alternate" hreflang="x-default" href={new URL(pathNoBase, ORIGIN).href} />
+        </>
+      )
+    }
 
     {/* Open Graph / Twitter — rich previews when links are shared */}
     <meta property="og:type" content="website" />
@@ -356,27 +362,25 @@ const siteSection = pagePath.includes('/contact')
           b.setAttribute('aria-pressed', String(on));
         });
       }
+      // RO/RU are real pages under /ro/ and /ru/ (built by src/integrations/
+      // localize.mjs), so switching language navigates. `astro dev` has no
+      // such pages and keeps translating in place.
+      const isLocale = (l: string | null): l is string => !!l && (LOCALES as readonly string[]).includes(l);
+      const BASE_PATH = import.meta.env.BASE_URL.replace(/\/$/, '');
+      const pageLang = isLocale(document.documentElement.lang) ? document.documentElement.lang : 'en';
+      const pathFor = (lang: string) => {
+        const p = (location.pathname.slice(BASE_PATH.length) || '/').replace(/^\/(ro|ru)(?=\/)/, '');
+        return `${BASE_PATH}${lang === 'en' ? '' : `/${lang}`}${p}${location.hash}`;
+      };
       function setLang(lang: string) {
-        if (!(LOCALES as readonly string[]).includes(lang)) lang = 'en';
-        try {
-          localStorage.setItem('ms-lang', lang);
-        } catch {}
-        const u = new URL(location.href);
-        if (lang === 'en') u.searchParams.delete('lang');
-        else u.searchParams.set('lang', lang);
-        history.replaceState(null, '', u);
-        apply(lang);
+        if (!isLocale(lang)) lang = 'en';
+        if (import.meta.env.DEV) apply(lang);
+        else if (lang !== pageLang) location.assign(pathFor(lang));
       }
-      const stored = (() => {
-        try {
-          return localStorage.getItem('ms-lang');
-        } catch {
-          return null;
-        }
-      })();
-      let initial = new URLSearchParams(location.search).get('lang') || stored || 'en';
-      if (!(LOCALES as readonly string[]).includes(initial)) initial = 'en';
-      apply(initial);
+      // old shared links used ?lang=ro / ?lang=ru
+      const legacy = new URLSearchParams(location.search).get('lang');
+      if (!import.meta.env.DEV && isLocale(legacy) && legacy !== pageLang) location.replace(pathFor(legacy));
+      apply(import.meta.env.DEV && isLocale(legacy) ? legacy : pageLang);
       document
         .querySelectorAll<HTMLElement>('.lang-btn')
         .forEach((b) => b.addEventListener('click', () => setLang(b.dataset.lang || 'en')));

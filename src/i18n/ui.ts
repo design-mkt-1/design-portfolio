@@ -290,6 +290,16 @@ export const STRINGS: Record<string, [string, string, string]> = {
   'consent.save': ['Save preferences', 'Salvează preferințele', 'Сохранить настройки'],
   'consent.cancel': ['Cancel', 'Anulează', 'Отмена'],
 
+  // Page-title phrases (translated in <title> by longest match, see localize.mjs)
+  'title.banners': ['Banner Design', 'Design de bannere', 'Дизайн баннеров'],
+  'title.landings': ['Landing Pages', 'Landing-uri', 'Лендинги'],
+  'title.videos': ['Video & Motion', 'Video și motion', 'Видео и моушн'],
+  'title.store': ['App Store Creative', 'Creative App Store', 'Креативы для App Store'],
+  'title.project': ['iGaming Brand & Creative', 'Brand și creative iGaming', 'Бренд и креативы iGaming'],
+  'title.work': ['iGaming Design Portfolio', 'Portofoliu de design iGaming', 'Портфолио дизайна iGaming'],
+  'title.asiaEurope': ['Asia & Europe', 'Asia și Europa', 'Азия и Европа'],
+  'title.contact': ['Contact Marketing Solutions', 'Contactează Marketing Solutions', 'Связаться с Marketing Solutions'],
+
   // Screen-reader labels (aria-label), matched by English text
   'aria.skip': ['Skip to content', 'Sari la conținut', 'К содержимому'],
   'aria.work': ['Work', 'Lucrări', 'Работы'],

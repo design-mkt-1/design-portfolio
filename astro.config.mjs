@@ -2,6 +2,7 @@
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 import { redirectStubPaths } from './src/lib/portfolio.ts';
+import localize from './src/integrations/localize.mjs';
 
 // Production is https://design.marketing-solutions.ro (scripts/build-web.mjs sets
 // SITE_URL and BASE_PATH=/). The defaults below build the GitHub Pages preview
@@ -23,5 +24,7 @@ export default defineConfig({
       filter: (page) => !stubs.has(page),
       serialize: (item) => ({ ...item, lastmod: new Date().toISOString() }),
     }),
+    // after sitemap: adds /ro/ and /ru/ copies of every page and their sitemap entries
+    localize({ origin: process.env.CANONICAL_ORIGIN || 'https://design.marketing-solutions.ro', base }),
   ],
 });

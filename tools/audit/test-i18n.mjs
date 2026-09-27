@@ -10,7 +10,7 @@ const page = await browser.newPage();
 await page.route('https://www.googletagmanager.com/**', (r) => r.abort());
 
 async function textOf(path, lang) {
-  await page.goto(`${site.url}${path}?lang=${lang}`, { waitUntil: 'load' });
+  await page.goto(`${site.url}/${lang}${path}`, { waitUntil: 'load' });
   // Include hidden consent UI and aria-labels: both reach users (sighted or not).
   return page.evaluate(() => {
     const labels = [...document.querySelectorAll('[aria-label]')].map((e) => e.getAttribute('aria-label'));
@@ -33,7 +33,7 @@ try {
   const { STRINGS } = await import('../../src/i18n/ui.ts');
   const english = Object.values(STRINGS).filter((r) => r[0] !== r[1]).map((r) => r[0].replace(/\s+/g, ' ').trim());
   for (const path of ['/', '/work/banners/', '/winboss/portfolio/', '/winboss/portfolio/banners/', '/contact/', '/404.html']) {
-    await page.goto(`${site.url}${path}?lang=ro`, { waitUntil: 'load' });
+    await page.goto(`${site.url}/ro${path}`, { waitUntil: 'load' });
     const left = await page.evaluate((en) => {
       const set = new Set(en);
       const out = [];
@@ -50,6 +50,12 @@ try {
   const ruHome = await textOf('/', 'ru');
   assert.ok(ruHome.includes('брендов') && !ruHome.includes('брендах'), 'RU home stat must read "брендов"');
   const ruContact = await textOf('/contact/', 'ru');
+  // legacy ?lang= links land on the real localized page
+  await page.goto(`${site.url}/winboss/portfolio/?lang=ru`, { waitUntil: 'load' });
+  await page.waitForURL(/\/ru\/winboss\/portfolio\/$/);
+  // switching language navigates between /, /ro/ and /ru/
+  await page.click('.lang-btn[data-lang="ro"]');
+  await page.waitForURL(/\/ro\/winboss\/portfolio\/$/);
   assert.ok(ruContact.includes('Напишите нам'), 'RU contact eyebrow must differ from the H1');
   console.log('i18n browser checks passed (RO/RU: consent, AI paragraph, aria-labels, landings, contact, brands).');
 } finally {
