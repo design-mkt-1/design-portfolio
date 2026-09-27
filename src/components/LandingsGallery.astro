@@ -85,16 +85,16 @@ const tiles = items.map((item) => {
 
   <div class="lgb-bar">
     <span class="lgb-title" id="lgb-title"></span>
-    <div class="lgb-toggle" role="tablist" aria-label="Device">
-      <button class="dev" data-device="mobile" role="tab">
+    <div class="lgb-toggle" role="group" aria-label="Device">
+      <button class="dev" data-device="mobile" type="button" aria-pressed="false">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="7" y="3" width="10" height="18" rx="2" /><path d="M11 18h2" /></svg>
         Mobile
       </button>
-      <button class="dev" data-device="tablet" role="tab">
+      <button class="dev" data-device="tablet" type="button" aria-pressed="false">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="4" y="3" width="16" height="18" rx="2" /><path d="M11 18h2" /></svg>
         Tablet
       </button>
-      <button class="dev" data-device="desktop" role="tab">
+      <button class="dev" data-device="desktop" type="button" aria-pressed="false">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="4" width="18" height="12" rx="2" /><path d="M8 20h8M12 16v4" /></svg>
         Desktop
       </button>
@@ -163,7 +163,7 @@ const tiles = items.map((item) => {
       b.disabled = !has;
       b.hidden = !has;
       b.classList.toggle('active', b.dataset.device === device);
-      b.setAttribute('aria-selected', b.dataset.device === device ? 'true' : 'false');
+      b.setAttribute('aria-pressed', b.dataset.device === device ? 'true' : 'false');
     });
   }
 

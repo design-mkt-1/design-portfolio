@@ -108,10 +108,16 @@ const stats = [
         statsEl.querySelectorAll<HTMLElement>('.stat-n').forEach((el, si) => {
           const text = el.textContent?.trim() ?? '';
           el.textContent = '';
+          // Screen readers get the final value once; the reels are decoration.
+          const value = document.createElement('span');
+          value.className = 'sr-only';
+          value.textContent = text;
+          el.appendChild(value);
           [...text].forEach((ch, i) => {
             if (!/\d/.test(ch)) {
               const s = document.createElement('span');
               s.className = 'sym';
+              s.setAttribute('aria-hidden', 'true');
               s.textContent = ch;
               el.appendChild(s);
               return;
@@ -119,6 +125,7 @@ const stats = [
             const target = Number(ch);
             const digit = document.createElement('span');
             digit.className = 'digit';
+            digit.setAttribute('aria-hidden', 'true');
             const reel = document.createElement('span');
             reel.className = 'reel';
             for (let loop = 0; loop < 2; loop++)
@@ -161,6 +168,8 @@ const stats = [
       let dragging = false;
       let hovering = false;
       let visible = false;
+      let paused = false;
+      let focused = false;
       let startX = 0;
       let startPos = 0;
       let last = performance.now();
@@ -168,7 +177,7 @@ const stats = [
         const dt = Math.min(64, now - last);
         last = now;
         const half = track.scrollWidth / 2 || 1;
-        if (visible && !dragging && !hovering) pos += (half / 28000) * dt;
+        if (visible && !dragging && !hovering && !paused && !focused) pos += (half / 28000) * dt;
         pos = ((pos % half) + half) % half;
         track.style.transform = `translateX(${-pos}px)`;
         requestAnimationFrame(step);
@@ -197,8 +206,38 @@ const stats = [
       marquee.addEventListener('pointerleave', () => {
         hovering = false;
       });
+      // WCAG 2.2.2: moving content needs a way to stop it that works without a mouse.
+      const pauseBtn = document.querySelector<HTMLButtonElement>('.ai-pause');
+      if (pauseBtn) {
+        pauseBtn.hidden = false;
+        pauseBtn.addEventListener('click', () => {
+          paused = !paused;
+          pauseBtn.setAttribute('aria-pressed', String(paused));
+        });
+      }
+      marquee.addEventListener('focusin', () => (focused = true));
+      marquee.addEventListener('focusout', () => (focused = false));
     }
   </script>
+  <style>
+    .ai-pause {
+      display: inline-grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--bg-elev);
+      color: var(--fg-muted);
+    }
+    .ai-pause[hidden] {
+      display: none;
+    }
+    .ai-pause[aria-pressed='true'] {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+  </style>
 
   <section class="container" id="projects">
     <div class="section-head reveal">
@@ -326,6 +365,9 @@ const stats = [
         AI is wired into our pipeline — concepting, upscaling, motion and voice — with every deliverable
         art-directed by our designers. Better quality, shipped faster.
       </p>
+      <button class="ai-pause" type="button" aria-label="Pause animation" aria-pressed="false" hidden>
+        <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><rect x="3" y="2" width="3.5" height="12" rx="1" fill="currentColor" /><rect x="9.5" y="2" width="3.5" height="12" rx="1" fill="currentColor" /></svg>
+      </button>
       <div class="ai-marquee">
         <div class="ai-track">
           {
@@ -379,6 +421,8 @@ const stats = [
     align-items: center;
     gap: 6px;
     margin-bottom: 14px;
+    /* invisible hit-area expansion to 44px; the pill keeps its look */
+    position: relative;
     padding: 5px 13px;
     font-size: 0.76rem;
     font-weight: 500;
@@ -389,6 +433,11 @@ const stats = [
     border-radius: 999px;
     animation: hint-bob 2.4s ease-in-out infinite;
     transition: color 0.2s, border-color 0.2s, opacity 0.45s ease, visibility 0.45s;
+  }
+  .spin-hint::after {
+    content: '';
+    position: absolute;
+    inset: -8px -2px;
   }
   /* the pill's slot is reserved from first paint — it fades in/out without
      ever shifting the hero layout */

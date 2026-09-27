@@ -82,9 +82,12 @@
       window.dataLayer.push({ event: 'consent_update', ...parameters });
     }
 
+    const focusWasInBanner = banner?.contains(document.activeElement);
     if (banner) banner.hidden = true;
     syncInputs(currentPreference);
     closeDialog();
+    // The focused button just disappeared: hand focus to the page, not <body>.
+    if (focusWasInBanner) document.getElementById('main')?.focus({ preventScroll: true });
   }
 
   document.getElementById('consent-accept')?.addEventListener('click', () => {

@@ -16,7 +16,7 @@
   /* Text */
   --fg: #f5f6fa;
   --fg-muted: #a2a5b4;
-  --fg-dim: #6f7283;
+  --fg-dim: #85889a; /* ≥4.5:1 on --bg and --bg-elev for small text */
 
   /* Accent — sampled from the Marketing Solutions logo (teal → blue → violet) */
   --brand-teal: #23c6aa;
@@ -24,7 +24,7 @@
   --brand-violet: #7b6ce0;
   --accent: #4a92e0; /* solo accent: eyebrow, links, active, borders */
   --accent-2: #7b6ce0; /* gradient partner */
-  --accent-fg: #ffffff;
+  --accent-fg: #0b0b12; /* text on --brand-gradient: white only reached 2.16:1 on teal */
   --accent-glow: rgba(74, 146, 224, 0.32);
   /* full brand sweep, used for hero text + primary buttons */
   --brand-gradient: linear-gradient(115deg, var(--brand-teal) 0%, var(--brand-blue) 50%, var(--brand-violet) 100%);
@@ -144,9 +144,15 @@ button {
   font-size: 0.95rem;
   transition: transform 0.2s var(--ease-expo), background 0.2s, border-color 0.2s;
 }
-.btn:hover {
-  transform: translateY(-2px);
-  border-color: var(--accent);
+/* lift only where hover is real: on touch the lifted state stuck after a tap */
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent);
+  }
+}
+.btn:active {
+  transform: scale(0.97);
 }
 .btn-primary {
   background: var(--brand-gradient);
@@ -227,7 +233,7 @@ button {
   transform: scaleX(1);
 }
 @media (prefers-reduced-motion: reduce) {
-  .btn-spin::before {
+  .btn-spin {
     animation: none;
   }
   .btn-spin::after {
@@ -262,12 +268,13 @@ button {
 .consent-copy {
   max-width: 570px;
 }
-.consent-copy h2,
-.consent-dialog h2 {
+.consent-title {
   margin: 0;
   font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--fg);
 }
-.consent-copy p {
+#consent-description {
   margin: 5px 0 0;
   color: var(--fg-muted);
   font-size: 0.88rem;
@@ -298,19 +305,16 @@ button {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+/* lives at the end of the page (Base.astro), never on top of content */
 .consent-settings {
-  position: fixed;
-  z-index: 45;
-  right: 14px;
-  bottom: 12px;
-  padding: 6px 10px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
+  padding: 12px 0;
+  border: 0;
   color: var(--fg-dim);
-  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  background: none;
   font: inherit;
-  font-size: 0.7rem;
-  backdrop-filter: blur(10px);
+  font-size: 0.76rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 .consent-settings:hover,
 .consent-manage:hover {
@@ -367,26 +371,61 @@ button {
   accent-color: var(--accent);
 }
 @media (max-width: 760px) {
+  /* compact three-row layout (was 233px tall): title + Manage, copy,
+     then Accept / Reject side by side with equal weight */
   .consent-banner {
-    align-items: stretch;
-    flex-direction: column;
-    gap: 14px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas: 'desc desc' 'accept reject' 'manage manage';
+    align-items: center;
+    gap: 8px 9px;
     right: 12px;
     bottom: 12px;
     left: 12px;
-    padding: 16px;
+    padding: 12px 14px;
   }
+  .consent-copy,
   .consent-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: contents;
   }
-  .consent-actions .consent-manage {
-    grid-column: 1 / -1;
+  /* the copy says what this is; the title stays for screen readers (aria-labelledby) */
+  .consent-banner .consent-title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .consent-actions .btn {
+    padding: 9px 8px;
+    font-size: 0.8rem;
+  }
+  #consent-description {
+    grid-area: desc;
+    margin: 0;
+    font-size: 0.8rem;
+    line-height: 1.4;
+  }
+  #consent-accept {
+    grid-area: accept;
+  }
+  #consent-reject {
+    grid-area: reject;
+  }
+  .consent-manage {
+    grid-area: manage;
+    justify-self: center;
+    padding-block: 10px;
+    margin-block: -8px -6px;
   }
 }
 
 /* ---- Back link ---- */
 .backlink {
+  /* 44px tap height without moving the layout */
+  padding-block: 12px;
+  margin-block: -12px;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -426,6 +465,16 @@ button {
     opacity: 1;
     transform: none;
   }
+}
+
+/* visible to screen readers only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 /* ---- Focus visibility ---- */

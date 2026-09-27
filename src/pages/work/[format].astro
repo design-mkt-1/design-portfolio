@@ -178,6 +178,9 @@ const total = sections.reduce((n, s) => n + s.tiles.length, 0);
     font-size: 1.15rem;
   }
   .work-open {
+    /* 44px tap height without moving the layout */
+    padding-block: 11px;
+    margin-block: -11px;
     font-size: 0.88rem;
     color: var(--accent);
     white-space: nowrap;

@@ -87,7 +87,7 @@ const payload = items.map((v) => ({
     <div class="vlb-stage" id="vlb-stage"></div>
     <div class="vlb-bar">
       <div class="vlb-title" id="vlb-title"></div>
-      <div class="vlb-sizes" id="vlb-sizes" role="tablist" aria-label="Formats"></div>
+      <div class="vlb-sizes" id="vlb-sizes" role="group" aria-label="Formats"></div>
     </div>
   </div>
 </div>
@@ -129,12 +129,16 @@ const payload = items.map((v) => ({
     item.sizes.forEach((s: any, i: number) => {
       const b = document.createElement('button');
       b.className = 'vlb-size' + (i === sizeIdx ? ' active' : '');
-      b.setAttribute('role', 'tab');
-      b.setAttribute('aria-selected', i === sizeIdx ? 'true' : 'false');
+      b.type = 'button';
+      b.setAttribute('aria-pressed', i === sizeIdx ? 'true' : 'false');
       b.innerHTML = `<strong>${s.key.replace('x', ':')}</strong><span>${s.label}</span>`;
       b.addEventListener('click', () => {
         sizeIdx = i;
-        renderSizes();
+        // flip states in place: rebuilding the buttons would drop keyboard focus
+        [...sizesEl.children].forEach((el, j) => {
+          el.classList.toggle('active', j === i);
+          el.setAttribute('aria-pressed', j === i ? 'true' : 'false');
+        });
         renderPlayer();
       });
       sizesEl.appendChild(b);

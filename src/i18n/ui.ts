@@ -281,7 +281,7 @@ export const STRINGS: Record<string, [string, string, string]> = {
   'consent.title': ['Analytics preferences', 'Preferințe de analiză', 'Настройки аналитики'],
   'consent.desc': ['We use optional analytics to understand which portfolio content is useful. Form values and contact details are never included.', 'Folosim analiză opțională ca să înțelegem ce conținut din portofoliu e util. Valorile din formulare și datele de contact nu sunt incluse niciodată.', 'Мы используем необязательную аналитику, чтобы понять, какой контент портфолио полезен. Данные форм и контакты никогда не передаются.'],
   'consent.accept': ['Accept analytics', 'Accept analiza', 'Разрешить аналитику'],
-  'consent.reject': ['Reject non-essential', 'Refuz opționalele', 'Отклонить необязательные'],
+  'consent.reject': ['Reject non-essential', 'Refuz opționalele', 'Только необходимые'],
   'consent.manage': ['Manage preferences', 'Gestionează preferințele', 'Управлять настройками'],
   'consent.settings': ['Privacy settings', 'Setări de confidențialitate', 'Настройки конфиденциальности'],
   'consent.eyebrow': ['Privacy controls', 'Control confidențialitate', 'Конфиденциальность'],
@@ -297,6 +297,8 @@ export const STRINGS: Record<string, [string, string, string]> = {
   'consent.cancel': ['Cancel', 'Anulează', 'Отмена'],
 
   // Screen-reader labels (aria-label), matched by English text
+  'aria.skip': ['Skip to content', 'Sari la conținut', 'К содержимому'],
+  'aria.pause': ['Pause animation', 'Oprește animația', 'Остановить анимацию'],
   'aria.home': ['Marketing Solutions — home', 'Marketing Solutions — acasă', 'Marketing Solutions — главная'],
   'aria.breadcrumb': ['Breadcrumb', 'Navigare', 'Навигация'],
   'aria.language': ['Language', 'Limbă', 'Язык'],

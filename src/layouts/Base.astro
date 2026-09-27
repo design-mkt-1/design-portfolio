@@ -115,6 +115,7 @@ const siteSection = pagePath.includes('/contact')
     }
   </head>
   <body data-site-section={siteSection}>
+    <a class="skip" href="#main">Skip to content</a>
     <AnalyticsBody />
     <header class="site-header">
       <div class="container header-inner">
@@ -172,7 +173,7 @@ const siteSection = pagePath.includes('/contact')
       </div>
     </header>
 
-    <main>
+    <main id="main" tabindex="-1">
       <slot />
     </main>
 
@@ -194,6 +195,10 @@ const siteSection = pagePath.includes('/contact')
         <p class="footer-age">18+ · Responsible, compliance-aware creative for licensed iGaming operators.</p>
       </div>
     </footer>
+    {/* outside the footer so pages without one (contact) can still reopen consent */}
+    <div class="container page-end">
+      <button class="consent-settings" id="consent-settings" type="button" aria-haspopup="dialog">Privacy settings</button>
+    </div>
 
     <script>
       // Staggered scroll-reveal (expo). Elements with .reveal fade/slide in.
@@ -295,6 +300,7 @@ const siteSection = pagePath.includes('/contact')
             b.addEventListener('animationend', () => b.classList.remove('rolling'), { once: true });
           }
           b.classList.toggle('active', on);
+          b.setAttribute('aria-pressed', String(on));
         });
       }
       function setLang(lang: string) {
@@ -342,7 +348,9 @@ const siteSection = pagePath.includes('/contact')
           transition: transform 0.35s var(--ease-expo);
           will-change: transform;
         }
-        .site-header.revealed {
+        .site-header.revealed,
+        .site-header:focus-within {
+          /* keyboard focus must never land on the hidden, off-screen header */
           transform: translateY(0);
         }
         /* crumbs leave the bar so the logo never gets squeezed: they become a
@@ -358,7 +366,6 @@ const siteSection = pagePath.includes('/contact')
           right: 0;
           padding: 0 24px;
           font-size: 0.8rem;
-          opacity: 0.6;
           background: linear-gradient(to bottom, rgba(11, 11, 18, 0.75), rgba(11, 11, 18, 0.35));
           backdrop-filter: blur(10px);
         }
@@ -418,7 +425,7 @@ const siteSection = pagePath.includes('/contact')
         color: var(--fg);
       }
       .lang-btn.active {
-        color: var(--accent-fg);
+        color: var(--fg);
         background: color-mix(in srgb, var(--accent) 55%, transparent);
       }
       /* roulette roll: the freshly picked language does one full spin */
@@ -444,9 +451,32 @@ const siteSection = pagePath.includes('/contact')
         box-shadow: 0 6px 20px var(--accent-glow);
         transition: transform 0.2s var(--ease-expo), box-shadow 0.2s;
       }
-      .header-cta:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 28px var(--accent-glow);
+      @media (hover: hover) and (pointer: fine) {
+        .header-cta:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 10px 28px var(--accent-glow);
+        }
+      }
+      .skip {
+        position: absolute;
+        z-index: 100;
+        top: 8px;
+        left: 8px;
+        padding: 10px 16px;
+        border-radius: 999px;
+        background: var(--bg-elev);
+        color: var(--fg);
+        transform: translateY(-200%);
+      }
+      .skip:focus {
+        transform: none;
+      }
+      main:focus {
+        outline: none;
+      }
+      .page-end {
+        display: flex;
+        justify-content: flex-end;
       }
       .brand {
         display: inline-flex;
@@ -499,6 +529,8 @@ const siteSection = pagePath.includes('/contact')
         flex-wrap: wrap;
       }
       .footer-li {
+        padding-block: 12px;
+        margin-block: -12px;
         display: inline-flex;
         align-items: center;
         gap: 7px;
