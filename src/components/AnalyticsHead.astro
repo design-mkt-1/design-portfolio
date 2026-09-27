@@ -29,6 +29,11 @@ const gtmId = import.meta.env.PUBLIC_GTM_ID?.trim() || 'GTM-5CRD484Z';
       stored = JSON.parse(window.localStorage.getItem(preferenceKey) || 'null');
     } catch {}
 
+    // A choice is valid for 12 months (ts is set on save); after that the
+    // banner asks again. Choices saved before ts existed stay valid.
+    var expired = stored && typeof stored.ts === 'number' && Date.now() - stored.ts > 365 * 864e5;
+    if (expired) stored = null;
+
     if (stored && stored.version === 1 && typeof stored.analytics === 'boolean' && typeof stored.ads === 'boolean') {
       window.gtag('consent', 'update', {
         analytics_storage: stored.analytics ? 'granted' : 'denied',

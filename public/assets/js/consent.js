@@ -6,6 +6,8 @@
   const banner = document.getElementById('consent-banner');
   const dialog = document.getElementById('consent-dialog');
   const analyticsInput = document.getElementById('consent-analytics');
+  const MAX_AGE_MS = 365 * 864e5; // re-ask after 12 months (same rule as AnalyticsHead.astro)
+  const fresh = (p) => !(typeof p.ts === 'number' && Date.now() - p.ts > MAX_AGE_MS);
   const adsInput = document.getElementById('consent-ads');
 
   if (!(analyticsInput instanceof HTMLInputElement) || !(adsInput instanceof HTMLInputElement)) return;
@@ -16,7 +18,8 @@
       bootstrapped &&
       bootstrapped.version === 1 &&
       typeof bootstrapped.analytics === 'boolean' &&
-      typeof bootstrapped.ads === 'boolean'
+      typeof bootstrapped.ads === 'boolean' &&
+      fresh(bootstrapped)
     ) {
       return bootstrapped;
     }
@@ -25,7 +28,8 @@
       return stored &&
         stored.version === 1 &&
         typeof stored.analytics === 'boolean' &&
-        typeof stored.ads === 'boolean'
+        typeof stored.ads === 'boolean' &&
+        fresh(stored)
         ? stored
         : null;
     } catch {
@@ -57,8 +61,25 @@
     } catch {}
   }
 
+  // Withdrawing analytics consent also removes the GA cookies already set
+  // (_ga, _ga_<id>), on this host and on the parent domain GA uses.
+  function clearAnalyticsCookies() {
+    try {
+      const host = window.location.hostname;
+      const domains = ['', host, `.${host.split('.').slice(-2).join('.')}`];
+      for (const pair of document.cookie.split(';')) {
+        const name = pair.split('=')[0].trim();
+        if (!/^_ga(_|$)/.test(name)) continue;
+        for (const d of domains) document.cookie = `${name}=; Max-Age=0; path=/${d ? `; domain=${d}` : ''}`;
+      }
+    } catch {
+      // no cookie access (sandboxed or opaque origin): nothing to clear
+    }
+  }
+
   function updateConsent(action, analytics, ads) {
-    currentPreference = { version: 1, analytics: Boolean(analytics), ads: Boolean(ads) };
+    const hadAnalytics = Boolean(currentPreference?.analytics);
+    currentPreference = { version: 1, analytics: Boolean(analytics), ads: Boolean(ads), ts: Date.now() };
     bootstrap.preference = currentPreference;
     persistPreference(currentPreference);
 
@@ -83,6 +104,7 @@
     }
 
     const focusWasInBanner = banner?.contains(document.activeElement);
+    if (hadAnalytics && !currentPreference.analytics) clearAnalyticsCookies();
     if (banner) banner.hidden = true;
     syncInputs(currentPreference);
     closeDialog();
