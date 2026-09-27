@@ -75,11 +75,10 @@ for (const { file, html } of pages.filter((p) => p.file.includes('/portfolio/sto
   if (empty) fail('seo', file, `${empty} store images with empty alt`);
 }
 
-// --- Consent, a11y, i18n markup (phases 2-3) ---
+// --- Consent and a11y markup (phase 3; translations are covered by test-i18n.mjs) ---
 for (const { file, html } of pages) {
   const consent = html.match(/<section class="consent-banner"[\s\S]*?<\/dialog>/)?.[0] ?? '';
   if (/<h2\b/.test(consent)) fail('a11y', file, 'consent UI uses <h2> before the page <h1>');
-  if (consent && (consent.match(/data-i18n=/g) ?? []).length < 15) fail('i18n', file, 'consent texts are not keyed with data-i18n');
   if (!/<a class="skip" href="#main"/.test(html) || !/<main\b[^>]*\sid="main"/.test(html)) fail('a11y', file, 'no skip link to #main');
 }
 

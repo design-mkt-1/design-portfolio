@@ -232,30 +232,36 @@ const siteSection = pagePath.includes('/contact')
       // In-page i18n: swap English UI text for RO/RU, client-side.
       import { STRINGS, LOCALES } from '../i18n/ui';
       const IDX = { en: 0, ro: 1, ru: 2 } as Record<string, number>;
+      // Markup text wraps across source lines, so match on collapsed whitespace.
+      const norm = (s: string) => s.replace(/\s+/g, ' ').trim();
       const byEn: Record<string, string[]> = {};
       const byKey: Record<string, string[]> = {};
       for (const [key, row] of Object.entries(STRINGS)) {
-        byEn[row[0]] = row;
+        // First row wins when two keys share an English value (e.g. stat.brands /
+        // work.brands); the later ones are reached through data-i18n.
+        byEn[norm(row[0])] ??= row;
         byKey[key] = row;
       }
       const trEn = (en: string, lang: string) => (byEn[en] ? byEn[en][IDX[lang]] : en);
       const trKey = (key: string, lang: string) => (byKey[key] ? byKey[key][IDX[lang]] : key);
 
-      // Collect translatable text nodes (whose trimmed text is a known English string).
+      // Collect translatable text nodes (whose normalized text is a known English string).
       const nodes: { node: Text; en: string; pre: string; post: string }[] = [];
       const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
         acceptNode(n) {
-          const txt = (n.nodeValue || '').trim();
+          const txt = norm(n.nodeValue || '');
           return txt && byEn[txt] ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
         },
       });
       let cur: Node | null;
       while ((cur = walker.nextNode())) {
         const v = cur.nodeValue || '';
-        const txt = v.trim();
-        const i = v.indexOf(txt);
-        nodes.push({ node: cur as Text, en: txt, pre: v.slice(0, i), post: v.slice(i + txt.length) });
+        nodes.push({ node: cur as Text, en: norm(v), pre: v.match(/^\s*/)![0], post: v.match(/\s*$/)![0] });
       }
+      // Screen-reader labels translate the same way as visible text.
+      const labels = Array.from(document.querySelectorAll<HTMLElement>('[aria-label]'))
+        .map((el) => ({ el, en: norm(el.getAttribute('aria-label') || '') }))
+        .filter((it) => byEn[it.en]);
 
       // Translate the <title> too (SEO: RO/RU variants index with localized
       // titles). Known English phrases are replaced longest-first; brand and
@@ -271,6 +277,7 @@ const siteSection = pagePath.includes('/contact')
 
       function apply(lang: string) {
         for (const it of nodes) it.node.nodeValue = it.pre + trEn(it.en, lang) + it.post;
+        for (const it of labels) it.el.setAttribute('aria-label', trEn(it.en, lang));
         document.title = translateTitle(lang);
         document.querySelectorAll<HTMLElement>('[data-i18n]').forEach((el) => {
           el.textContent = trKey(el.dataset.i18n || '', lang);

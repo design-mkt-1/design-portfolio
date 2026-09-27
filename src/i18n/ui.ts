@@ -22,11 +22,11 @@ export const STRINGS: Record<string, [string, string, string]> = {
   'nav.contact': ['Contact us', 'Contactează-ne', 'Связаться'],
   'footer.copy': [
     '© Marketing Solutions — Design Portfolio 2026',
-    '© Marketing Solutions — Portofoliu de Design 2026',
-    '© Marketing Solutions — Портфолио Дизайна 2026',
+    '© Marketing Solutions — Portofoliu de design 2026',
+    '© Marketing Solutions — Портфолио дизайна 2026',
   ],
 
-  'home.eyebrow': ['iGaming Creative Studio', 'Studio de Creație iGaming', 'Креативная студия iGaming'],
+  'home.eyebrow': ['iGaming Creative Studio', 'Studio de creație iGaming', 'Креативная студия iGaming'],
   'home.h1a': ['Creative that', 'Creație care', 'Креатив, который'],
   'home.h1b': ['converts players.', 'convertește jucători.', 'конвертирует игроков.'],
   'home.lede': [
@@ -43,7 +43,7 @@ export const STRINGS: Record<string, [string, string, string]> = {
   'stat.videos': ['videos', 'videouri', 'видео'],
   'stat.markets': ['markets', 'piețe', 'рынков'],
 
-  'hint.spin': ['Tap the logo to spin', 'Atinge logo-ul pentru un spin', 'Нажми на логотип — крути'],
+  'hint.spin': ['Tap the logo to spin', 'Atinge logo-ul pentru un spin', 'Нажмите на логотип, чтобы покрутить'],
 
   // Conversion CTAs
   'cta.start': ['Start a project', 'Începe un proiect', 'Начать проект'],
@@ -63,7 +63,7 @@ export const STRINGS: Record<string, [string, string, string]> = {
   'svc.head': ['What we do', 'Ce facem', 'Что мы делаем'],
   'svc.sub': [
     'Everything a gambling brand needs to launch and promote — delivered in EN, RO and RU.',
-    'Tot ce are nevoie un brand de gambling pentru lansare și promovare — livrat în EN, RO și RU.',
+    'Tot ce îi trebuie unui brand de gambling pentru lansare și promovare — livrat în EN, RO și RU.',
     'Всё, что нужно гемблинг-бренду для запуска и продвижения — на EN, RO и RU.',
   ],
   'svc.brand': ['Brand systems', 'Sisteme de brand', 'Бренд-системы'],
@@ -128,7 +128,7 @@ export const STRINGS: Record<string, [string, string, string]> = {
 
   'svc.point.mobile': ['Mobile-first design', 'Design mobile-first', 'Mobile-first дизайн'],
   'svc.point.speed': ['Campaign-speed turnaround', 'Livrare în ritmul campaniilor', 'Скорость под график кампаний'],
-  'svc.point.langs': ['Creative in RO, EN and Worldwide', 'Creative în RO, EN și Worldwide', 'Креативы — RO, EN и Worldwide'],
+  'svc.point.langs': ['Creative in EN, RO and RU', 'Creative în EN, RO și RU', 'Креативы на EN, RO и RU'],
 
   'footer.age': [
     '18+ · Responsible, compliance-aware creative for licensed iGaming operators.',
@@ -137,11 +137,11 @@ export const STRINGS: Record<string, [string, string, string]> = {
   ],
 
   'proj.all': ['← All projects', '← Toate proiectele', '← Все проекты'],
-  'proj.brandbook': ['Brand Book', 'Brand Book', 'Брендбук'],
+  'proj.brandbook': ['Brand Book', 'Brand book', 'Брендбук'],
   'proj.brandbook.desc': [
     'Logo, colors, typography, and usage guidelines.',
     'Logo, culori, tipografie și ghid de utilizare.',
-    'Логотип, цвета, типографика и правила использования.',
+    'Логотип, цвета, типографика и гайдлайн.',
   ],
   'proj.portfolio': ['Portfolio', 'Portofoliu', 'Портфолио'],
   'proj.portfolio.desc': [
@@ -149,7 +149,7 @@ export const STRINGS: Record<string, [string, string, string]> = {
     'Bannere, landing-uri și creative video.',
     'Баннеры, лендинги и видео.',
   ],
-  'tag.brandbook': ['Brandbook', 'Brand Book', 'Брендбук'],
+  'tag.brandbook': ['Brandbook', 'Brand book', 'Брендбук'],
   'tag.portfolio': ['Portfolio', 'Portofoliu', 'Портфолио'],
 
   // Project taglines (rendered from src/data/projects.ts). Matched by English text.
@@ -166,7 +166,7 @@ export const STRINGS: Record<string, [string, string, string]> = {
   'tagline.guidelines': [
     'Brand identity and guidelines.',
     'Identitate de brand și ghid de utilizare.',
-    'Фирменный стиль и рекомендации.',
+    'Фирменный стиль и гайдлайн.',
   ],
   'tagline.rebrand': ['Rebrand in progress.', 'Rebranding în curs.', 'Ребрендинг в процессе.'],
   'proj.comingSoon': [
@@ -193,8 +193,8 @@ export const STRINGS: Record<string, [string, string, string]> = {
     'Creative statice în fiecare dimensiune.',
     'Статичные креативы во всех размерах.',
   ],
-  'fmt.landings': ['Landings', 'Landings', 'Лендинги'],
-  'fmt.landings.desc': ['Landing page designs.', 'Design de landings.', 'Дизайн лендингов.'],
+  'fmt.landings': ['Landings', 'Landing-uri', 'Лендинги'],
+  'fmt.landings.desc': ['Landing page designs.', 'Design de landing-uri.', 'Дизайн лендингов.'],
   'fmt.videos': ['Videos', 'Video', 'Видео'],
   'fmt.videos.desc': ['Motion and video creative.', 'Creative video și motion.', 'Видео и моушн-креативы.'],
   'fmt.store': ['Store listing creative.', 'Creative pentru magazinul de aplicații.', 'Креативы для магазина приложений.'],
@@ -205,11 +205,11 @@ export const STRINGS: Record<string, [string, string, string]> = {
   'bb.ctaText': [
     'The full brand book lives in Figma — logo, colors, typography, and usage guidelines.',
     'Brand book-ul complet este în Figma — logo, culori, tipografie și ghid de utilizare.',
-    'Полный брендбук находится в Figma — логотип, цвета, типографика и правила использования.',
+    'Полный брендбук находится в Figma — логотип, цвета, типографика и гайдлайн.',
   ],
 
   'banners.lede': [
-    'Each tile is the 1080×1080. Open one to see every size.',
+    'Each tile shows the 1080×1080 version. Open one to see every size.',
     'Fiecare miniatură este 1080×1080. Deschide una pentru a vedea toate dimensiunile.',
     'Каждая плитка — 1080×1080. Откройте, чтобы увидеть все размеры.',
   ],
@@ -250,7 +250,7 @@ export const STRINGS: Record<string, [string, string, string]> = {
   'nf.btn': ['Back to projects', 'Înapoi la proiecte', 'К проектам'],
 
   'contact.h1': ['Contact us', 'Contactează-ne', 'Свяжитесь с нами'],
-  'contact.eyebrow': ['Get in touch', 'Ia legătura', 'Свяжитесь с нами'],
+  'contact.eyebrow': ['Get in touch', 'Ia legătura', 'Напишите нам'],
   'crumb.contact': ['Contact', 'Contact', 'Контакты'],
   'contact.lede': [
     "Tell us about your project — brand, campaign, or creative — and we'll get back to you.",
@@ -276,6 +276,43 @@ export const STRINGS: Record<string, [string, string, string]> = {
     'Nu s-a putut trimite. Scrie-ne direct la',
     'Не удалось отправить. Напишите нам напрямую на',
   ],
+
+  // Consent banner + dialog (ConsentPreferences.astro), matched by English text
+  'consent.title': ['Analytics preferences', 'Preferințe de analiză', 'Настройки аналитики'],
+  'consent.desc': ['We use optional analytics to understand which portfolio content is useful. Form values and contact details are never included.', 'Folosim analiză opțională ca să înțelegem ce conținut din portofoliu e util. Valorile din formulare și datele de contact nu sunt incluse niciodată.', 'Мы используем необязательную аналитику, чтобы понять, какой контент портфолио полезен. Данные форм и контакты никогда не передаются.'],
+  'consent.accept': ['Accept analytics', 'Accept analiza', 'Разрешить аналитику'],
+  'consent.reject': ['Reject non-essential', 'Refuz opționalele', 'Отклонить необязательные'],
+  'consent.manage': ['Manage preferences', 'Gestionează preferințele', 'Управлять настройками'],
+  'consent.settings': ['Privacy settings', 'Setări de confidențialitate', 'Настройки конфиденциальности'],
+  'consent.eyebrow': ['Privacy controls', 'Control confidențialitate', 'Конфиденциальность'],
+  'consent.dialogDesc': ['Essential storage is always active. Optional categories can be changed at any time.', 'Stocarea esențială e mereu activă. Categoriile opționale se pot schimba oricând.', 'Необходимое хранение всегда включено. Необязательные категории можно изменить в любой момент.'],
+  'consent.essential': ['Essential', 'Esențiale', 'Необходимые'],
+  'consent.essential.desc': ['Required for saved language and privacy choices.', 'Necesare pentru limba salvată și alegerile de confidențialitate.', 'Нужны для сохранения языка и настроек конфиденциальности.'],
+  'consent.essential.aria': ['Essential storage enabled', 'Stocare esențială activă', 'Необходимое хранение включено'],
+  'consent.analytics': ['Analytics', 'Analiză', 'Аналитика'],
+  'consent.analytics.desc': ['Measures meaningful portfolio and contact interactions.', 'Măsoară interacțiunile relevante cu portofoliul și contactul.', 'Измеряет значимые действия в портфолио и контактах.'],
+  'consent.ads': ['Advertising', 'Publicitate', 'Реклама'],
+  'consent.ads.desc': ['Allows advertising storage and personalization signals.', 'Permite stocarea pentru publicitate și semnalele de personalizare.', 'Разрешает рекламное хранение и сигналы персонализации.'],
+  'consent.save': ['Save preferences', 'Salvează preferințele', 'Сохранить настройки'],
+  'consent.cancel': ['Cancel', 'Anulează', 'Отмена'],
+
+  // Screen-reader labels (aria-label), matched by English text
+  'aria.home': ['Marketing Solutions — home', 'Marketing Solutions — acasă', 'Marketing Solutions — главная'],
+  'aria.breadcrumb': ['Breadcrumb', 'Navigare', 'Навигация'],
+  'aria.language': ['Language', 'Limbă', 'Язык'],
+  'aria.linkedin': ['Marketing Solutions on LinkedIn', 'Marketing Solutions pe LinkedIn', 'Marketing Solutions в LinkedIn'],
+  'aria.close': ['Close (Esc)', 'Închide (Esc)', 'Закрыть (Esc)'],
+  'aria.prev': ['Previous', 'Anterior', 'Назад'],
+  'aria.next': ['Next', 'Următor', 'Вперёд'],
+  'aria.prevLanding': ['Previous landing', 'Landing-ul anterior', 'Предыдущий лендинг'],
+  'aria.nextLanding': ['Next landing', 'Landing-ul următor', 'Следующий лендинг'],
+  'aria.device': ['Device', 'Dispozitiv', 'Устройство'],
+  'aria.sizes': ['Sizes', 'Dimensiuni', 'Размеры'],
+  'aria.formats': ['Formats', 'Formate', 'Форматы'],
+  'aria.mediaViewer': ['Media viewer', 'Vizualizare', 'Просмотр'],
+  'aria.landingViewer': ['Landing viewer', 'Vizualizare landing', 'Просмотр лендинга'],
+  'aria.storeViewer': ['Store screenshot', 'Captură din store', 'Скриншот из магазина'],
+  'aria.videoPlayer': ['Video player', 'Player video', 'Видеоплеер'],
 };
 
 const IDX: Record<Locale, number> = { en: 0, ro: 1, ru: 2 };

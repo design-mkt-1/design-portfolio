@@ -18,7 +18,7 @@
     "prebuild": "node scripts/gen-thumbs.mjs",
     "prebuild:web": "node scripts/gen-thumbs.mjs",
     "check": "astro check",
-    "test:audit": "node tools/audit/check-dist.mjs"
+    "test:audit": "node tools/audit/check-dist.mjs && node tools/audit/test-i18n.mjs"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
