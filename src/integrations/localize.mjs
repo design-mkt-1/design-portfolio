@@ -8,14 +8,14 @@ import { readFileSync, writeFileSync, mkdirSync, readdirSync, statSync, existsSy
 import { join, dirname, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse, render, walkSync, ELEMENT_NODE, TEXT_NODE } from 'ultrahtml';
-import { STRINGS } from '../i18n/ui.ts';
+import { STRINGS, describe } from '../i18n/ui.ts';
 
 const LANGS = { ro: { idx: 1, locale: 'ro_RO' }, ru: { idx: 2, locale: 'ru_RU' } };
 const OG_LOCALES = ['en_US', 'ro_RO', 'ru_RU'];
 
 const norm = (s) => s.replace(/\s+/g, ' ').trim();
-const ENTITIES = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", '#39': "'", '#x27': "'", nbsp: ' ' };
-const decode = (s) => s.replace(/&(amp|lt|gt|quot|apos|#39|#x27|nbsp);/g, (_, e) => ENTITIES[e]);
+const ENTITIES = { amp: '&', '#38': '&', lt: '<', gt: '>', quot: '"', apos: "'", '#39': "'", '#x27': "'", nbsp: ' ' };
+const decode = (s) => s.replace(/&(amp|#38|lt|gt|quot|apos|#39|#x27|nbsp);/g, (_, e) => ENTITIES[e]);
 const encodeText = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const encodeAttr = (s) => encodeText(s).replace(/"/g, '&quot;');
 
@@ -26,6 +26,7 @@ for (const [key, row] of Object.entries(STRINGS)) {
   byKey[key] = row;
 }
 const phrases = Object.keys(byEn).sort((a, b) => b.length - a.length);
+const untranslated = new Set(); // descriptions with no rule in describe(), logged after the build
 
 function walkHtml(dir) {
   const out = [];
@@ -59,6 +60,11 @@ export default function localize({ origin, base }) {
     const tr = (en) => (byEn[en] ? byEn[en][idx] : undefined);
     const doc = parse(html);
     let title = '';
+    const desc = (en) => {
+      const t = describe(en, lang);
+      if (!t) untranslated.add(en);
+      return t ?? en;
+    };
     const inRaw = (node) => {
       for (let p = node.parent; p; p = p.parent) if (p.type === ELEMENT_NODE && /^(script|style)$/.test(p.name)) return true;
       return false;
@@ -94,6 +100,8 @@ export default function localize({ origin, base }) {
       if (node.name === 'meta') {
         if (a.property === 'og:url') a.content = localizeUrl(a.content, lang);
         if (a.property === 'og:locale') a.content = locale;
+        if (a.name === 'description' || a.property === 'og:description' || a.name === 'twitter:description')
+          a.content = encodeAttr(desc(decode(a.content)));
         if (a['http-equiv'] === 'refresh') a.content = a.content.replace(/url=(\S+)/, (_, u) => `url=${localizePath(u, lang)}`);
       }
       if (node.name === 'input' && a.name === '_next' && a.value) a.value = localizeUrl(a.value, lang);
@@ -105,6 +113,7 @@ export default function localize({ origin, base }) {
           const data = JSON.parse(text.value);
           for (const n of data['@graph'] ?? []) {
             if (n['@type'] === 'WebPage') Object.assign(n, { '@id': localizeUrl(n['@id'], lang), url: localizeUrl(n.url, lang), name: title || n.name, inLanguage: lang });
+            if (n['@type'] === 'WebPage' && n.description) n.description = desc(n.description);
             if (n['@type'] === 'BreadcrumbList') for (const item of n.itemListElement) item.item = localizeUrl(item.item, lang);
           }
           text.value = JSON.stringify(data);
@@ -157,6 +166,7 @@ export default function localize({ origin, base }) {
           writeFileSync(path, xml);
         }
         logger.info(`localized ${pages.length} pages into /ro/ and /ru/`);
+        for (const en of untranslated) logger.warn(`meta description left in English (add a rule to describe() in ui.ts): ${en}`);
       },
     },
   };

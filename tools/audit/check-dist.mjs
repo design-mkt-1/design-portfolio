@@ -130,6 +130,11 @@ process.exitCode = failures.length ? 1 : 0;
       if (hreflang !== 'en,ro,ru,x-default') extra.push(`[i18n] ${lang}/${file}: hreflang ${hreflang}`);
       const leak = loc.html.match(/<a\b[^>]*\shref="(\/(?!ro\/|ru\/|assets\/|_astro\/)[^"]*\/)"/);
       if (leak) extra.push(`[i18n] ${lang}/${file}: link to English page ${leak[1]}`);
+      for (const attr of ['name="description"', 'property="og:description"', 'name="twitter:description"']) {
+        const re = new RegExp(`<meta ${attr} content="([^"]*)"`);
+        const en = pages.find((p) => p.file === file).html.match(re)?.[1];
+        if (en && loc.html.match(re)?.[1] === en) extra.push(`[i18n] ${lang}/${file}: ${attr} still English`);
+      }
     }
   }
   const locs = sitemapUrls.map((u) => new URL(u).pathname);

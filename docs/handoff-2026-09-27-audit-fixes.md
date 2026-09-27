@@ -53,8 +53,6 @@ node tools/audit/check-live.mjs   # after a deploy
 ## Open, not done
 - 7.5: generic copy ("wired into our pipeline", "Campaign-speed turnaround"
   with no number). Propose rewrites to the owner before changing them.
-- RO/RU `meta description` is still English: `localize.mjs` translates
-  titles by phrase but not descriptions.
 - GA `cookie_domain`: `_ga` cookies are set on `.marketing-solutions.ro`.
   Changing that needs `gtm/gtm-entity-manifest.json`, then `npm run build:gtm`
   and a GTM re-import.

@@ -329,3 +329,189 @@ export function t(lang: Locale, key: string): string {
   const row = STRINGS[key];
   return row ? row[IDX[lang]] : key;
 }
+
+// Meta descriptions are built from templates with a count, a brand and a
+// market (see src/pages), so they can't be matched as whole STRINGS rows.
+// localize.mjs calls describe() on the English text of every description tag.
+
+const FIXED_DESC: Record<string, [string, string]> = {
+  'Casino & sportsbook creative: brand systems, promo landings, banners and video for iGaming operators across Romania, Ukraine and worldwide markets.': [
+    'Creative pentru cazino și pariuri sportive: sisteme de brand, landing-uri promo, bannere și video pentru operatori iGaming din România, Ucraina și din toată lumea.',
+    'Креативы для казино и букмекеров: бренд-системы, промо-лендинги, баннеры и видео для iGaming-операторов в Румынии, Украине и на мировых рынках.',
+  ],
+  'Tell us about your casino or sportsbook project: brand systems, promo landings, banners or video. Write to Marketing Solutions and we will get back to you.': [
+    'Spune-ne despre proiectul tău de cazino sau pariuri sportive: sisteme de brand, landing-uri promo, bannere sau video. Scrie-ne și îți răspunde echipa Marketing Solutions.',
+    'Расскажите о вашем проекте казино или букмекерской конторы: бренд-системы, промо-лендинги, баннеры или видео. Напишите в Marketing Solutions, и мы ответим.',
+  ],
+  "This page doesn't exist. Browse the Marketing Solutions design portfolio instead.": [
+    'Această pagină nu există. Explorează în schimb portofoliul de design Marketing Solutions.',
+    'Такой страницы нет. Посмотрите портфолио дизайна Marketing Solutions.',
+  ],
+  'Design portfolio by Marketing Solutions.': ['Portofoliu de design Marketing Solutions.', 'Портфолио дизайна Marketing Solutions.'],
+};
+
+/** market as marketOf() writes it -> [ro, ru in the genitive, as after "для"] */
+const MARKET: Record<string, [string, string]> = {
+  Romania: ['România', 'Румынии'],
+  Ukraine: ['Ucraina', 'Украины'],
+  Georgia: ['Georgia', 'Грузии'],
+  Uzbekistan: ['Uzbekistan', 'Узбекистана'],
+  'Asia & Europe': ['Asia și Europa', 'Азии и Европы'],
+  'international markets': ['piețe internaționale', 'международных рынков'],
+};
+
+/** /work/<format>/ titles, lower-cased as in work/[format].astro */
+const WORK_FORMAT: Record<string, [string, string]> = {
+  'banner sets': ['seturile de bannere', 'серии баннеров'],
+  'promo landings': ['landing-urile promo', 'промо-лендинги'],
+  'video & motion': ['materialele video și motion', 'видео и моушн'],
+  'brand systems': ['sistemele de brand', 'бренд-системы'],
+};
+
+/** portfolio format names, lower-cased as in [project]/portfolio/index.astro */
+const PF_FORMAT: Record<string, [string, string]> = {
+  banners: ['bannere', 'баннеры'],
+  landings: ['landing-uri', 'лендинги'],
+  videos: ['video', 'видео'],
+  'app store': ['App Store', 'App Store'],
+};
+
+const SECTIONS: Record<string, [string, string]> = {
+  'brand book and creative portfolio': ['brand book și portofoliu de creative', 'брендбук и портфолио креативов'],
+  'brand book': ['brand book', 'брендбук'],
+  'creative portfolio': ['portofoliu de creative', 'портфолио креативов'],
+};
+
+type DescLang = 'ro' | 'ru';
+const L = { ro: 0, ru: 1 } as const;
+
+/**
+ * Number + noun with the right plural form. RO: one (1), few (2–19: "campanii"),
+ * other (20+: "de campanii"). RU: one (1, 21), few (2–4), many (5–20).
+ */
+function count(lang: DescLang, n: string, forms: Partial<Record<Intl.LDMLPluralRule, string>>): string {
+  const rule = new Intl.PluralRules(lang).select(Number(n));
+  return `${n} ${forms[rule] ?? forms.other ?? forms.many}`;
+}
+
+const tagline = (en: string, lang: DescLang) => {
+  const row = Object.values(STRINGS).find((r) => r[0] === en);
+  return row ? row[IDX[lang]] : undefined;
+};
+
+type Rule = [RegExp, (m: RegExpMatchArray, lang: DescLang) => string | undefined];
+
+const RULES: Rule[] = [
+  [
+    /^(\d+) (.+) banner campaigns for (.+), each delivered in every placement size\. iGaming banner design by Marketing Solutions\.$/,
+    ([, n, brand, mk], lang) => {
+      const m = MARKET[mk]?.[L[lang]];
+      if (!m) return;
+      return lang === 'ro'
+        ? `${count('ro', n, { one: 'campanie', few: 'campanii', other: 'de campanii' })} de bannere ${brand} pentru ${m}, fiecare livrată în toate dimensiunile de plasare. Design de bannere iGaming de la Marketing Solutions.`
+        : `${count('ru', n, { one: 'баннерная кампания', few: 'баннерные кампании', many: 'баннерных кампаний' })} ${brand} для ${m}, каждая во всех размерах площадок. Дизайн баннеров iGaming от Marketing Solutions.`;
+    },
+  ],
+  [
+    /^(\d+) (.+) promo landing pages for (.+), designed mobile-first with desktop versions\. iGaming landing page design by Marketing Solutions\.$/,
+    ([, n, brand, mk], lang) => {
+      const m = MARKET[mk]?.[L[lang]];
+      if (!m) return;
+      return lang === 'ro'
+        ? `${count('ro', n, { one: 'landing promo', few: 'landing-uri promo', other: 'de landing-uri promo' })} ${brand} pentru ${m}, gândite mobile-first, cu versiuni desktop. Design de landing-uri iGaming de la Marketing Solutions.`
+        : `${count('ru', n, { one: 'промо-лендинг', few: 'промо-лендинга', many: 'промо-лендингов' })} ${brand} для ${m}, mobile-first и с десктоп-версиями. Дизайн лендингов iGaming от Marketing Solutions.`;
+    },
+  ],
+  [
+    /^(\d+) (.+) promo videos and motion pieces for (.+), cut for social and display placements\. iGaming video creative by Marketing Solutions\.$/,
+    ([, n, brand, mk], lang) => {
+      const m = MARKET[mk]?.[L[lang]];
+      if (!m) return;
+      return lang === 'ro'
+        ? `Video promo și motion ${brand} pentru ${m}: ${count('ro', n, { one: 'clip', few: 'clipuri', other: 'de clipuri' })}, montate pentru social media și display. Creative video iGaming de la Marketing Solutions.`
+        : `Промо-видео и моушн ${brand} для ${m}: ${count('ru', n, { one: 'ролик', few: 'ролика', many: 'роликов' })} под соцсети и медийную рекламу. Видеокреативы iGaming от Marketing Solutions.`;
+    },
+  ],
+  [
+    /^(\d+) sets of (.+) App Store screenshots for (.+)\. Open any set to see every screenshot full size\. iGaming app store creative by Marketing Solutions\.$/,
+    ([, n, brand, mk], lang) => {
+      const m = MARKET[mk]?.[L[lang]];
+      if (!m) return;
+      return lang === 'ro'
+        ? `${count('ro', n, { one: 'set', few: 'seturi', other: 'de seturi' })} de capturi App Store ${brand} pentru ${m}. Fiecare set se deschide la dimensiune completă. Creative App Store iGaming de la Marketing Solutions.`
+        : `${count('ru', n, { one: 'набор', few: 'набора', many: 'наборов' })} скриншотов App Store ${brand} для ${m}. Каждый набор открывается в полном размере. Креативы для App Store iGaming от Marketing Solutions.`;
+    },
+  ],
+  [
+    /^All (.+) from the Marketing Solutions portfolio, across (\d+) iGaming brands in Romania, Ukraine, Georgia, Uzbekistan, Asia and Europe\.$/,
+    ([, fmt, n], lang) => {
+      const f = WORK_FORMAT[fmt]?.[L[lang]];
+      if (!f) return;
+      return lang === 'ro'
+        ? `Toate ${f} din portofoliul Marketing Solutions, pentru ${count('ro', n, { one: 'brand iGaming', few: 'branduri iGaming', other: 'de branduri iGaming' })} din România, Ucraina, Georgia, Uzbekistan, Asia și Europa.`
+        : `Все ${f} из портфолио Marketing Solutions: ${count('ru', n, { one: 'iGaming-бренд', few: 'iGaming-бренда', many: 'iGaming-брендов' })} в Румынии, Украине, Грузии, Узбекистане, Азии и Европе.`;
+    },
+  ],
+  [
+    /^(.+) creative portfolio for (.+): (.+)\. iGaming design by Marketing Solutions, with every campaign open to browse\.$/,
+    ([, brand, mk, list], lang) => {
+      const m = MARKET[mk]?.[L[lang]];
+      const items = list.split(', ').map((x) => PF_FORMAT[x]?.[L[lang]]);
+      if (!m || items.some((x) => !x)) return;
+      return lang === 'ro'
+        ? `Portofoliul de creative ${brand} pentru ${m}: ${items.join(', ')}. Design iGaming de la Marketing Solutions, cu toate campaniile deschise.`
+        : `Портфолио креативов ${brand} для ${m}: ${items.join(', ')}. Дизайн iGaming от Marketing Solutions, каждую кампанию можно открыть.`;
+    },
+  ],
+  [
+    /^(.+) brand book for the (.+) iGaming market: logo, colors, typography and usage guidelines, designed by Marketing Solutions\.$/,
+    ([, brand, mk], lang) => {
+      const m = MARKET[mk]?.[L[lang]];
+      if (!m) return;
+      return lang === 'ro'
+        ? `Brand book-ul ${brand} pentru piața iGaming din ${m}: logo, culori, tipografie și reguli de utilizare. Creat de Marketing Solutions.`
+        : `Брендбук ${brand} для iGaming-рынка ${m}: логотип, цвета, типографика и правила использования. Дизайн Marketing Solutions.`;
+    },
+  ],
+  [
+    /^(.+), an iGaming brand for (.+?): (.+?)\. (?:(.+) )?Designed by Marketing Solutions\.$/,
+    ([, brand, mk, sec, tag], lang) => {
+      const m = MARKET[mk]?.[L[lang]];
+      const s = SECTIONS[sec]?.[L[lang]];
+      const t = tag ? tagline(tag, lang) : '';
+      if (!m || !s || t === undefined) return;
+      return lang === 'ro'
+        ? `${brand}, brand iGaming pentru ${m}: ${s}. ${t ? `${t} ` : ''}Creat de Marketing Solutions.`
+        : `${brand}, iGaming-бренд для ${m}: ${s}. ${t ? `${t} ` : ''}Дизайн Marketing Solutions.`;
+    },
+  ],
+  [
+    /^(.+) portfolio — banners, landing pages, and video creative by Marketing Solutions\.$/,
+    ([, brand], lang) =>
+      lang === 'ro'
+        ? `Portofoliul ${brand}: bannere, landing-uri și creative video de la Marketing Solutions.`
+        : `Портфолио ${brand}: баннеры, лендинги и видеокреативы от Marketing Solutions.`,
+  ],
+  [
+    /^(.+) on the Marketing Solutions design portfolio\.$/,
+    ([, brand], lang) =>
+      lang === 'ro' ? `${brand} în portofoliul de design Marketing Solutions.` : `${brand} в портфолио дизайна Marketing Solutions.`,
+  ],
+  [
+    // project stub: "Winboss — Full brand system and campaign production."
+    /^(.+) — (.+)$/,
+    ([, brand, tag], lang) => {
+      const t = tagline(tag, lang);
+      return t && `${brand} — ${t}`;
+    },
+  ],
+];
+
+/** RO/RU text for an English meta description, or undefined when no rule matches. */
+export function describe(en: string, lang: DescLang): string | undefined {
+  if (FIXED_DESC[en]) return FIXED_DESC[en][L[lang]];
+  for (const [re, fn] of RULES) {
+    const m = en.match(re);
+    if (m) return fn(m, lang);
+  }
+}

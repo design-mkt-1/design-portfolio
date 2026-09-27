@@ -3,7 +3,7 @@
 Three items the owner picked on 2026-09-27. Do them in this order: 6 needs no input, 5 needs the
 owner's approval, and 4 needs the owner's data. Everything else is in `docs/backlog.md`.
 
-## 1. RO/RU meta descriptions (no blocker)
+## 1. RO/RU meta descriptions (no blocker) — DONE 2026-09-27 (`describe()` in `src/i18n/ui.ts`, check in `check-dist.mjs`)
 **Now:** `src/integrations/localize.mjs` translates `<title>` by phrase (lines 85–90) but never
 touches `meta[name=description]`, `og:description`, `twitter:description` or the JSON-LD
 `WebPage.description`. In the build, `/ro/index.html` still reads
