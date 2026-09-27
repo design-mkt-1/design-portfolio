@@ -1,8 +1,6 @@
 ---
-import { statSync } from 'node:fs';
-import { join } from 'node:path';
 import { url } from '../lib/site';
-import { thumbFor, thumbDims, lightboxFor } from '../lib/thumbs';
+import { thumbFor, thumbDims, lightboxFor, versioned } from '../lib/thumbs';
 import type { StoreGroup } from '../lib/store';
 import { stableAnalyticsId } from '../lib/analytics.mjs';
 
@@ -13,16 +11,6 @@ interface Props {
 const { groups, alt } = Astro.props;
 const single = groups.length === 1;
 
-// Cache-bust by content length so re-uploaded screenshots aren't served stale.
-function bust(path: string): string {
-  let v = '';
-  try {
-    v = String(statSync(join(process.cwd(), 'public', path)).size);
-  } catch {
-    /* missing — leave unversioned */
-  }
-  return url(path) + (v ? `?v=${v}` : '');
-}
 
 // Assign a running index so each tile maps into the flat lightbox list. Each
 // "copy" is the real set of frames followed by a delimiter; we render several
@@ -33,7 +21,7 @@ const rendered = groups.map((g) => {
   const items = g.images.map((src) => {
     const thumb = thumbFor(src)!;
     return {
-      src: bust(lightboxFor(src)),
+      src: versioned(lightboxFor(src)),
       thumb: url(thumb),
       dims: thumbDims(thumb),
       index: counter++,

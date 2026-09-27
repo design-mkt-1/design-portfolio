@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Render the first page of each brand book PDF to a WebP cover thumbnail.
 
-One-time / on-demand helper (not part of the CI build). The output WebP files
-are committed and referenced from src/data/projects.ts as the Brand Book
-choice-card preview. Re-run whenever a brand book PDF is replaced.
+One-time / on-demand helper (not part of the CI build). The output
+brandbook/cover.webp files are committed; scripts/gen-thumbs.mjs picks them up
+automatically as the Brand Book choice-card preview. Re-run whenever a brand
+book PDF is replaced.
 """
 import io
 import pathlib

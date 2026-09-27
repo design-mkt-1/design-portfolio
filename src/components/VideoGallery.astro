@@ -1,9 +1,6 @@
 ---
-import { statSync } from 'node:fs';
-import { join } from 'node:path';
 import { url } from '../lib/site';
-import { cleanTitle } from '../lib/titles';
-import { thumbFor } from '../lib/thumbs';
+import { thumbFor, thumbDims, versioned } from '../lib/thumbs';
 import { SIZE_LABEL, SIZE_RATIO, availableVideoSizes, type VideoItem } from '../data/projects';
 import { stableAnalyticsId } from '../lib/analytics.mjs';
 
@@ -12,29 +9,14 @@ interface Props {
 }
 const { items } = Astro.props;
 
-// Resolve server-side so the client script is base-safe. Repo paths go through
-// url() (base-aware); absolute URLs pass through. A content-length cache-buster
-// (?v=<bytes>) is appended to repo assets so a re-uploaded file (same filename)
-// isn't served stale from the browser/CDN cache — the byte count changes with
-// the content, and stays stable across unrelated deploys.
-function bust(path: string): string {
-  if (/^https?:\/\//.test(path)) return path;
-  let v = '';
-  try {
-    v = String(statSync(join(process.cwd(), 'public', path)).size);
-  } catch {
-    /* file missing — leave unversioned */
-  }
-  return url(path) + (v ? `?v=${v}` : '');
-}
 const payload = items.map((v) => ({
-  title: cleanTitle(v.title),
-  poster: bust(v.poster),
+  title: v.title,
+  poster: versioned(v.poster),
   sizes: availableVideoSizes(v).map((k) => ({
     key: k,
     label: v.labels?.[k] ?? SIZE_LABEL[k],
     ratio: SIZE_RATIO[k],
-    src: bust(v.src[k]!),
+    src: versioned(v.src[k]!),
   })),
 }));
 ---
@@ -56,13 +38,13 @@ const payload = items.map((v) => ({
           data-content-id={analyticsId}
         >
           <span class="poster">
-            <img src={url(thumbFor(v.poster)!)} alt={cleanTitle(v.title)} loading="lazy" decoding="async" />
+            <img src={url(thumbFor(v.poster)!)} alt={v.title} width={thumbDims(thumbFor(v.poster))?.w} height={thumbDims(thumbFor(v.poster))?.h} loading="lazy" decoding="async" />
             <span class="play" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
             </span>
           </span>
           <span class="vmeta">
-            <span class="vtitle">{cleanTitle(v.title)}</span>
+            <span class="vtitle">{v.title}</span>
             <span class="vcount"><span>{count}</span> {count === 1 ? 'format' : 'formats'}</span>
           </span>
         </button>
@@ -126,7 +108,7 @@ const payload = items.map((v) => ({
     const item = data[current];
     titleEl.textContent = item.title;
     sizesEl.innerHTML = '';
-    item.sizes.forEach((s: any, i: number) => {
+    item.sizes.forEach((s: { key: string; label: string }, i: number) => {
       const b = document.createElement('button');
       b.className = 'vlb-size' + (i === sizeIdx ? ' active' : '');
       b.type = 'button';

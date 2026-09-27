@@ -6,9 +6,7 @@
 import { readdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { cleanTitle, isInProgress } from './titles';
-
-const IMG = /\.(webp|png|jpe?g)$/i;
-const natural = (a: string, b: string) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+import { IMG_FILE as IMG, naturalSort as natural } from './site';
 
 export interface StoreGroup {
   key: string;
@@ -21,7 +19,13 @@ function storeDir(slug: string): string {
 }
 
 /** One group per campaign-set subfolder that contains images, name-sorted. */
+const storeCache = new Map<string, StoreGroup[]>();
 export function storeGroups(slug: string): StoreGroup[] {
+  if (!storeCache.has(slug)) storeCache.set(slug, scanStore(slug));
+  return storeCache.get(slug)!;
+}
+
+function scanStore(slug: string): StoreGroup[] {
   const base = storeDir(slug);
   if (!existsSync(base)) return [];
   return readdirSync(base, { withFileTypes: true })
@@ -45,11 +49,6 @@ export function hasStore(slug: string): boolean {
 
 export function storeCount(slug: string): number {
   return storeGroups(slug).reduce((n, g) => n + g.images.length, 0);
-}
-
-/** Section/card title. App Store only for now. */
-export function storeTitle(_slug: string): string {
-  return 'App Store';
 }
 
 /** Flat list of every store image, for the card carousel preview. */

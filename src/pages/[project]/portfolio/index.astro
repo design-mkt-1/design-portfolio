@@ -7,7 +7,7 @@ import ChoiceCards, { type Choice } from '../../../components/ChoiceCards.astro'
 import { url } from '../../../lib/site';
 import { projects, getProject, firstSize } from '../../../data/projects';
 import { marketOf, projectBanners, projectLandings, projectVideos, hasPortfolio, projectCrumb, sectionBack, projectOg } from '../../../lib/portfolio';
-import { storeCount, allStoreImages, storeTitle } from '../../../lib/store';
+import { storeCount, allStoreImages } from '../../../lib/store';
 import { thumbFor } from '../../../lib/thumbs';
 
 export function getStaticPaths() {
@@ -68,7 +68,7 @@ if (videos.length > 0) {
 }
 if (storeImages.length > 0) {
   choices.push({
-    title: storeTitle(p.slug),
+    title: 'App Store',
     description: 'Store listing creative.',
     href: `/${p.slug}/portfolio/store`,
     icon: 'store',

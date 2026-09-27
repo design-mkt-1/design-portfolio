@@ -344,8 +344,8 @@ const siteSection = pagePath.includes('/contact')
           el.setAttribute('placeholder', trKey(el.getAttribute('data-i18n-ph') || '', lang));
         });
         document.documentElement.lang = lang;
-        (window as any).__lang = lang;
-        (window as any).__tk = trKey;
+        window.__lang = lang;
+        window.__tk = trKey;
         document.querySelectorAll<HTMLElement>('.lang-btn').forEach((b) => {
           const on = b.dataset.lang === lang;
           if (on && !b.classList.contains('active') && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {

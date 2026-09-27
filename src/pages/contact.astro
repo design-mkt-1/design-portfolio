@@ -86,7 +86,7 @@ const nextUrl = Astro.site ? new URL(`${url('/contact/')}?sent=1`, Astro.site).h
 
   // Translate JS-set status via the global i18n helper (set by Base).
   const tk = (key: string, fallback: string) => {
-    const w = window as any;
+    const w = window;
     return w.__tk ? w.__tk(key, w.__lang || 'en') : fallback;
   };
 
@@ -109,7 +109,7 @@ const nextUrl = Astro.site ? new URL(`${url('/contact/')}?sent=1`, Astro.site).h
     if (Date.now() - loadedAt < 3000) return; // bots submit instantly; humans don't
     if (submitting) return;
     submitting = true;
-    (window as any).AlmeronAnalytics?.trackFormSubmitAttempt(form);
+    window.AlmeronAnalytics?.trackFormSubmitAttempt(form);
     statusEl.textContent = tk('contact.sending', 'Sending…');
     statusEl.className = 'form-status';
     if (btn) btn.disabled = true;
@@ -130,7 +130,7 @@ const nextUrl = Astro.site ? new URL(`${url('/contact/')}?sent=1`, Astro.site).h
         form.reset();
         statusEl.textContent = tk('contact.ok', 'Thanks! Your message has been sent.');
         statusEl.classList.add('ok');
-        (window as any).AlmeronAnalytics?.trackFormSuccess(form);
+        window.AlmeronAnalytics?.trackFormSuccess(form);
       } else {
         errorType = 'server';
         throw new Error('server');
@@ -143,7 +143,7 @@ const nextUrl = Astro.site ? new URL(`${url('/contact/')}?sent=1`, Astro.site).h
             ? 'network'
             : 'unknown';
       }
-      (window as any).AlmeronAnalytics?.trackFormError(form, errorType);
+      window.AlmeronAnalytics?.trackFormError(form, errorType);
       const prefix = tk('contact.errPrefix', "Couldn't send. Please email us directly at");
       statusEl.innerHTML = `${prefix} <a href="mailto:${EMAIL}" data-analytics-event="contact_click" data-analytics-id="contact_email_error" data-analytics-location="form_error" data-contact-method="email">${EMAIL}</a>.`;
       statusEl.classList.add('err');

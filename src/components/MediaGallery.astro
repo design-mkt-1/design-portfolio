@@ -1,14 +1,15 @@
 ---
-import { url, isVideoFile } from '../lib/site';
+import { url } from '../lib/site';
 import { thumbFor, thumbDims, lightboxFor, tileSrcset, TILE_SIZES } from '../lib/thumbs';
 import { SIZE_ORDER, SIZE_LABEL, SIZE_RATIO, availableSizes, firstSize, type MediaItem } from '../data/projects';
 import { stableAnalyticsId } from '../lib/analytics.mjs';
 
+// Banner sets only: they come from image files (portfolio.ts), never video.
 interface Props {
   items: MediaItem[];
-  kind: 'banner' | 'video';
 }
-const { items, kind } = Astro.props;
+const { items } = Astro.props;
+const kind = 'banner';
 
 // Resolve every referenced path to a final URL so the client script is base-safe.
 const payload = items.map((item) => ({
@@ -17,8 +18,7 @@ const payload = items.map((item) => ({
     key: k,
     label: item.labels?.[k] ?? SIZE_LABEL[k],
     ratio: SIZE_RATIO[k],
-    src: url(isVideoFile(item.sizes[k]!) ? item.sizes[k]! : lightboxFor(item.sizes[k]!)),
-    video: isVideoFile(item.sizes[k]!),
+    src: url(lightboxFor(item.sizes[k]!)),
   })),
 }));
 ---
@@ -27,7 +27,7 @@ const payload = items.map((item) => ({
   {
     items.map((item, i) => {
       const original = firstSize(item)!;
-      const thumb = isVideoFile(original) ? original : thumbFor(original)!;
+      const thumb = thumbFor(original)!;
       const dims = thumbDims(thumb);
       // any non-square banner (real pixel ratio, not bucket) fits whole into
       // the square tile over a blurred copy — never cropped
@@ -46,19 +46,8 @@ const payload = items.map((item) => ({
           data-content-id={analyticsId}
         >
           <span class="thumb">
-            {isVideoFile(thumb) ? (
-              <video src={url(thumb)} muted playsinline preload="metadata" />
-            ) : (
-              <>
-                {wide && <img class="thumb-blur" src={url(thumb)} alt="" aria-hidden="true" loading="lazy" decoding="async" />}
-                <img class={wide ? 'thumb-fit' : undefined} src={url(thumb)} srcset={tileSrcset(original, thumb)} sizes={TILE_SIZES} alt={item.title} width={dims?.w} height={dims?.h} loading="lazy" decoding="async" />
-              </>
-            )}
-            {kind === 'video' && (
-              <span class="play" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
-              </span>
-            )}
+            {wide && <img class="thumb-blur" src={url(thumb)} alt="" aria-hidden="true" loading="lazy" decoding="async" />}
+            <img class={wide ? 'thumb-fit' : undefined} src={url(thumb)} srcset={tileSrcset(original, thumb)} sizes={TILE_SIZES} alt={item.title} width={dims?.w} height={dims?.h} loading="lazy" decoding="async" />
             <span class="hover-cta">View all sizes</span>
           </span>
           <span class="tile-meta">
@@ -115,35 +104,20 @@ const payload = items.map((item) => ({
     // the previous creative never lingers during multi-second downloads
     stage.classList.add('loading');
     const done = () => stage.classList.remove('loading');
-    let el: HTMLElement;
-    if (size.video) {
-      const v = document.createElement('video');
-      v.src = size.src;
-      v.controls = true;
-      v.autoplay = true;
-      v.loop = true;
-      v.muted = true;
-      (v as HTMLVideoElement).playsInline = true;
-      v.addEventListener('loadeddata', done, { once: true });
-      v.addEventListener('error', done, { once: true });
-      el = v;
-    } else {
-      const img = document.createElement('img');
-      img.onload = done;
-      img.onerror = done;
-      img.src = size.src;
-      img.alt = item.title;
-      if (img.complete) done();
-      el = img;
-    }
-    stage.appendChild(el);
+    const img = document.createElement('img');
+    img.onload = done;
+    img.onerror = done;
+    img.src = size.src;
+    img.alt = item.title;
+    if (img.complete) done();
+    stage.appendChild(img);
   }
 
   function renderSizes() {
     const item = items[current];
     titleEl.textContent = item.title;
     sizesEl.innerHTML = '';
-    item.sizes.forEach((s: any, i: number) => {
+    item.sizes.forEach((s: { key: string; label: string }, i: number) => {
       const b = document.createElement('button');
       b.className = 'lb-size' + (i === sizeIdx ? ' active' : '');
       b.type = 'button';
@@ -219,8 +193,7 @@ const payload = items.map((item) => ({
     background: var(--bg-elev);
     transition: transform 0.3s var(--ease-expo), border-color 0.3s, box-shadow 0.3s;
   }
-  .thumb img,
-  .thumb video {
+  .thumb img {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -350,8 +323,7 @@ const payload = items.map((item) => ({
     }
   }
   /* media element is created dynamically in JS → must be :global to receive styles */
-  .lb-stage :global(img),
-  .lb-stage :global(video) {
+  .lb-stage :global(img) {
     max-width: 100%;
     max-height: 100%;
     width: auto;
@@ -463,8 +435,7 @@ const payload = items.map((item) => ({
       max-height: calc(100vh - 220px);
       max-height: calc(100dvh - 220px);
     }
-    .lb-stage :global(img),
-    .lb-stage :global(video) {
+    .lb-stage :global(img) {
       max-height: calc(100vh - 220px);
       max-height: calc(100dvh - 220px);
     }

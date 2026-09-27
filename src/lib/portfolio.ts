@@ -9,9 +9,20 @@ import { imageSize } from 'image-size';
 import { projects, type MediaItem, type LandingItem, type VideoItem, type SizeKey, type Project } from '../data/projects';
 import { hasStore } from './store';
 import { cleanTitle, isInProgress } from './titles';
+import { IMG_FILE as IMG, naturalSort as natural } from './site';
 
-const natural = (a: string, b: string) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
-const IMG = /\.(webp|png|jpe?g)$/i;
+/** Folder IDs are stripped from titles, so two sets can end up with the same
+ *  name ("Weekend Wager" twice in bet2fun landings). Number the repeats in
+ *  place: "Weekend Wager", "Weekend Wager 2". */
+function numberDuplicateTitles<T extends { title: string }>(items: T[]): T[] {
+  const seen = new Map<string, number>();
+  for (const item of items) {
+    const n = (seen.get(item.title) ?? 0) + 1;
+    seen.set(item.title, n);
+    if (n > 1) item.title = `${item.title} ${n}`;
+  }
+  return items;
+}
 
 function kindDir(slug: string, kind: 'banners' | 'landings' | 'videos'): string {
   return join(process.cwd(), 'public', 'assets', slug, kind);
@@ -111,12 +122,18 @@ export function projectBanners(slug: string): MediaItem[] {
       out.push({ title, sizes, labels });
     }
   }
-  bannerCache.set(slug, out);
+  bannerCache.set(slug, numberDuplicateTitles(out));
   return out;
 }
 
 /** Landings, natural order; a *mobile*, *tablet*, and/or *desktop* image per folder. */
+const landingCache = new Map<string, LandingItem[]>();
 export function projectLandings(slug: string): LandingItem[] {
+  if (!landingCache.has(slug)) landingCache.set(slug, numberDuplicateTitles(scanLandings(slug)));
+  return landingCache.get(slug)!;
+}
+
+function scanLandings(slug: string): LandingItem[] {
   return setFolders(slug, 'landings')
     .flatMap((folder) => {
       const files = readdirSync(join(kindDir(slug, 'landings'), folder)).filter((f) => IMG.test(f));
@@ -128,6 +145,10 @@ export function projectLandings(slug: string): LandingItem[] {
         tablet: files.filter((f) => patterns.tablet.test(f)),
         desktop: files.filter((f) => patterns.desktop.test(f)),
       };
+      // a file matching no device never shows up on the site; say so at build time
+      for (const f of files)
+        if (!Object.values(patterns).some((p) => p.test(f)))
+          console.warn(`[landings] ${slug}/${folder}/${f}: no mobile/tablet/desktop in the name, skipped`);
       const devices = ['mobile', 'tablet', 'desktop'] as const;
       // Common case: at most one file per device → one landing, stray numbers
       // in names ("430px (Mobile 2).jpg") are just designer naming noise.
@@ -206,7 +227,7 @@ export function projectVideos(slug: string): VideoItem[] {
       ...(assetExists(hero) ? { hero } : {}),
     });
   }
-  videoCache.set(slug, out);
+  videoCache.set(slug, numberDuplicateTitles(out));
   return out;
 }
 

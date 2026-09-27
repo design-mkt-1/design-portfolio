@@ -1,0 +1,112 @@
+---
+// One page per (project × portfolio format): banners, landings, videos, store.
+// The four formats share layout, crumbs and back link; only the gallery and
+// the copy differ (FORMAT below).
+import Base from '../../../layouts/Base.astro';
+import CtaBanner from '../../../components/CtaBanner.astro';
+import MediaGallery from '../../../components/MediaGallery.astro';
+import LandingsGallery from '../../../components/LandingsGallery.astro';
+import VideoGallery from '../../../components/VideoGallery.astro';
+import StoreGallery from '../../../components/StoreGallery.astro';
+import { url } from '../../../lib/site';
+import { projects, getProject } from '../../../data/projects';
+import { storeGroups } from '../../../lib/store';
+import {
+  marketOf,
+  portfolioFormats,
+  projectBanners,
+  projectLandings,
+  projectVideos,
+  projectCrumb,
+  formatBack,
+  portfolioCrumb,
+  projectOg,
+  type PortfolioFormat,
+} from '../../../lib/portfolio';
+
+export function getStaticPaths() {
+  return projects.flatMap((p) => portfolioFormats(p).map((format) => ({ params: { project: p.slug, format } })));
+}
+
+const { project, format } = Astro.params as { project: string; format: PortfolioFormat };
+const p = getProject(project)!;
+const market = marketOf(p);
+
+const banners = format === 'banners' ? projectBanners(p.slug) : [];
+const landings = format === 'landings' ? projectLandings(p.slug) : [];
+const videos = format === 'videos' ? projectVideos(p.slug) : [];
+const groups = format === 'store' ? storeGroups(p.slug) : [];
+
+const FORMAT: Record<PortfolioFormat, { label: string; lede: string; i18n?: string; title: string; description: string }> = {
+  banners: {
+    label: 'Banners',
+    lede: 'Each tile shows the 1080×1080 version. Open one to see every size.',
+    i18n: 'banners.lede',
+    title: `${p.name} Banner Design — iGaming ${market} | Marketing Solutions`,
+    description: `${banners.length} ${p.name} banner campaigns for ${market}, each delivered in every placement size. iGaming banner design by Marketing Solutions.`,
+  },
+  landings: {
+    label: 'Landings',
+    lede: 'Mobile-first. Tap any landing to view it full-length and switch between mobile, tablet, and desktop.',
+    i18n: 'landings.lede',
+    title: `${p.name} Landing Pages — iGaming ${market} | Marketing Solutions`,
+    description: `${landings.length} ${p.name} promo landing pages for ${market}, designed mobile-first with desktop versions. iGaming landing page design by Marketing Solutions.`,
+  },
+  videos: {
+    label: 'Videos',
+    lede: 'Tap a video to play it.',
+    title: `${p.name} Video & Motion — iGaming ${market} | Marketing Solutions`,
+    description: `${videos.length} ${p.name} promo videos and motion pieces for ${market}, cut for social and display placements. iGaming video creative by Marketing Solutions.`,
+  },
+  store: {
+    label: 'App Store',
+    lede: 'Store listing creative. Tap a screenshot to view it full-size.',
+    title: `${p.name} App Store Creative — iGaming ${market} | Marketing Solutions`,
+    description: `${groups.length} sets of ${p.name} App Store screenshots for ${market}. Open any set to see every screenshot full size. iGaming app store creative by Marketing Solutions.`,
+  },
+};
+const f = FORMAT[format];
+---
+
+<Base
+  title={f.title}
+  description={f.description}
+  favicon={p.favicon}
+  ogImage={projectOg(p)}
+  accent={p.accent}
+  crumbs={[{ label: 'Projects', href: '/' }, projectCrumb(p), portfolioCrumb(p), { label: f.label }]}
+>
+  <section class="container head">
+    <a
+      class="backlink reveal"
+      href={url(formatBack(p).href)}
+      data-analytics-event="navigation_click"
+      data-analytics-id={`${format}_back`}
+      data-analytics-location="page_header"
+    >← {formatBack(p).label}</a>
+    <h1 class="reveal">{p.name}<span class="h1-sep" aria-hidden="true">/</span><span class="muted">{f.label}</span></h1>
+    <p class="lede muted reveal" data-i18n={f.i18n}>{f.lede}</p>
+  </section>
+
+  <section class="container">
+    {format === 'banners' && <MediaGallery items={banners} />}
+    {format === 'landings' && <LandingsGallery items={landings} alt={p.name} />}
+    {format === 'videos' && <VideoGallery items={videos} />}
+    {format === 'store' && <StoreGallery groups={groups} alt={p.name} />}
+  </section>
+  <CtaBanner />
+</Base>
+
+<style>
+  .head {
+    padding-top: 40px;
+    margin-bottom: 28px;
+  }
+  h1 {
+    font-size: clamp(1.8rem, 4.5vw, 2.6rem);
+    margin: 18px 0 6px;
+  }
+  .lede {
+    font-size: 1.02rem;
+  }
+</style>

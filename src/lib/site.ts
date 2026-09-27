@@ -19,3 +19,9 @@ export function url(path = ''): string {
 export function isVideoFile(src: string): boolean {
   return /\.(mp4|webm|mov|m4v)$/i.test(src);
 }
+
+/** Image files the asset scanners pick up. */
+export const IMG_FILE = /\.(webp|png|jpe?g)$/i;
+
+/** Natural filename order: "2.webp" before "10.webp". */
+export const naturalSort = (a: string, b: string) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });

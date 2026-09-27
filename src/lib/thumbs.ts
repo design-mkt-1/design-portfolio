@@ -3,7 +3,7 @@
 // run automatically before every build). Falls back to the original path when no
 // thumbnail exists, so the site keeps working even if the pipeline hasn't run
 // (e.g. a bare `astro dev` before the first prebuild).
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, statSync } from 'node:fs';
 import { join, parse } from 'node:path';
 import { url } from './site';
 
@@ -72,4 +72,15 @@ export function squareFavicon(relPath: string): string {
   if (!slug) return relPath;
   const squared = `assets/_thumbs/favicons/${slug}.png`;
   return existsSync(join(PUB, squared)) ? squared : relPath;
+}
+
+/** URL with a ?v= stamp from the file's mtime, so a re-uploaded asset under the
+ *  same name is not served stale from a long cache. Remote URLs pass through. */
+export function versioned(relPath: string): string {
+  if (/^https?:\/\//.test(relPath)) return relPath;
+  try {
+    return `${url(relPath)}?v=${Math.round(statSync(join(PUB, relPath)).mtimeMs).toString(36)}`;
+  } catch {
+    return url(relPath);
+  }
 }

@@ -9,13 +9,6 @@
 
 export const LOCALES = ['en', 'ro', 'ru'] as const;
 export type Locale = (typeof LOCALES)[number];
-export const DEFAULT_LOCALE: Locale = 'en';
-
-export const LOCALE_NAME: Record<Locale, string> = {
-  en: 'EN',
-  ro: 'RO',
-  ru: 'RU',
-};
 
 /** key -> [en, ro, ru] */
 export const STRINGS: Record<string, [string, string, string]> = {

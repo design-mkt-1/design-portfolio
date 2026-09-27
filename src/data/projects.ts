@@ -2,11 +2,8 @@
 // Marketing Solutions — project catalog
 //
 // This is the single file you edit to add/adjust projects. Drop assets into
-// public/assets/<slug>/... (see public/assets/README.md), then reference them
-// here. Paths are relative to /public; the base path is added automatically.
-//
-// NOTE: the media below currently points at generated *placeholders* so the
-// site renders end-to-end. Replace with real uploads (same filenames work).
+// public/assets/<slug>/... (see docs/ASSETS.md), then reference them here.
+// Paths are relative to /public; the base path is added automatically.
 // =============================================================================
 
 export type SizeKey = '1x1' | '9x16' | '16x9' | '4x5' | '2x1' | '3x1' | '4x1';
@@ -115,10 +112,6 @@ export function firstSize(item: MediaItem): string | undefined {
 
 export function availableSizes(item: MediaItem): SizeKey[] {
   return SIZE_ORDER.filter((k) => item.sizes[k]);
-}
-
-export function availableDevices(item: LandingItem): Device[] {
-  return DEVICE_ORDER.filter((d) => item[d]);
 }
 
 /** Preferred preview for a landing tile: mobile first, then tablet, then desktop. */
