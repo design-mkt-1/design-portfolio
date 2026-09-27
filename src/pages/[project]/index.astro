@@ -5,6 +5,7 @@ import Base from '../../layouts/Base.astro';
 import AnalyticsHead from '../../components/AnalyticsHead.astro';
 import AnalyticsBody from '../../components/AnalyticsBody.astro';
 import ChoiceCards, { type Choice } from '../../components/ChoiceCards.astro';
+import CtaBanner from '../../components/CtaBanner.astro';
 import { url } from '../../lib/site';
 import { projects, getProject, firstSize, landingThumb } from '../../data/projects';
 import { marketOf, projectBanners, projectLandings, hasPortfolio, hasBrandbook, assetExists, projectSections, projectEntry, projectOg, projectVideos } from '../../lib/portfolio';
@@ -159,6 +160,7 @@ const stubUrl = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : unde
       )
     }
   </section>
+  <CtaBanner />
     </Base>
   )
 }

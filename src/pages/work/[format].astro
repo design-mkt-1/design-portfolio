@@ -4,6 +4,7 @@
 // by brand — no lightbox here; every tile (and the section header) links into
 // that brand's real gallery page where the full viewer lives.
 import Base from '../../layouts/Base.astro';
+import CtaBanner from '../../components/CtaBanner.astro';
 import { url } from '../../lib/site';
 import { thumbFor, thumbDims, tileSrcset, TILE_SIZES } from '../../lib/thumbs';
 import {
@@ -146,6 +147,7 @@ const total = sections.reduce((n, s) => n + s.tiles.length, 0);
       ))
     }
   </section>
+  <CtaBanner />
 </Base>
 
 <style>

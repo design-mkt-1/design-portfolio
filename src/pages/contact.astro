@@ -30,6 +30,7 @@ const nextUrl = Astro.site ? new URL(`${url('/contact/')}?sent=1`, Astro.site).h
     <form
       class="contact-form reveal"
       id="contact-form"
+      data-work-href={url('/work/banners')}
       action={`https://formsubmit.co/${ENDPOINT}`}
       method="POST"
       data-form-id="contact_form"
@@ -106,9 +107,15 @@ const nextUrl = Astro.site ? new URL(`${url('/contact/')}?sent=1`, Astro.site).h
     if (!statusEl) return;
     const btn = form.querySelector<HTMLButtonElement>('button[type="submit"]');
     if ((form.querySelector<HTMLInputElement>('input[name="_honey"]')?.value || '') !== '') return; // bot
-    if (Date.now() - loadedAt < 3000) return; // bots submit instantly; humans don't
     if (submitting) return;
     submitting = true;
+    // Bots submit instantly; a fast human is held (with feedback) until 3s have
+    // passed instead of being dropped without a word.
+    const early = 3000 - (Date.now() - loadedAt);
+    if (early > 0) {
+      statusEl.textContent = tk('contact.sending', 'Sending…');
+      await new Promise((r) => window.setTimeout(r, early));
+    }
     window.AlmeronAnalytics?.trackFormSubmitAttempt(form);
     statusEl.textContent = tk('contact.sending', 'Sending…');
     statusEl.className = 'form-status';
@@ -128,7 +135,11 @@ const nextUrl = Astro.site ? new URL(`${url('/contact/')}?sent=1`, Astro.site).h
       const data = await res.json().catch(() => ({}));
       if (res.ok && String(data.success) === 'true') {
         form.reset();
-        statusEl.textContent = tk('contact.ok', 'Thanks! Your message has been sent.');
+        statusEl.textContent = `${tk('contact.ok', 'Thanks! Your message has been sent.')} `;
+        const more = document.createElement('a');
+        more.href = form.dataset.workHref || '/';
+        more.textContent = tk('contact.seeWork', 'Meanwhile, browse the work →');
+        statusEl.append(more);
         statusEl.classList.add('ok');
         window.AlmeronAnalytics?.trackFormSuccess(form);
       } else {

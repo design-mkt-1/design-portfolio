@@ -259,6 +259,7 @@ export const STRINGS: Record<string, [string, string, string]> = {
   'contact.ph.name': ['Your name', 'Numele tău', 'Ваше имя'],
   'contact.ph.message': ['What can we help with?', 'Cu ce te putem ajuta?', 'Чем мы можем помочь?'],
   'contact.sending': ['Sending…', 'Se trimite…', 'Отправка…'],
+  'contact.seeWork': ['Meanwhile, browse the work →', 'Între timp, vezi lucrările →', 'А пока посмотрите работы →'],
   'contact.ok': [
     'Thanks! Your message has been sent.',
     'Mulțumim! Mesajul tău a fost trimis.',

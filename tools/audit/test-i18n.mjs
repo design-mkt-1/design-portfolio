@@ -28,6 +28,25 @@ try {
     const contact = await textOf('/contact/', lang);
     assert.ok(!contact.includes('Get in touch'), `${lang} contact eyebrow untranslated`);
   }
+  // Generic drift guard: on a RO page, no text node may still equal an English
+  // dictionary value whose Romanian differs (markup and ui.ts fell out of sync).
+  const { STRINGS } = await import('../../src/i18n/ui.ts');
+  const english = Object.values(STRINGS).filter((r) => r[0] !== r[1]).map((r) => r[0].replace(/\s+/g, ' ').trim());
+  for (const path of ['/', '/work/banners/', '/winboss/portfolio/', '/winboss/portfolio/banners/', '/contact/', '/404.html']) {
+    await page.goto(`${site.url}${path}?lang=ro`, { waitUntil: 'load' });
+    const left = await page.evaluate((en) => {
+      const set = new Set(en);
+      const out = [];
+      const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      for (let n; (n = w.nextNode()); ) {
+        const t = (n.nodeValue || '').replace(/\s+/g, ' ').trim();
+        if (set.has(t) && !n.parentElement?.closest('script,style')) out.push(t);
+      }
+      return [...new Set(out)];
+    }, english);
+    assert.deepEqual(left, [], `RO ${path} still shows English dictionary text: ${left.join(' | ')}`);
+  }
+
   const ruHome = await textOf('/', 'ru');
   assert.ok(ruHome.includes('брендов') && !ruHome.includes('брендах'), 'RU home stat must read "брендов"');
   const ruContact = await textOf('/contact/', 'ru');
