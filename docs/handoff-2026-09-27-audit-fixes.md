@@ -5,9 +5,18 @@
   `docs/superpowers/plans/2026-09-27-audit-fixes.md`. Branch
   `fix/audit-2026-09-27` was fast-forwarded into `main` locally: 12 commits,
   `dbf2326..2d24899`.
-- **Not pushed.** `origin/main` is still at `eda7305`.
+- **Pushed** (2026-09-27). The compress-videos CI committed the hero clips
+  (`62b7190`, 23 `.mp4` in `public/assets/_hero/`). The Pages preview
+  deployed. After `git pull`, `npm run build:web` and `npm run test:audit`
+  → "129 HTML files in D:\web: all audit checks passed."
 - The live site (https://design.marketing-solutions.ro/) still runs the old
   build. `node tools/audit/check-live.mjs` → 10 FAIL (2026-09-27).
+
+## Next session
+Work from `docs/superpowers/plans/2026-09-27-copy-meta-cases.md`: RO/RU meta
+descriptions first, then the generic-copy rewrites (owner approves them), then
+case studies (need the owner's data). Everything else is in `docs/backlog.md`.
+The sections below are the original handoff. Steps 1–2 are done.
 
 ## How to build and check
 ```sh
