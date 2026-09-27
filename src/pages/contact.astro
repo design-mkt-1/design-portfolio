@@ -22,8 +22,8 @@ const nextUrl = Astro.site ? new URL(`${url('/contact/')}?sent=1`, Astro.site).h
     <div class="contact-head reveal">
       <p class="eyebrow" data-i18n="contact.eyebrow">Get in touch</p>
       <h1 class="gradient-text" data-i18n="contact.h1">Contact us</h1>
-      <p class="lede muted">
-        Tell us about your project — brand, campaign, or creative — and we'll get back to you.
+      <p class="lede muted" data-i18n="contact.lede">
+        Tell us about your project — brand, campaign, or creative. We reply within one business day.
       </p>
     </div>
 
@@ -56,7 +56,7 @@ const nextUrl = Astro.site ? new URL(`${url('/contact/')}?sent=1`, Astro.site).h
       </div>
       <div class="field">
         <label for="message">Message</label>
-        <textarea id="message" name="message" rows="4" required placeholder="What can we help with?" data-i18n-ph="contact.ph.message"></textarea>
+        <textarea id="message" name="message" rows="4" required placeholder="Brand, market, timeline and budget" data-i18n-ph="contact.ph.message"></textarea>
       </div>
 
       <button class="btn btn-primary submit" type="submit">Send message</button>

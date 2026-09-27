@@ -20,10 +20,10 @@ export const STRINGS: Record<string, [string, string, string]> = {
   ],
 
   'home.eyebrow': ['iGaming Creative Studio', 'Studio de creație iGaming', 'Креативная студия iGaming'],
-  'home.h1a': ['Creative that', 'Creație care', 'Креатив, который'],
-  'home.h1b': ['converts players.', 'convertește jucători.', 'конвертирует игроков.'],
+  'home.h1a': ['Creatives that', 'Creative care', 'Креативы, которые'],
+  'home.h1b': ['convert.', 'convertesc.', 'конвертируют.'],
   'home.lede': [
-    'Brand systems, promo landings, banners and video for casino & sportsbook operators — across Romania, Ukraine and worldwide markets.',
+    'Brand systems, promo landings, banners and videos for casino & sportsbook operators — across Romania, Ukraine and worldwide markets.',
     'Sisteme de brand, landing-uri promoționale, bannere și video pentru operatori de cazino și pariuri sportive — în România, Ucraina și pe piețe internaționale.',
     'Бренд-системы, промо-лендинги, баннеры и видео для операторов казино и спортивных ставок — в Румынии, Украине и на мировых рынках.',
   ],
@@ -86,9 +86,9 @@ export const STRINGS: Record<string, [string, string, string]> = {
   // Team section (home)
   'team.head': ['Our team', 'Echipa noastră', 'Наша команда'],
   'team.sub': [
-    'Young, fast-moving and focused — 15 design wizards and growing.',
-    'Tineri, rapizi și concentrați — 15 magicieni ai designului, și creștem.',
-    'Молодая, быстрая и сфокусированная команда — 15 волшебников дизайна, и нас становится больше.',
+    'Young, fast-moving and focused — 10+ designers and growing.',
+    'Tineri, rapizi și concentrați — peste 10 designeri, și creștem.',
+    'Молодая, быстрая и сфокусированная команда — более 10 дизайнеров, и нас становится больше.',
   ],
   'team.geo.ro': ['Romania', 'România', 'Румыния'],
   'team.geo.ua': ['Ukraine', 'Ucraina', 'Украина'],
@@ -246,9 +246,9 @@ export const STRINGS: Record<string, [string, string, string]> = {
   'contact.eyebrow': ['Get in touch', 'Ia legătura', 'Напишите нам'],
   'crumb.contact': ['Contact', 'Contact', 'Контакты'],
   'contact.lede': [
-    "Tell us about your project — brand, campaign, or creative — and we'll get back to you.",
-    'Spune-ne despre proiectul tău — brand, campanie sau creativ — și te vom contacta.',
-    'Расскажите о вашем проекте — бренд, кампания или креатив — и мы вам ответим.',
+    'Tell us about your project — brand, campaign, or creative. We reply within one business day.',
+    'Spune-ne despre proiectul tău — brand, campanie sau creativ. Răspundem în cel mult o zi lucrătoare.',
+    'Расскажите о вашем проекте — бренд, кампания или креатив. Мы отвечаем в течение одного рабочего дня.',
   ],
   'contact.name': ['Name', 'Nume', 'Имя'],
   'contact.email': ['Email', 'Email', 'Email'],
@@ -257,7 +257,7 @@ export const STRINGS: Record<string, [string, string, string]> = {
   'contact.prefer': ['Prefer email?', 'Preferi emailul?', 'Предпочитаете email?'],
   // placeholders / JS status (looked up by key)
   'contact.ph.name': ['Your name', 'Numele tău', 'Ваше имя'],
-  'contact.ph.message': ['What can we help with?', 'Cu ce te putem ajuta?', 'Чем мы можем помочь?'],
+  'contact.ph.message': ['Brand, market, timeline and budget', 'Brand, piață, termen și buget', 'Бренд, рынок, сроки и бюджет'],
   'contact.sending': ['Sending…', 'Se trimite…', 'Отправка…'],
   'contact.seeWork': ['Meanwhile, browse the work →', 'Între timp, vezi lucrările →', 'А пока посмотрите работы →'],
   'contact.ok': [
