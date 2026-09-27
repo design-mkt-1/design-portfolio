@@ -64,7 +64,9 @@ for (const path of htmlFiles) {
   const standaloneGtagCount = count(html, /googletagmanager\.com\/gtag\/js/gi);
 
   if (gtmHeadCount !== 1) addFailure(file, `expected one GTM head installation, found ${gtmHeadCount}`);
-  if (gtmBodyCount !== 1) addFailure(file, `expected one GTM noscript fallback, found ${gtmBodyCount}`);
+  // No noscript fallback on purpose: without JS, Consent Mode cannot run, so the
+  // iframe would contact Google before any consent (audit 2026-09-27).
+  if (gtmBodyCount !== 0) addFailure(file, `GTM noscript iframe bypasses consent, found ${gtmBodyCount}`);
   if (standaloneGtagCount) addFailure(file, `found ${standaloneGtagCount} standalone gtag.js installation(s)`);
   if (/\bUA-\d+/i.test(html) || /google-analytics\.com\/analytics\.js/i.test(html)) {
     addFailure(file, 'legacy Universal Analytics implementation found');

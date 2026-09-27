@@ -11,7 +11,11 @@
 //      a frame at 4.5s (or the midpoint of shorter clips) from the 1080x1080
 //      version (falling back to the first mp4) → cover.webp at up to 1080px.
 //      A manually uploaded cover.* always wins.
-import { readdirSync, existsSync, statSync, renameSync, unlinkSync } from 'node:fs';
+//   4. From the square (1:1) version, cut a small silent 360×360 clip into
+//      public/assets/_hero/<slug>/<Set>.mp4 for the home page cards, which show
+//      it at ~100–220px (the 1080² original cost 2–4MB per card). Delete a clip
+//      to regenerate it.
+import { readdirSync, existsSync, statSync, renameSync, unlinkSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 
@@ -41,12 +45,13 @@ function durationOf(file) {
 let encoded = 0;
 let tagged = 0;
 let posters = 0;
+let heroes = 0;
 let skipped = 0;
 let savedBytes = 0;
 
 if (!existsSync(ASSETS)) process.exit(0);
 for (const slug of readdirSync(ASSETS, { withFileTypes: true })) {
-  if (!slug.isDirectory() || slug.name === '_thumbs') continue;
+  if (!slug.isDirectory() || slug.name.startsWith('_')) continue;
   const vdir = join(ASSETS, slug.name, 'videos');
   if (!existsSync(vdir)) continue;
   for (const set of readdirSync(vdir, { withFileTypes: true })) {
@@ -108,7 +113,27 @@ for (const slug of readdirSync(ASSETS, { withFileTypes: true })) {
         console.warn(`[video] poster FAILED ${slug.name}/${set.name}: ${e.message}`);
       }
     }
+
+    // small hero clip from the square version
+    const square = mp4s.find((f) => {
+      const m = f.match(DIM);
+      return m && m[1] === m[2];
+    });
+    const hero = join(ASSETS, '_hero', slug.name, `${set.name}.mp4`);
+    if (square && !existsSync(hero)) {
+      mkdirSync(join(ASSETS, '_hero', slug.name), { recursive: true });
+      try {
+        run(['-y', '-i', join(dir, square), '-vf', 'scale=360:360', '-an',
+          '-c:v', 'libx264', '-crf', '30', '-preset', 'slow', '-pix_fmt', 'yuv420p',
+          '-movflags', '+faststart', hero]);
+        heroes++;
+        console.log(`[video] ${slug.name}/${set.name}: hero clip ${(statSync(hero).size / 1e3).toFixed(0)}KB`);
+      } catch (e) {
+        if (existsSync(hero)) unlinkSync(hero);
+        console.warn(`[video] hero FAILED ${slug.name}/${set.name}: ${e.message}`);
+      }
+    }
   }
 }
 
-console.log(`[video] done: ${encoded} re-encoded (saved ${(savedBytes / 1e6).toFixed(1)}MB), ${tagged} tagged as-is, ${posters} posters, ${skipped} already optimized`);
+console.log(`[video] done: ${encoded} re-encoded (saved ${(savedBytes / 1e6).toFixed(1)}MB), ${tagged} tagged as-is, ${posters} posters, ${heroes} hero clips, ${skipped} already optimized`);

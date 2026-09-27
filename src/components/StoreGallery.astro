@@ -2,7 +2,7 @@
 import { statSync } from 'node:fs';
 import { join } from 'node:path';
 import { url } from '../lib/site';
-import { thumbFor, thumbDims } from '../lib/thumbs';
+import { thumbFor, thumbDims, lightboxFor } from '../lib/thumbs';
 import type { StoreGroup } from '../lib/store';
 import { stableAnalyticsId } from '../lib/analytics.mjs';
 
@@ -29,11 +29,11 @@ function bust(path: string): string {
 // copies so the forward loop stays filled on wide screens.
 let counter = 0;
 const rendered = groups.map((g) => {
-  // marquee frames use generated thumbnails; the lightbox opens the original
+  // marquee frames use generated thumbnails; the lightbox opens a ≤1920px WebP
   const items = g.images.map((src) => {
     const thumb = thumbFor(src)!;
     return {
-      src: bust(src),
+      src: bust(lightboxFor(src)),
       thumb: url(thumb),
       dims: thumbDims(thumb),
       index: counter++,

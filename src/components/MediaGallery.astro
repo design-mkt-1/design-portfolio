@@ -1,6 +1,6 @@
 ---
 import { url, isVideoFile } from '../lib/site';
-import { thumbFor, thumbDims } from '../lib/thumbs';
+import { thumbFor, thumbDims, lightboxFor, tileSrcset, TILE_SIZES } from '../lib/thumbs';
 import { SIZE_ORDER, SIZE_LABEL, SIZE_RATIO, availableSizes, firstSize, type MediaItem } from '../data/projects';
 import { stableAnalyticsId } from '../lib/analytics.mjs';
 
@@ -17,7 +17,7 @@ const payload = items.map((item) => ({
     key: k,
     label: item.labels?.[k] ?? SIZE_LABEL[k],
     ratio: SIZE_RATIO[k],
-    src: url(item.sizes[k]!),
+    src: url(isVideoFile(item.sizes[k]!) ? item.sizes[k]! : lightboxFor(item.sizes[k]!)),
     video: isVideoFile(item.sizes[k]!),
   })),
 }));
@@ -51,7 +51,7 @@ const payload = items.map((item) => ({
             ) : (
               <>
                 {wide && <img class="thumb-blur" src={url(thumb)} alt="" aria-hidden="true" loading="lazy" decoding="async" />}
-                <img class={wide ? 'thumb-fit' : undefined} src={url(thumb)} alt={item.title} width={dims?.w} height={dims?.h} loading="lazy" decoding="async" />
+                <img class={wide ? 'thumb-fit' : undefined} src={url(thumb)} srcset={tileSrcset(original, thumb)} sizes={TILE_SIZES} alt={item.title} width={dims?.w} height={dims?.h} loading="lazy" decoding="async" />
               </>
             )}
             {kind === 'video' && (

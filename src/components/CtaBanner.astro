@@ -24,7 +24,7 @@ for (let i = 2; picks.length < 6 && i < 12; i++) {
   for (const b of byBrand) if (b[i] && picks.length < 6 && !picks.includes(b[i])) picks.push(b[i]);
 }
 const vid = SLUGS.flatMap((s) => projectVideos(s)).filter((v) => v.src['1x1'])[2];
-const video = vid ? { poster: url(thumbFor(vid.poster)!), src: url(vid.src['1x1']!) } : undefined;
+const video = vid ? { poster: url(thumbFor(vid.poster)!), src: url(vid.hero ?? vid.src['1x1']!) } : undefined;
 ---
 
 <section class="container ctab-wrap">

@@ -76,6 +76,8 @@ export interface VideoItem {
   src: Partial<Record<SizeKey, string>>;
   /** optional per-size label with the file's real pixel dimensions */
   labels?: Partial<Record<SizeKey, string>>;
+  /** small silent 360×360 clip for the home page cards (scripts/compress-videos.mjs) */
+  hero?: string;
 }
 
 /** GEO / market a project is based in. `code` drives the flag icon (see Flag.astro). */

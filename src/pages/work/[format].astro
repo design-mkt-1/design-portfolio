@@ -5,7 +5,7 @@
 // that brand's real gallery page where the full viewer lives.
 import Base from '../../layouts/Base.astro';
 import { url } from '../../lib/site';
-import { thumbFor, thumbDims } from '../../lib/thumbs';
+import { thumbFor, thumbDims, tileSrcset, TILE_SIZES } from '../../lib/thumbs';
 import {
   visibleProjects,
   projectLandings,
@@ -34,6 +34,7 @@ const meta = META[format!];
 interface Tile {
   img?: string;
   dims?: { w: number; h: number };
+  srcset?: string;
   label: string;
   /** wide-only banner: render full-fit over a blurred copy instead of cropping */
   wide?: boolean;
@@ -57,7 +58,7 @@ const sections: Section[] = visibleProjects()
     if (format === 'landings') {
       const tiles = projectLandings(p.slug).map((l, idx) => {
         const img = thumbFor(landingThumb(l));
-        return { img, dims: thumbDims(img), label: l.title, idx };
+        return { img, dims: thumbDims(img), srcset: tileSrcset(landingThumb(l), img), label: l.title, idx };
       });
       return tiles.length ? { project: p, href: `/${p.slug}/portfolio/landings`, tiles } : null;
     }
@@ -67,7 +68,7 @@ const sections: Section[] = visibleProjects()
         const dims = thumbDims(img);
         // non-square by real pixel ratio (not bucket) → blur-letterbox tile
         const wide = !!dims && Math.abs(dims.w / dims.h - 1) > 0.02;
-        return { img, dims, label: item.title, wide, idx };
+        return { img, dims, srcset: tileSrcset(firstSize(item), img), label: item.title, wide, idx };
       });
       return tiles.length ? { project: p, href: `/${p.slug}/portfolio/banners`, tiles } : null;
     }
@@ -130,6 +131,8 @@ const total = sections.reduce((n, s) => n + s.tiles.length, 0);
                 <img
                   class={t.wide ? 'tile-fit' : undefined}
                   src={url(t.img!)}
+                  srcset={t.srcset}
+                  sizes={t.srcset && TILE_SIZES}
                   alt={t.label}
                   width={t.dims?.w}
                   height={t.dims?.h}

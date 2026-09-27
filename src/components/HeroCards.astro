@@ -35,7 +35,7 @@ for (let i = 0; byBrand.some((b) => i < b.length); i++) {
 // (lazy-started after page load); when a clip ends the card moves on to a
 // random one that isn't already playing elsewhere — no replays back-to-back.
 const vids = SLUGS.flatMap((slug) => projectVideos(slug).filter((v) => v.src['1x1']));
-const vPool = vids.map((v) => ({ poster: url(thumbFor(v.poster)!), src: url(v.src['1x1']!) }));
+const vPool = vids.map((v) => ({ poster: url(thumbFor(v.poster)!), src: url(v.hero ?? v.src['1x1']!) }));
 const nVideoCards = Math.min(2, vPool.length);
 const vStart = Array.from({ length: nVideoCards }, (_, i) => Math.floor((i * vPool.length) / nVideoCards));
 const videoPayload = vStart.map((idx) => ({ idx, poster: vPool[idx].poster }));
@@ -109,22 +109,36 @@ const imgCards = unique.slice(0, imgCount).map((e) => e.s);
   // random pool entry not already playing on the other card (replay only when
   // the pool is too small to rotate)
   const vpoolEl = document.getElementById('hc-vpool');
-  if (layer && vpoolEl && !reduce) {
+  // Touch devices and data-saver get the posters only: the clips are ambience,
+  // not content, and were most of the home page's weight on mobile.
+  const lean =
+    matchMedia('(hover: none)').matches || Boolean((navigator as { connection?: { saveData?: boolean } }).connection?.saveData);
+  if (layer && vpoolEl && !reduce && !lean) {
     const vpool: { poster: string; src: string }[] = JSON.parse(vpoolEl.textContent || '[]');
     const vcards = Array.from(layer.querySelectorAll<HTMLElement>('.hc-video'));
     const vshow = vcards.map((c) => Number(c.dataset.vi) || 0);
+    // Rotate through the pool once, and only while the wall is on screen;
+    // after that, cards loop the clip they already downloaded.
+    let plays = 0;
+    let onScreen = true;
+    new IntersectionObserver((es) => {
+      onScreen = es.some((e) => e.isIntersecting);
+      layer.querySelectorAll('video').forEach((v) => (onScreen ? v.src && v.play().catch(() => {}) : v.pause()));
+    }).observe(layer);
     const startVideos = () => {
       vcards.forEach((card, ci) => {
         const v = card.querySelector('video')!;
         const img = card.querySelector<HTMLImageElement>('img.a')!;
         const playIdx = (idx: number) => {
+          plays++;
           vshow[ci] = idx;
           img.src = vpool[idx].poster;
           v.src = vpool[idx].src;
           v.play().catch(() => {});
         };
-        v.addEventListener('ended', () => {
-          if (vpool.length <= vcards.length) {
+        v.addEventListener('ended', (e) => {
+          // a logo spin dispatches a synthetic 'ended' (isTrusted false): always reshuffle then
+          if (vpool.length <= vcards.length || (e.isTrusted && (plays >= vpool.length || !onScreen))) {
             v.currentTime = 0;
             v.play().catch(() => {});
             return;

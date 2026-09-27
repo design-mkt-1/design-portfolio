@@ -5,8 +5,9 @@
 The site installs one GTM container (`GTM-5CRD484Z`) on every generated HTML
 document. The head bootstrap establishes Consent Mode v2 defaults before GTM,
 preserves an existing `window.dataLayer`, applies a stored preference, and then
-loads the standard GTM script. The body starts with the standard noscript
-fallback.
+loads the standard GTM script. There is deliberately no GTM noscript iframe:
+without JavaScript, Consent Mode cannot run, so the iframe would contact Google
+before any consent (audit 2026-09-27).
 
 Business events do not call `gtag('event', ...)`. Annotated interactions and
 verified form lifecycle methods push sanitized objects into `window.dataLayer`.
@@ -27,8 +28,8 @@ Astro data attributes / verified form response
 
 - `src/components/AnalyticsHead.astro` — consent defaults, stored update, and
   GTM head snippet.
-- `src/components/AnalyticsBody.astro` — noscript fallback, consent UI, and
-  deferred runtimes.
+- `src/components/AnalyticsBody.astro` — consent UI and deferred runtimes
+  (cache-busted with a content hash).
 - `src/components/ConsentPreferences.astro` — accessible banner and preferences
   dialog.
 - `public/assets/js/analytics.js` — event allowlist, sanitization, delegated

@@ -197,7 +197,14 @@ export function projectVideos(slug: string): VideoItem[] {
       }
     }
     if (Object.keys(src).length === 0) continue;
-    out.push({ title: cleanTitle(folder), poster: `assets/${slug}/videos/${folder}/${poster}`, src, labels });
+    const hero = `assets/_hero/${slug}/${folder}.mp4`;
+    out.push({
+      title: cleanTitle(folder),
+      poster: `assets/${slug}/videos/${folder}/${poster}`,
+      src,
+      labels,
+      ...(assetExists(hero) ? { hero } : {}),
+    });
   }
   videoCache.set(slug, out);
   return out;

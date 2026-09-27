@@ -1,22 +1,19 @@
 ---
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { url } from '../lib/site';
 import ConsentPreferences from './ConsentPreferences.astro';
 
-const gtmId = import.meta.env.PUBLIC_GTM_ID?.trim() || 'GTM-5CRD484Z';
+// No GTM <noscript> iframe: without JS, Consent Mode cannot run, so it would
+// reach Google before any consent. The runtimes keep fixed file names, so a
+// content hash in the query string makes a changed file reach returning visitors.
+const versioned = (rel: string) => {
+  const hash = createHash('sha256').update(readFileSync(join(process.cwd(), 'public', rel))).digest('hex').slice(0, 10);
+  return `${url(rel)}?v=${hash}`;
+};
 ---
 
-<!-- Google Tag Manager (noscript) -->
-<noscript>
-  <iframe
-    src={`https://www.googletagmanager.com/ns.html?id=${gtmId}`}
-    height="0"
-    width="0"
-    style="display:none;visibility:hidden"
-    title="Google Tag Manager"
-  ></iframe>
-</noscript>
-<!-- End Google Tag Manager (noscript) -->
-
 <ConsentPreferences />
-<script is:inline src={url('assets/js/analytics.js')} defer></script>
-<script is:inline src={url('assets/js/consent.js')} defer></script>
+<script is:inline src={versioned('assets/js/analytics.js')} defer></script>
+<script is:inline src={versioned('assets/js/consent.js')} defer></script>

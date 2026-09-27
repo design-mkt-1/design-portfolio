@@ -8,7 +8,7 @@ name: Compress videos
 on:
   push:
     branches: [main]
-    paths: ['public/assets/**/videos/**']
+    paths: ['public/assets/**/videos/**', 'scripts/compress-videos.mjs']
   workflow_dispatch:
 
 permissions:

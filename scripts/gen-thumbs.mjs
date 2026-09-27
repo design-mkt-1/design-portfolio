@@ -132,25 +132,38 @@ async function makeFavicons() {
   return n;
 }
 
-function thumbPath(absSrc) {
+/** Extra renditions per kind, each in its own tree under _thumbs/<variant>/:
+ *  - lightbox: what the viewer opens instead of the multi-MB original
+ *    (the largest was a 12MB 3840×10268 JPG);
+ *  - sm: the 1× srcset step for tiles painted at ~120–220px. */
+const VARIANTS = {
+  banner: { lightbox: { width: 1920, quality: 80 }, sm: { width: 320 } },
+  landing: { lightbox: { width: 1920, quality: 80 }, sm: { width: 320, maxHeight: 700 } },
+  store: { lightbox: { width: 1920, quality: 80 } },
+};
+
+function thumbPath(absSrc, variant = '') {
   const rel = relative(ASSETS, absSrc);
   const { dir, name } = parse(rel);
-  return join(OUT, dir, `${name}.webp`);
+  return join(OUT, variant, dir, `${name}.webp`);
 }
 
 const manifest = {};
 let made = 0;
 let kept = 0;
 
-for (const [src, kind] of collectJobs()) {
-  const dest = thumbPath(src);
+const renditions = collectJobs().flatMap(([src, kind]) => [
+  [src, thumbPath(src), RULES[kind]],
+  ...Object.entries(VARIANTS[kind] ?? {}).map(([variant, rule]) => [src, thumbPath(src, variant), rule]),
+]);
+
+for (const [src, dest, rule] of renditions) {
   const relDest = relative(join(ROOT, 'public'), dest).split('\\').join('/');
   try {
     const fresh = existsSync(dest) && statSync(dest).mtimeMs >= statSync(src).mtimeMs;
-    let img = sharp(src);
+    let img = sharp(src, { limitInputPixels: false });
     const meta = await img.metadata();
     if (!fresh) {
-      const rule = RULES[kind];
       if (rule.height) {
         img = img.resize({ height: Math.min(rule.height, meta.height ?? rule.height), withoutEnlargement: true });
       } else {
@@ -162,7 +175,7 @@ for (const [src, kind] of collectJobs()) {
             : img.resize({ width, withoutEnlargement: true });
       }
       mkdirSync(dirname(dest), { recursive: true });
-      await img.webp({ quality: QUALITY }).toFile(dest);
+      await img.webp({ quality: rule.quality ?? QUALITY }).toFile(dest);
       made++;
     } else {
       kept++;

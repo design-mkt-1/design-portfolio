@@ -5,6 +5,7 @@
 // (e.g. a bare `astro dev` before the first prebuild).
 import { existsSync, readFileSync } from 'node:fs';
 import { join, parse } from 'node:path';
+import { url } from './site';
 
 const PUB = join(process.cwd(), 'public');
 const MANIFEST_PATH = join(PUB, 'assets', '_thumbs', 'manifest.json');
@@ -20,14 +21,42 @@ function loadManifest() {
   return manifest!;
 }
 
-/** assets/<slug>/… -> assets/_thumbs/<slug>/….webp when the thumb exists. */
+/** assets/<slug>/… -> assets/_thumbs/[<variant>/]<slug>/….webp when that file exists. */
+function rendition(relPath: string, variant: string): string | undefined {
+  if (!relPath.startsWith('assets/')) return undefined;
+  const { dir, name } = parse(relPath.slice('assets/'.length));
+  const out = `assets/_thumbs/${variant ? variant + '/' : ''}${dir ? dir + '/' : ''}${name}.webp`;
+  return existsSync(join(PUB, out)) ? out : undefined;
+}
+
+/** Tile thumbnail; the original when none was generated. */
 export function thumbFor(relPath: string | undefined): string | undefined {
   if (!relPath) return relPath;
-  if (!relPath.startsWith('assets/')) return relPath;
-  const { dir, name } = parse(relPath.slice('assets/'.length));
-  const thumb = `assets/_thumbs/${dir ? dir + '/' : ''}${name}.webp`;
-  return existsSync(join(PUB, thumb)) ? thumb : relPath;
+  return rendition(relPath, '') ?? relPath;
 }
+
+/** What a lightbox opens: a ≤1920px WebP instead of the (multi-MB) original. */
+export function lightboxFor(relPath: string): string {
+  return rendition(relPath, 'lightbox') ?? relPath;
+}
+
+/** 320px step for srcset (banners and landings only); undefined when absent. */
+export function smallFor(relPath: string): string | undefined {
+  return rendition(relPath, 'sm');
+}
+
+/** srcset for a tile: the 320px step plus the regular thumb, with their real
+ *  widths from the manifest. Tiles paint at ~120–220px, so 1× screens take
+ *  the small file. Undefined when either rendition is missing. */
+export function tileSrcset(original: string | undefined, thumb: string | undefined): string | undefined {
+  if (!original || !thumb) return undefined;
+  const sm = smallFor(original);
+  const a = thumbDims(sm);
+  const b = thumbDims(thumb);
+  return sm && a && b && a.w < b.w ? `${url(sm)} ${a.w}w, ${url(thumb)} ${b.w}w` : undefined;
+}
+/** `sizes` matching the tile grids (~120–220px wide at every breakpoint). */
+export const TILE_SIZES = '220px';
 
 /** Pixel dimensions of a thumb (for width/height attributes); undefined for originals. */
 export function thumbDims(relPath: string | undefined): { w: number; h: number } | undefined {
