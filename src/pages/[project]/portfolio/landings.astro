@@ -4,7 +4,7 @@ import CtaBanner from '../../../components/CtaBanner.astro';
 import LandingsGallery from '../../../components/LandingsGallery.astro';
 import { url } from '../../../lib/site';
 import { projects, getProject } from '../../../data/projects';
-import { projectLandings, projectCrumb, formatBack, portfolioCrumb, projectOg } from '../../../lib/portfolio';
+import { marketOf, projectLandings, projectCrumb, formatBack, portfolioCrumb, projectOg } from '../../../lib/portfolio';
 
 export function getStaticPaths() {
   return projects.filter((p) => projectLandings(p.slug).length > 0).map((p) => ({ params: { project: p.slug } }));
@@ -16,8 +16,8 @@ const landings = projectLandings(p.slug);
 ---
 
 <Base
-  title={`${p.name} Landings — Marketing Solutions`}
-  description={`${p.name} landing page designs — mobile and desktop.`}
+  title={`${p.name} Landing Pages — iGaming ${marketOf(p)} | Marketing Solutions`}
+  description={`${landings.length} ${p.name} promo landing pages for ${marketOf(p)}, designed mobile-first with desktop versions. iGaming landing page design by Marketing Solutions.`}
   favicon={p.favicon}
   ogImage={projectOg(p)}
   accent={p.accent}

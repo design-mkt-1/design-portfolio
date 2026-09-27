@@ -1,0 +1,27 @@
+# Marketing Solutions — Design Portfolio
+
+> Marketing Solutions is an iGaming creative studio. It designs brand systems, promo landing pages, banners, video and app store creative for casino and sportsbook operators in Romania, Ukraine, Georgia, Uzbekistan, Asia and Europe. The team has 15 people and delivers creative in English, Romanian and Russian.
+
+## Work by format
+
+- [Brand books](https://design.marketing-solutions.ro/work/brandbooks/): logo, colors, typography and usage guidelines per brand
+- [Landing pages](https://design.marketing-solutions.ro/work/landings/): mobile-first promo landings with desktop versions
+- [Banners](https://design.marketing-solutions.ro/work/banners/): campaign banners in every placement size
+- [Video & motion](https://design.marketing-solutions.ro/work/videos/): promo videos for social and display
+
+## Brands
+
+- [Winboss](https://design.marketing-solutions.ro/winboss/portfolio/) (Romania): banners, landings, videos and app store creative
+- [Win2](https://design.marketing-solutions.ro/win2/portfolio/) (Romania): performance creative across every placement
+- [Fansport](https://design.marketing-solutions.ro/fansport/) (Asia & Europe): brand identity and guidelines
+- [Topbet](https://design.marketing-solutions.ro/topbet/) (Asia & Europe): brand identity and guidelines
+- [Top-Win](https://design.marketing-solutions.ro/top-win/brandbook/) (Ukraine): brand identity and guidelines
+- [Bet2Fun](https://design.marketing-solutions.ro/bet2fun/) (Ukraine): brand identity and guidelines
+- [Max-Win](https://design.marketing-solutions.ro/max-win/portfolio/) (Georgia)
+- [DonCash](https://design.marketing-solutions.ro/doncash/portfolio/banners/) (Uzbekistan)
+- [Jackpot](https://design.marketing-solutions.ro/jackpot/portfolio/banners/): rebrand in progress
+
+## Contact
+
+- [Contact form](https://design.marketing-solutions.ro/contact/)
+- Email: design1@marketing-solutions.ro

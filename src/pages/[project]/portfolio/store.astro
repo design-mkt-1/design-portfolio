@@ -5,7 +5,7 @@ import StoreGallery from '../../../components/StoreGallery.astro';
 import { url } from '../../../lib/site';
 import { projects, getProject } from '../../../data/projects';
 import { storeGroups, hasStore, storeTitle } from '../../../lib/store';
-import { projectCrumb, formatBack, portfolioCrumb, projectOg } from '../../../lib/portfolio';
+import { marketOf, projectCrumb, formatBack, portfolioCrumb, projectOg } from '../../../lib/portfolio';
 
 export function getStaticPaths() {
   return projects.filter((p) => hasStore(p.slug)).map((p) => ({ params: { project: p.slug } }));
@@ -18,8 +18,8 @@ const title = storeTitle(p.slug);
 ---
 
 <Base
-  title={`${p.name} ${title} — Marketing Solutions`}
-  description={`${p.name} ${title} store creative.`}
+  title={`${p.name} ${title} Creative — iGaming ${marketOf(p)} | Marketing Solutions`}
+  description={`${groups.length} sets of ${p.name} ${title} screenshots for ${marketOf(p)}. Open any set to see every screenshot full size. iGaming app store creative by Marketing Solutions.`}
   favicon={p.favicon}
   ogImage={projectOg(p)}
   accent={p.accent}

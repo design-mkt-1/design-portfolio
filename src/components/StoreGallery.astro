@@ -60,7 +60,7 @@ const flat = rendered.flatMap((g) => g.items.map((it) => ({ src: it.src, label: 
           <div class="mtrack">
             {Array.from({ length: g.copies }).map((_, copyIndex) => (
               <>
-                {g.items.map((it) => (
+                {g.items.map((it, k) => (
                   <button
                     class="shot"
                     data-index={it.index}
@@ -72,7 +72,7 @@ const flat = rendered.flatMap((g) => g.items.map((it) => ({ src: it.src, label: 
                     data-content-type="store_screenshot"
                     data-content-id={it.analyticsId}
                   >
-                    <img src={it.thumb} alt="" width={it.dims?.w} height={it.dims?.h} loading="lazy" decoding="async" draggable="false" />
+                    <img src={it.thumb} alt={copyIndex === 0 ? `${g.label} — screenshot ${k + 1}` : ''} width={it.dims?.w} height={it.dims?.h} loading="lazy" decoding="async" draggable="false" />
                   </button>
                 ))}
                 <span class="delim" aria-hidden="true" />

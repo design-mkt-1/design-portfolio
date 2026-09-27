@@ -2,9 +2,9 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    # main = production; the feature branch is included so you get a live
-    # preview URL while iterating (needs Pages source set to "GitHub Actions").
-    branches: [main, claude/marketing-solutions-portfolio-ghilve]
+    # Preview build of main at design-mkt-1.github.io/design-portfolio/ (noindex,
+    # canonical to design.marketing-solutions.ro; production deploys via build:web).
+    branches: [main]
   workflow_dispatch:
 
 permissions:

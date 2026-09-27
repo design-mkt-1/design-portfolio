@@ -298,6 +298,7 @@ export const STRINGS: Record<string, [string, string, string]> = {
 
   // Screen-reader labels (aria-label), matched by English text
   'aria.skip': ['Skip to content', 'Sari la conținut', 'К содержимому'],
+  'aria.work': ['Work', 'Lucrări', 'Работы'],
   'aria.pause': ['Pause animation', 'Oprește animația', 'Остановить анимацию'],
   'aria.home': ['Marketing Solutions — home', 'Marketing Solutions — acasă', 'Marketing Solutions — главная'],
   'aria.breadcrumb': ['Breadcrumb', 'Navigare', 'Навигация'],

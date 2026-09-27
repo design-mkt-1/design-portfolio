@@ -3,7 +3,7 @@ import Base from '../../layouts/Base.astro';
 import CtaBanner from '../../components/CtaBanner.astro';
 import { url } from '../../lib/site';
 import { projects, getProject } from '../../data/projects';
-import { projectCrumb, sectionBack, hasBrandbook, brandbookFrames, projectOg } from '../../lib/portfolio';
+import { marketOf, projectCrumb, sectionBack, hasBrandbook, brandbookFrames, projectOg } from '../../lib/portfolio';
 import { thumbFor, thumbDims } from '../../lib/thumbs';
 
 export function getStaticPaths() {
@@ -34,8 +34,8 @@ const figmaLogo = `
 ---
 
 <Base
-  title={`${p.name} Brand Book — Marketing Solutions`}
-  description={`${p.name} brand book — logo, colors, typography, and usage guidelines.`}
+  title={`${p.name} Brand Book — iGaming ${marketOf(p)} | Marketing Solutions`}
+  description={`${p.name} brand book for the ${marketOf(p)} iGaming market: logo, colors, typography and usage guidelines, designed by Marketing Solutions.`}
   favicon={p.favicon}
   ogImage={projectOg(p)}
   accent={p.accent}

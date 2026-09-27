@@ -7,7 +7,7 @@ import AnalyticsBody from '../../components/AnalyticsBody.astro';
 import ChoiceCards, { type Choice } from '../../components/ChoiceCards.astro';
 import { url } from '../../lib/site';
 import { projects, getProject, firstSize, landingThumb } from '../../data/projects';
-import { projectBanners, projectLandings, hasPortfolio, hasBrandbook, assetExists, projectSections, projectOg, projectVideos } from '../../lib/portfolio';
+import { marketOf, projectBanners, projectLandings, hasPortfolio, hasBrandbook, assetExists, projectSections, projectEntry, projectOg, projectVideos } from '../../lib/portfolio';
 import { thumbFor } from '../../lib/thumbs';
 
 export function getStaticPaths() {
@@ -80,7 +80,7 @@ if (portfolio) {
 // (A static redirect page — instant via JS, meta-refresh fallback for no-JS.)
 const sections = projectSections(p);
 const only = sections.length === 1 ? sections[0] : null;
-const redirectTo = only ? url(`/${p.slug}/${only}`) : null;
+const redirectTo = only ? url(projectEntry(p)) : null; // straight to the final page, one hop
 
 // Link-preview scrapers (Slack/Telegram/WhatsApp) read THIS stub and don't
 // follow the refresh — give them a full card so shared short URLs unfurl.
@@ -118,8 +118,8 @@ const stubUrl = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : unde
     </html>
   ) : (
     <Base
-      title={`${p.name} — Marketing Solutions`}
-      description={p.tagline ? `${p.name} — ${p.tagline}` : `${p.name} on the Marketing Solutions design portfolio.`}
+      title={`${p.name} — iGaming Brand & Creative | Marketing Solutions`}
+      description={`${p.name}, an iGaming brand for ${marketOf(p)}: ${sections.map((s) => (s === 'brandbook' ? 'brand book' : 'creative portfolio')).join(' and ')}. ${p.tagline ?? ''} Designed by Marketing Solutions.`.replace(/\s+/g, ' ')}
       favicon={p.favicon}
   ogImage={projectOg(p)}
       accent={p.accent}

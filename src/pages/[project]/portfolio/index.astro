@@ -6,7 +6,7 @@ import CtaBanner from '../../../components/CtaBanner.astro';
 import ChoiceCards, { type Choice } from '../../../components/ChoiceCards.astro';
 import { url } from '../../../lib/site';
 import { projects, getProject, firstSize } from '../../../data/projects';
-import { projectBanners, projectLandings, projectVideos, hasPortfolio, projectCrumb, sectionBack, projectOg } from '../../../lib/portfolio';
+import { marketOf, projectBanners, projectLandings, projectVideos, hasPortfolio, projectCrumb, sectionBack, projectOg } from '../../../lib/portfolio';
 import { storeCount, allStoreImages, storeTitle } from '../../../lib/store';
 import { thumbFor } from '../../../lib/thumbs';
 
@@ -118,8 +118,8 @@ const stubUrl = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : unde
     </html>
   ) : (
     <Base
-  title={`${p.name} Portfolio — Marketing Solutions`}
-  description={`${p.name} creative portfolio — banners, landing pages, and video.`}
+  title={`${p.name} Portfolio — iGaming ${marketOf(p)} | Marketing Solutions`}
+  description={`${p.name} creative portfolio for ${marketOf(p)}: ${choices.map((c) => c.title.toLowerCase()).join(', ')}. iGaming design by Marketing Solutions, with every campaign open to browse.`}
   favicon={p.favicon}
   ogImage={projectOg(p)}
   accent={p.accent}

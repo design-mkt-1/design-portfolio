@@ -61,7 +61,7 @@ for (const { file, html } of indexable) {
   for (const [, json] of blocks) {
     try { JSON.parse(json); } catch (e) { fail('seo', file, `invalid JSON-LD: ${e.message}`); }
   }
-  const title = html.match(/<title>([^<]*)<\/title>/)?.[1] ?? '';
+  const title = (html.match(/<title>([^<]*)<\/title>/)?.[1] ?? '').replaceAll('&amp;', '&');
   if (title.length < 30 || title.length > 70) fail('seo', file, `title length ${title.length}: "${title}"`);
   const desc = html.match(/<meta name="description" content="([^"]*)"/)?.[1] ?? '';
   if (desc.length < 110 || desc.length > 170) fail('seo', file, `description length ${desc.length}`);
@@ -70,13 +70,23 @@ const nf = pages.find((p) => p.file === '404.html');
 if (nf && !isNoindex(nf.html)) fail('seo', '404.html', 'missing noindex');
 for (const f of ['llms.txt', '.well-known/security.txt'])
   if (!existsSync(join(root, f))) fail('seo', f, 'missing');
+if (existsSync(join(root, 'llms.txt'))) {
+  for (const [, u] of read(join(root, 'llms.txt')).matchAll(/\((https:\/\/design\.marketing-solutions\.ro[^)]*)\)/g)) {
+    const page = pages.find((p) => `/${p.file}` === `${new URL(u).pathname}index.html`);
+    if (!page) fail('seo', 'llms.txt', `${u} has no page`);
+    else if (isRedirect(page.html)) fail('seo', 'llms.txt', `${u} is a redirect stub`);
+  }
+}
 for (const { file, html } of pages.filter((p) => p.file.includes('/portfolio/store/'))) {
-  const empty = [...html.matchAll(/<img\b[^>]*\salt=""/g)].length;
-  if (empty) fail('seo', file, `${empty} store images with empty alt`);
+  // The marquee repeats each screenshot; one described copy per image is enough.
+  const described = new Set([...html.matchAll(/<img src="([^"]+)" alt="[^"]+"/g)].map((m) => m[1]));
+  const all = new Set([...html.matchAll(/<img src="([^"]+_thumbs[^"]+\/store\/[^"]+)" alt="[^"]*"/g)].map((m) => m[1]));
+  const missing = [...all].filter((src) => !described.has(src)).length;
+  if (missing) fail('seo', file, `${missing} store images without any alt text`);
 }
 
 // --- Consent and a11y markup (phase 3; translations are covered by test-i18n.mjs) ---
-for (const { file, html } of pages) {
+for (const { file, html } of pages.filter((p) => !isRedirect(p.html))) {
   const consent = html.match(/<section class="consent-banner"[\s\S]*?<\/dialog>/)?.[0] ?? '';
   if (/<h2\b/.test(consent)) fail('a11y', file, 'consent UI uses <h2> before the page <h1>');
   if (!/<a class="skip" href="#main"/.test(html) || !/<main\b[^>]*\sid="main"/.test(html)) fail('a11y', file, 'no skip link to #main');

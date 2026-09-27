@@ -22,6 +22,8 @@ interface Props {
   ogImage?: string;
   /** single-screen pages (e.g. contact): drop the footer so nothing scrolls */
   noFooter?: boolean;
+  /** keep the page out of search results (e.g. 404) */
+  noindex?: boolean;
 }
 const {
   title,
@@ -31,10 +33,47 @@ const {
   favicon,
   ogImage = 'assets/og-card.png',
   noFooter = false,
+  noindex = false,
 } = Astro.props;
 
-// Absolute URLs for social/canonical tags (Astro.site is configured in astro.config.mjs).
-const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined;
+// Canonical URLs always point at the production domain. The GitHub Pages build
+// (base /design-portfolio) is a preview: same pages, noindex, canonical to prod.
+const ORIGIN = process.env.CANONICAL_ORIGIN || 'https://design.marketing-solutions.ro';
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, '');
+const isPreview = BASE !== '';
+const pathNoBase = Astro.url.pathname.slice(BASE.length) || '/';
+const canonical = new URL(pathNoBase, ORIGIN).href;
+const robots = noindex || isPreview ? 'noindex' : undefined;
+
+// Structured data: who runs the site, the site itself, and where this page sits.
+const abs = (href: string) => new URL(href.endsWith('/') ? href : `${href}/`, ORIGIN).href;
+const breadcrumb = crumbs.length
+  ? {
+      '@type': 'BreadcrumbList',
+      itemListElement: [{ label: 'Home', href: '/' }, ...crumbs].map((c, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        name: c.label,
+        item: c.href ? abs(c.href) : canonical,
+      })),
+    }
+  : null;
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      '@id': `${ORIGIN}/#org`,
+      name: 'Marketing Solutions',
+      url: `${ORIGIN}/`,
+      logo: `${ORIGIN}/assets/marketing-solutions-logo.webp`,
+      sameAs: ['https://www.linkedin.com/company/marketing-solutions-romania/'],
+    },
+    { '@type': 'WebSite', '@id': `${ORIGIN}/#site`, name: 'Marketing Solutions — Design Portfolio', url: `${ORIGIN}/`, publisher: { '@id': `${ORIGIN}/#org` } },
+    { '@type': 'WebPage', '@id': canonical, url: canonical, name: title, description, isPartOf: { '@id': `${ORIGIN}/#site` } },
+    ...(breadcrumb ? [breadcrumb] : []),
+  ],
+};
 const ogImageAbs = Astro.site ? new URL(url(ogImage), Astro.site).href : url(ogImage);
 
 // Per-project favicon when the file is actually on disk; MS mark otherwise.
@@ -74,7 +113,9 @@ const siteSection = pagePath.includes('/contact')
     <title>{title}</title>
     <link rel="icon" href={faviconHref} />
     <link rel="apple-touch-icon" sizes="180x180" href={url('assets/_thumbs/favicons/apple-touch-icon.png')} />
-    {canonical && <link rel="canonical" href={canonical} />}
+    <link rel="canonical" href={canonical} />
+    {robots && <meta name="robots" content={robots} />}
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 
     {/* Locale variants: RO/RU render via ?lang=… (client i18n; Googlebot executes
         JS, so translated content on these URLs is indexable). hreflang tells
@@ -191,6 +232,20 @@ const siteSection = pagePath.includes('/contact')
           LinkedIn
         </a>
       </div>
+      <nav class="container footer-work" aria-label="Work">
+        {
+          [
+            ['brandbooks', 'Brand systems'],
+            ['landings', 'Promo landings'],
+            ['banners', 'Banner sets'],
+            ['videos', 'Video & motion'],
+          ].map(([slug, label]) => (
+            <a href={url(`/work/${slug}`)} data-analytics-event="navigation_click" data-analytics-id={`footer_work_${slug}`} data-analytics-location="footer">
+              {label}
+            </a>
+          ))
+        }
+      </nav>
       <div class="container">
         <p class="footer-age">18+ · Responsible, compliance-aware creative for licensed iGaming operators.</p>
       </div>
@@ -544,6 +599,21 @@ const siteSection = pagePath.includes('/contact')
       .footer-li svg {
         width: 15px;
         height: 15px;
+      }
+      .footer-work {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 20px;
+        margin-top: 10px;
+      }
+      .footer-work a {
+        padding-block: 12px;
+        margin-block: -6px;
+        color: var(--fg-muted);
+        transition: color 0.2s;
+      }
+      .footer-work a:hover {
+        color: var(--fg);
       }
       .footer-age {
         margin: 12px 0 0;

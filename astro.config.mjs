@@ -1,17 +1,27 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
+import { redirectStubPaths } from './src/lib/portfolio.ts';
 
-// GitHub Pages project site → https://design-mkt-1.github.io/design-portfolio/
-// If you move to a custom domain or a <user>.github.io repo, set base to '/'.
+// Production is https://design.marketing-solutions.ro (scripts/build-web.mjs sets
+// SITE_URL and BASE_PATH=/). The defaults below build the GitHub Pages preview
+// at https://design-mkt-1.github.io/design-portfolio/, which Base.astro marks noindex.
 const site = process.env.SITE_URL || 'https://design-mkt-1.github.io';
 const base = process.env.BASE_PATH || '/design-portfolio';
+const root = new URL(base.replace(/\/?$/, '/'), site).href.replace(/\/$/, '');
+// Redirect stubs are noindex pages: listing them in the sitemap sends mixed signals.
+const stubs = new Set(redirectStubPaths().map((p) => root + p));
 
 export default defineConfig({
   site,
   base,
   output: 'static',
-  trailingSlash: 'ignore',
+  trailingSlash: 'always',
   build: { format: 'directory' },
-  integrations: [sitemap()],
+  integrations: [
+    sitemap({
+      filter: (page) => !stubs.has(page),
+      serialize: (item) => ({ ...item, lastmod: new Date().toISOString() }),
+    }),
+  ],
 });

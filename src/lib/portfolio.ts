@@ -225,6 +225,12 @@ export function visibleProjects(): Project[] {
   return projects.filter((p) => projectSections(p).length > 0);
 }
 
+/** Market named in titles and descriptions: the country, or "Asia & Europe"
+ *  for the worldwide brands. */
+export function marketOf(p: Project): string {
+  return p.geo?.code === 'WW' ? 'Asia & Europe' : (p.geo?.label ?? 'international markets');
+}
+
 /** Per-project social share card (committed via scripts/gen-og-cards.mjs). */
 export function projectOg(p: Project): string | undefined {
   const path = `assets/${p.slug}/og-card.png`;
@@ -264,11 +270,25 @@ export function projectSections(p: Project): Section[] {
   return s;
 }
 
-/** Where a project card links: a lone section opens directly (skipping the
- *  chooser); 0 or 2 sections go to the /<slug> chooser page. */
+/** Where a project card links: the final page, never a redirect stub. A lone
+ *  section opens directly (skipping the chooser), and a portfolio with a single
+ *  format opens that format; 0 or 2 sections go to the /<slug> chooser page. */
 export function projectEntry(p: Project): string {
   const s = projectSections(p);
-  return s.length === 1 ? `/${p.slug}/${s[0]}` : `/${p.slug}`;
+  if (s.length !== 1) return `/${p.slug}`;
+  if (s[0] === 'portfolio' && skipsFormatChooser(p)) return `/${p.slug}/portfolio/${portfolioFormats(p)[0]}`;
+  return `/${p.slug}/${s[0]}`;
+}
+
+/** Paths that only exist as noindex redirect stubs (see [project]/index.astro and
+ *  [project]/portfolio/index.astro); they stay out of the sitemap. */
+export function redirectStubPaths(): string[] {
+  const out: string[] = [];
+  for (const p of projects) {
+    if (skipsChooser(p)) out.push(`/${p.slug}/`);
+    if (hasPortfolio(p) && skipsFormatChooser(p)) out.push(`/${p.slug}/portfolio/`);
+  }
+  return out;
 }
 
 /** True when the chooser is bypassed (exactly one section), so /<slug> redirects. */

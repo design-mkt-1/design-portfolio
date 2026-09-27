@@ -4,7 +4,7 @@ import CtaBanner from '../../../components/CtaBanner.astro';
 import VideoGallery from '../../../components/VideoGallery.astro';
 import { url } from '../../../lib/site';
 import { projects, getProject } from '../../../data/projects';
-import { projectVideos, projectCrumb, formatBack, portfolioCrumb, projectOg } from '../../../lib/portfolio';
+import { marketOf, projectVideos, projectCrumb, formatBack, portfolioCrumb, projectOg } from '../../../lib/portfolio';
 
 export function getStaticPaths() {
   return projects.filter((p) => projectVideos(p.slug).length > 0).map((p) => ({ params: { project: p.slug } }));
@@ -16,8 +16,8 @@ const videos = projectVideos(p.slug);
 ---
 
 <Base
-  title={`${p.name} Videos — Marketing Solutions`}
-  description={`${p.name} video and motion creative.`}
+  title={`${p.name} Video & Motion — iGaming ${marketOf(p)} | Marketing Solutions`}
+  description={`${videos.length} ${p.name} promo videos and motion pieces for ${marketOf(p)}, cut for social and display placements. iGaming video creative by Marketing Solutions.`}
   favicon={p.favicon}
   ogImage={projectOg(p)}
   accent={p.accent}

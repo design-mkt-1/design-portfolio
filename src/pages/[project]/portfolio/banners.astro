@@ -4,7 +4,7 @@ import CtaBanner from '../../../components/CtaBanner.astro';
 import MediaGallery from '../../../components/MediaGallery.astro';
 import { url } from '../../../lib/site';
 import { projects, getProject } from '../../../data/projects';
-import { projectBanners, projectCrumb, formatBack, portfolioCrumb, projectOg } from '../../../lib/portfolio';
+import { marketOf, projectBanners, projectCrumb, formatBack, portfolioCrumb, projectOg } from '../../../lib/portfolio';
 
 export function getStaticPaths() {
   return projects.filter((p) => projectBanners(p.slug).length > 0).map((p) => ({ params: { project: p.slug } }));
@@ -16,8 +16,8 @@ const banners = projectBanners(p.slug);
 ---
 
 <Base
-  title={`${p.name} Banners — Marketing Solutions`}
-  description={`${p.name} banner creative in every placement size.`}
+  title={`${p.name} Banner Design — iGaming ${marketOf(p)} | Marketing Solutions`}
+  description={`${banners.length} ${p.name} banner campaigns for ${marketOf(p)}, each delivered in every placement size. iGaming banner design by Marketing Solutions.`}
   favicon={p.favicon}
   ogImage={projectOg(p)}
   accent={p.accent}

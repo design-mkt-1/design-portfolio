@@ -1,0 +1,4 @@
+Contact: mailto:design1@marketing-solutions.ro
+Expires: 2027-09-27T00:00:00.000Z
+Preferred-Languages: en, ro, ru
+Canonical: https://design.marketing-solutions.ro/.well-known/security.txt
