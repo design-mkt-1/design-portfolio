@@ -16,13 +16,17 @@
     "preview": "astro preview",
     "astro": "astro",
     "prebuild": "node scripts/gen-thumbs.mjs",
-    "prebuild:web": "node scripts/gen-thumbs.mjs"
+    "prebuild:web": "node scripts/gen-thumbs.mjs",
+    "check": "astro check",
+    "test:audit": "node tools/audit/check-dist.mjs"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.10",
     "@astrojs/sitemap": "^3.7.3",
     "astro": "^5.7.0",
     "image-size": "^2.0.2",
     "playwright": "^1.61.1",
-    "sharp": "^0.35.3"
+    "sharp": "^0.35.3",
+    "typescript": "^5.9.3"
   }
 }
